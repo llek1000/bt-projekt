@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\ConferenceYear; 
 
 class User extends Authenticatable
 {
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', 
     ];
 
     /**
@@ -44,5 +46,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * The conference years that the user (editor) is assigned to.
+     */
+    public function conferenceYears()
+    {
+        // Ensure the foreign key names match your pivot table migration
+        return $this->belongsToMany(ConferenceYear::class, 'editor_conference_year', 'editor_id', 'conference_year_id');
+    }
+
+    /**
+     * Check if the user has the 'admin' role.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 }

@@ -118,6 +118,18 @@ class AdminController extends Controller
         $role = Role::findOrFail($validated['roleId']);
 
 
+        // Check if user is an admin and is being demoted
+        $isAdmin = $user->roles()->where('name', 'Admin')->exists();
+        $isNewRoleAdmin = $role->name === 'Admin';
+
+        // Prevent demoting admin users
+        if ($isAdmin && !$isNewRoleAdmin) {
+            return response()->json([
+                'message' => 'Cannot demote an administrator account',
+                'error' => 'admin_protection'
+            ], 403);
+        }
+
         $user->roles()->sync([$role->id]);
 
         return response()->json([

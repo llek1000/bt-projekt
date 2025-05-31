@@ -6,11 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use App\Models\Role; // Ensure you import the Role model
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +20,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
         'role', 
@@ -47,21 +49,33 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * The conference years that the user (editor) is associated with.
-     */
-    public function conferenceYears()
+    // Add this relationship
+    public function roles()
     {
-        return $this->belongsToMany(ConferenceYear::class, 'editor_conference_year', 'editor_id', 'conference_year_id');
+        return $this->belongsToMany(Role::class);
     }
 
-    /**
-     * Check if the user has the admin role.
-     *
-     * @return bool
-     */
-    public function isAdmin()
+    // Check if user has a specific role
+    public function hasRole($role)
+{
+    if (is_string($role)) {
+        // Fix: Check against 'name' column (not 'username') and make case-insensitive
+        return $this->roles->contains(function($value) use ($role) {
+            return strtolower($value->name) === strtolower($role);
+        });
+    }
+
+    return !! $role->intersect($this->roles)->count();
+}
+
+    // Assign role to user
+    public function assignRole($role)
     {
-        return $this->role === 'admin';
+        if (is_string($role)) {
+            $role = Role::whereName($role)->firstOrCreate(['name' => $role]);
+        }
+
+        $this->roles()->sync($role, false);
+        return $this;
     }
 }

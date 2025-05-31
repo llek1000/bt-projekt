@@ -56,7 +56,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user has the 'admin' role.
+     * Check if the user has the admin role.
      *
      * @return bool
      */

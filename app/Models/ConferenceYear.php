@@ -2,19 +2,45 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ConferenceYear extends Model
 {
-    protected $fillable = ['year', 'description'];
+    use HasFactory;
 
-    public function editors()
+    protected $fillable = [
+        'year',
+        'semester',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Get all articles for this conference year
+     */
+    public function articles(): HasMany
     {
-        return $this->belongsToMany(User::class, 'editor_conference_year', 'conference_year_id', 'editor_id');
+        return $this->hasMany(Article::class);
     }
 
-    public function subpages()
+    /**
+     * Scope to get only active conference years
+     */
+    public function scopeActive($query)
     {
-        return $this->hasMany(Subpage::class);
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Get the full name of the conference year
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->semester . ' ' . $this->year;
     }
 }

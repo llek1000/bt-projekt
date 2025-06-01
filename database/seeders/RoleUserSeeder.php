@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\Role;
 
 class RoleUserSeeder extends Seeder
 {
@@ -12,20 +14,31 @@ class RoleUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin user (user_id: 1) gets admin role (role_id: 1)
-        DB::table('role_user')->insert([
-            'user_id' => 1,
-            'role_id' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Get the users we created in UserSeeder
+        $adminUser = User::where('email', 'admin@example.com')->first();
+        $editorUser = User::where('email', 'editor@example.com')->first();
 
-        // Editor user (user_id: 2) gets editor role (role_id: 2)
-        DB::table('role_user')->insert([
-            'user_id' => 2,
-            'role_id' => 2,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Get the roles
+        $adminRole = Role::where('name', 'admin')->first();
+        $editorRole = Role::where('name', 'editor')->first();
+
+        // Only assign roles if both user and role exist
+        if ($adminUser && $adminRole) {
+            DB::table('role_user')->insert([
+                'user_id' => $adminUser->id,
+                'role_id' => $adminRole->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if ($editorUser && $editorRole) {
+            DB::table('role_user')->insert([
+                'user_id' => $editorUser->id,
+                'role_id' => $editorRole->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }

@@ -1,24 +1,29 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Article extends Model
+class EditorAssignment extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'title',
-        'content',
+        'user_id',
         'conference_year_id',
-        'author_name',
     ];
 
     /**
-     * Get the conference year that owns the article.
+     * Get the user (editor) assigned.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the conference year.
      */
     public function conferenceYear()
     {

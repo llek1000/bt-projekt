@@ -13,20 +13,22 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin user
+
         User::create([
             'username' => 'Admin',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
+            'role_id' => 1, // Assuming role_id 1 is for Admin
         ]);
 
-        // Editor user
+
         User::create([
             'username' => 'Editor',
             'email' => 'editor@example.com',
             'password' => Hash::make('password'),
+            'role_id' => 2, // Assuming role_id 2 is for Editor
         ]);
 
-        // Role assignments handled in RoleUserSeeder
+
     }
 }

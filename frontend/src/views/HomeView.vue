@@ -1222,12 +1222,13 @@ export default defineComponent({
 
 .news-category {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: black;
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 600;
   backdrop-filter: blur(10px);
+  font-size: 50px;
 }
 
 .news-content {
@@ -1422,12 +1423,13 @@ export default defineComponent({
 /* Footer */
 .footer {
   background: var(--bg-dark);
-  color: white;
+  color: black;
   margin-top: auto;
 }
 
 .footer-content {
   padding: 4rem 0 2rem;
+  
 }
 
 .footer-grid {
@@ -1450,7 +1452,7 @@ export default defineComponent({
 }
 
 .footer-tagline {
-  color: #94a3b8;
+  color: black;
   font-size: 0.875rem;
 }
 
@@ -1464,7 +1466,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #cbd5e1;
+  color: black;
   font-size: 0.875rem;
 }
 
@@ -1476,7 +1478,7 @@ export default defineComponent({
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
-  color: white;
+  color: black;
 }
 
 .footer-column ul {
@@ -1489,14 +1491,14 @@ export default defineComponent({
 }
 
 .footer-column a {
-  color: #94a3b8;
+  color: black;
   text-decoration: none;
   transition: color 0.3s ease;
   font-size: 0.875rem;
 }
 
 .footer-column a:hover {
-  color: white;
+  color: gray;
 }
 
 .social-links {
@@ -1510,14 +1512,14 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #94a3b8;
+  color: black;
   text-decoration: none;
   transition: all 0.3s ease;
   font-size: 0.875rem;
 }
 
 .social-link:hover {
-  color: white;
+  color: gray;
   transform: translateX(5px);
 }
 
@@ -1525,11 +1527,11 @@ export default defineComponent({
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: white;
+  color: black;
 }
 
 .newsletter p {
-  color: #94a3b8;
+  color: black;
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
@@ -1544,14 +1546,14 @@ export default defineComponent({
   padding: 0.75rem;
   border: 1px solid #374151;
   border-radius: 8px;
-  background: #1f2937;
+  background: #445a79;
   color: white;
   font-size: 0.875rem;
   outline: none;
 }
 
 .newsletter-form input::placeholder {
-  color: #6b7280;
+  color:white;
 }
 
 .newsletter-form button {
@@ -1559,6 +1561,7 @@ export default defineComponent({
   background: var(--primary-color);
   color: white;
   border: none;
+  background: green;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.875rem;
@@ -1571,7 +1574,7 @@ export default defineComponent({
 }
 
 .footer-bottom {
-  background: #0f172a;
+  background: #445a79;
   padding: 1.5rem 0;
   border-top: 1px solid #374151;
 }
@@ -1586,7 +1589,7 @@ export default defineComponent({
 
 .footer-bottom p {
   margin: 0;
-  color: #6b7280;
+  color: white;
   font-size: 0.875rem;
 }
 
@@ -1597,14 +1600,14 @@ export default defineComponent({
 }
 
 .footer-links a {
-  color: #6b7280;
+  color: white;
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 0.3s ease;
 }
 
 .footer-links a:hover {
-  color: white;
+  color: gray;
 }
 
 /* Responsive Design */

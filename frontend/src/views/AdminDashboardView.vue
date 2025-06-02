@@ -382,10 +382,6 @@
 import { ref, onMounted, computed, provide } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import adminPanel from '@/services/adminPanel'
-import CreateUserModal from '@/components/modals/CreateUserModal.vue'
-import EditUserModal from '@/components/modals/EditUserModal.vue'
-import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal.vue'
-import PasswordChangeModal from '@/components/modals/PasswordChangeModal.vue'
 
 const years = ref<any[]>([])
 const users = ref<any[]>([])
@@ -421,7 +417,18 @@ const tinymceConfig = {
   plugins: 'lists link image code',
   toolbar: 'undo redo | bold italic underline | alignleft aligncenter | bullist numlist | image | code',
   height: 350,
-  api_key: tinymceKey
+  api_key: tinymceKey,
+  automatic_uploads: true,
+  images_upload_handler: async (blobInfo, success, failure) => {
+    const fd = new FormData()
+    fd.append('file', blobInfo.blob(), blobInfo.filename())
+    try {
+      const res = await adminPanel.uploadImage(fd)
+      success(res.data.location)
+    } catch (err: any) {
+      failure('Image upload failed: ' + (err.response?.data?.message || err.message))
+    }
+  }
 }
 
 const filteredUsers = computed(() => {

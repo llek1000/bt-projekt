@@ -85,4 +85,10 @@ export default {
   deleteArticle(id: number) {
     return api.delete(`/editor/articles/${id}`)
   },
+
+  uploadImage(formData: FormData) {
+    return api.post<{ location: string }>('/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 }

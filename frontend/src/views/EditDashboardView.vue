@@ -4,6 +4,7 @@ import Editor from '@tinymce/tinymce-vue'
 import axios from 'axios'
 import { articleApi, type Article, type UpdateArticleRequest } from '@/services/article'
 import { conferenceYearApi, conferenceYearHelpers, type ConferenceYear } from '@/services/conferenceYear'
+import adminPanel from '@/services/adminPanel'
 import type { Settings } from 'tinymce'
 
 export default defineComponent({
@@ -49,7 +50,7 @@ export default defineComponent({
       // TinyMCE editor
       content: '' as string,
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
-      config: {
+      tinymceConfig: {
         menubar: true,
         plugins: 'lists link image code',
         toolbar:
@@ -58,22 +59,28 @@ export default defineComponent({
         height: 350,
         // API kľúč priamo v konfigurácii
         api_key: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
-        images_upload_handler: (
+        automatic_uploads: true,
+        images_upload_handler: function(
           blobInfo: any,
           success: (url: string) => void,
-          failure: (err: string) => void
-        ) => {
-          const form = new FormData()
-          form.append('file', blobInfo.blob(), blobInfo.filename())
-          axios.post('/articles/upload-image', form, {
-            baseURL: import.meta.env.VITE_API_BASE_URL,
-            headers: { 'Content-Type': 'multipart/form-data' }
-          })
-          .then(res => {
-            const url = res.data.location
-            url ? success(url) : failure('No URL in response')
-          })
-          .catch(err => failure('Upload error: ' + err.message))
+          failure: (errMsg: string) => void
+        ) {
+          const fd = new FormData()
+          fd.append('file', blobInfo.blob(), blobInfo.filename())
+
+          adminPanel.uploadImage(fd)
+            .then(res => {
+              success(res.data.location)
+            })
+            .catch(err => {
+              console.error('Image upload error:', err)
+              if (typeof failure === 'function') {
+                failure(
+                  'Image upload failed: ' +
+                  (err.response?.data?.message || err.message || 'Unknown error')
+                )
+              }
+            })
         }
       } as Settings
     }
@@ -576,7 +583,7 @@ export default defineComponent({
                   <Editor
                     v-model="content"
                     :api-key="tinymceKey"
-                    :init="config"
+                    :init="tinymceConfig"
                   />
                 </div>
                 
@@ -631,7 +638,7 @@ export default defineComponent({
                   <Editor
                     v-model="content"
                     :api-key="tinymceKey"
-                    :init="config"
+                    :init="tinymceConfig"
                   />
                 </div>
                 

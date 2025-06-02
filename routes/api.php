@@ -8,6 +8,7 @@ use App\Http\Controllers\ConferenceYearController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\EditorAssignmentController;
 use App\Http\Controllers\SubpageController;
+use App\Http\Controllers\UploadController;
 
 // Auth routes (Guest only)
 Route::middleware('guest')->group(function () {
@@ -47,6 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+    // Article management - pridané pre všetkých autentifikovaných používateľov
+    Route::put('/articles/{id}', [ArticleController::class, 'update']);
+    Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
+
     // Editor routes (Admin + Editor access)
     Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {
         // Article management
@@ -83,4 +88,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('subpages/{subpage}', [SubpageController::class, 'update']);
         Route::delete('subpages/{subpage}', [SubpageController::class, 'destroy']);
     });
+
+    Route::post('/upload-image', [UploadController::class, 'upload']);
 });

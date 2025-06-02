@@ -20,7 +20,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYears,
-            'message' => 'Conference years retrieved successfully'
+            'message' => 'Ročníky konferencie boli úspešne načítané'
         ]);
     }
 
@@ -39,11 +39,11 @@ class ConferenceYearController extends Controller
             'semester' => 'required|in:Winter,Summer',
             'is_active' => 'boolean'
         ], [
-            'year.required' => 'Year is required',
-            'year.size' => 'Year must be exactly 4 digits',
-            'year.regex' => 'Year must be a valid 4-digit number',
-            'semester.required' => 'Semester is required',
-            'semester.in' => 'Semester must be either Winter or Summer'
+            'year.required' => 'Rok je povinný',
+            'year.size' => 'Rok musí mať presne 4 číslice',
+            'year.regex' => 'Rok musí byť platné 4-miestne číslo',
+            'semester.required' => 'Semester je povinný',
+            'semester.in' => 'Semester musí byť buď Winter alebo Summer'
         ]);
 
         // Check for duplicate year/semester combination
@@ -53,9 +53,9 @@ class ConferenceYearController extends Controller
 
         if ($exists) {
             return response()->json([
-                'message' => 'Conference year with this year and semester already exists',
+                'message' => 'Ročník konferencie s týmto rokom a semestrom už existuje',
                 'errors' => [
-                    'combination' => ['This year/semester combination already exists']
+                    'combination' => ['Táto kombinácia rok/semester už existuje']
                 ]
             ], 422);
         }
@@ -69,7 +69,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYear,
-            'message' => 'Conference year created successfully'
+            'message' => 'Ročník konferencie bol úspešne vytvorený'
         ], 201);
     }
 
@@ -82,7 +82,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYear,
-            'message' => 'Conference year retrieved successfully'
+            'message' => 'Ročník konferencie bol úspešne načítaný'
         ]);
     }
 
@@ -106,12 +106,12 @@ class ConferenceYearController extends Controller
             'semester' => 'required|in:Winter,Summer',
             'is_active' => 'boolean'
         ], [
-            'year.required' => 'Year is required',
-            'year.size' => 'Year must be exactly 4 digits',
-            'year.regex' => 'Year must be a valid 4-digit number',
-            'year.unique' => 'This year/semester combination already exists',
-            'semester.required' => 'Semester is required',
-            'semester.in' => 'Semester must be either Winter or Summer'
+            'year.required' => 'Rok je povinný',
+            'year.size' => 'Rok musí mať presne 4 číslice',
+            'year.regex' => 'Rok musí byť platné 4-miestne číslo',
+            'year.unique' => 'Táto kombinácia rok/semester už existuje',
+            'semester.required' => 'Semester je povinný',
+            'semester.in' => 'Semester musí byť buď Winter alebo Summer'
         ]);
 
         // If setting this as active, deactivate others
@@ -125,7 +125,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYear->fresh(),
-            'message' => 'Conference year updated successfully'
+            'message' => 'Ročník konferencie bol úspešne aktualizovaný'
         ]);
     }
 
@@ -139,9 +139,9 @@ class ConferenceYearController extends Controller
         // Check if conference year has articles
         if ($conferenceYear->articles()->exists()) {
             return response()->json([
-                'message' => 'Cannot delete conference year with existing articles',
+                'message' => 'Nemožno vymazať ročník konferencie s existujúcimi článkami',
                 'errors' => [
-                    'articles' => ['This conference year has associated articles and cannot be deleted']
+                    'articles' => ['Tento ročník konferencie má priradené články a nemôže byť vymazaný']
                 ]
             ], 422);
         }
@@ -149,7 +149,7 @@ class ConferenceYearController extends Controller
         $conferenceYear->delete();
 
         return response()->json([
-            'message' => 'Conference year deleted successfully'
+            'message' => 'Ročník konferencie bol úspešne vymazaný'
         ], 204);
     }
 
@@ -163,13 +163,13 @@ class ConferenceYearController extends Controller
         if (!$activeConferenceYear) {
             return response()->json([
                 'data' => null,
-                'message' => 'No active conference year found'
+                'message' => 'Nebol nájdený žiadny aktívny ročník konferencie'
             ]);
         }
 
         return response()->json([
             'data' => $activeConferenceYear,
-            'message' => 'Active conference year retrieved successfully'
+            'message' => 'Aktívny ročník konferencie bol úspešne načítaný'
         ]);
     }
 
@@ -188,7 +188,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYear->fresh(),
-            'message' => 'Conference year set as active successfully'
+            'message' => 'Ročník konferencie bol úspešne nastavený ako aktívny'
         ]);
     }
 
@@ -203,7 +203,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $conferenceYears,
-            'message' => "Conference years for {$year} retrieved successfully"
+            'message' => "Ročníky konferencie pre rok {$year} boli úspešne načítané"
         ]);
     }
 
@@ -219,7 +219,7 @@ class ConferenceYearController extends Controller
 
         return response()->json([
             'data' => $years,
-            'message' => 'Available years retrieved successfully'
+            'message' => 'Dostupné roky boli úspešne načítané'
         ]);
     }
 
@@ -232,7 +232,6 @@ class ConferenceYearController extends Controller
 
         $stats = [
             'total_articles' => $conferenceYear->articles()->count(),
-            // Remove these status-based queries since status field doesn't exist
             'articles_by_author' => $conferenceYear->articles()
                                                   ->selectRaw('author_name, COUNT(*) as count')
                                                   ->groupBy('author_name')
@@ -248,7 +247,7 @@ class ConferenceYearController extends Controller
                 'conference_year' => $conferenceYear,
                 'statistics' => $stats
             ],
-            'message' => 'Conference year statistics retrieved successfully'
+            'message' => 'Štatistiky ročníka konferencie boli úspešne načítané'
         ]);
     }
 }

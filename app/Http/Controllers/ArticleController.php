@@ -34,7 +34,7 @@ class ArticleController extends Controller
 
         return response()->json([
             'data' => $articles,
-            'message' => 'Articles retrieved successfully'
+            'message' => 'Články boli úspešne načítané'
         ]);
     }
 
@@ -49,12 +49,12 @@ class ArticleController extends Controller
             'conference_year_id' => 'required|exists:conference_years,id',
             'author_name' => 'required|string|max:255'
         ], [
-            'title.required' => 'Article title is required',
-            'title.max' => 'Title cannot exceed 255 characters',
-            'conference_year_id.required' => 'Conference year is required',
-            'conference_year_id.exists' => 'Selected conference year does not exist',
-            'author_name.required' => 'Author name is required',
-            'author_name.max' => 'Author name cannot exceed 255 characters'
+            'title.required' => 'Názov článku je povinný',
+            'title.max' => 'Názov nemôže presiahnuť 255 znakov',
+            'conference_year_id.required' => 'Ročník konferencie je povinný',
+            'conference_year_id.exists' => 'Vybraný ročník konferencie neexistuje',
+            'author_name.required' => 'Meno autora je povinné',
+            'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
         $article = Article::create($validated);
@@ -62,7 +62,7 @@ class ArticleController extends Controller
 
         return response()->json([
             'data' => $article,
-            'message' => 'Article created successfully'
+            'message' => 'Článok bol úspešne vytvorený'
         ], 201);
     }
 
@@ -75,7 +75,7 @@ class ArticleController extends Controller
 
         return response()->json([
             'data' => $article,
-            'message' => 'Article retrieved successfully'
+            'message' => 'Článok bol úspešne načítaný'
         ]);
     }
 
@@ -91,6 +91,13 @@ class ArticleController extends Controller
             'content' => 'nullable|string',
             'conference_year_id' => 'required|exists:conference_years,id',
             'author_name' => 'required|string|max:255'
+        ], [
+            'title.required' => 'Názov článku je povinný',
+            'title.max' => 'Názov nemôže presiahnuť 255 znakov',
+            'conference_year_id.required' => 'Ročník konferencie je povinný',
+            'conference_year_id.exists' => 'Vybraný ročník konferencie neexistuje',
+            'author_name.required' => 'Meno autora je povinné',
+            'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
         $article->update($validated);
@@ -98,7 +105,7 @@ class ArticleController extends Controller
 
         return response()->json([
             'data' => $article,
-            'message' => 'Article updated successfully'
+            'message' => 'Článok bol úspešne aktualizovaný'
         ]);
     }
 
@@ -111,7 +118,7 @@ class ArticleController extends Controller
         $article->delete();
 
         return response()->json([
-            'message' => 'Article deleted successfully'
+            'message' => 'Článok bol úspešne vymazaný'
         ], 204);
     }
 
@@ -126,7 +133,7 @@ class ArticleController extends Controller
         return response()->json([
             'data' => $articles,
             'conference_year' => $conferenceYear,
-            'message' => 'Articles for conference year retrieved successfully'
+            'message' => 'Články pre ročník konferencie boli úspešne načítané'
         ]);
     }
 
@@ -143,7 +150,7 @@ class ArticleController extends Controller
         return response()->json([
             'data' => $articles,
             'author' => $authorName,
-            'message' => 'Articles by author retrieved successfully'
+            'message' => 'Články od autora boli úspešne načítané'
         ]);
     }
 
@@ -154,6 +161,9 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'query' => 'required|string|min:2'
+        ], [
+            'query.required' => 'Hľadací dotaz je povinný',
+            'query.min' => 'Hľadací dotaz musí mať aspoň 2 znaky'
         ]);
 
         $query = $validated['query'];
@@ -171,7 +181,7 @@ class ArticleController extends Controller
             'data' => $articles,
             'query' => $query,
             'count' => $articles->count(),
-            'message' => 'Search completed successfully'
+            'message' => 'Vyhľadávanie bolo úspešne dokončené'
         ]);
     }
 
@@ -199,7 +209,7 @@ class ArticleController extends Controller
 
         return response()->json([
             'data' => $stats,
-            'message' => 'Article statistics retrieved successfully'
+            'message' => 'Štatistiky článkov boli úspešne načítané'
         ]);
     }
 
@@ -211,12 +221,17 @@ class ArticleController extends Controller
         $validated = $request->validate([
             'article_ids' => 'required|array|min:1',
             'article_ids.*' => 'exists:articles,id'
+        ], [
+            'article_ids.required' => 'Zoznam článkov na vymazanie je povinný',
+            'article_ids.array' => 'Zoznam článkov musí byť pole',
+            'article_ids.min' => 'Musíte vybrať aspoň jeden článok na vymazanie',
+            'article_ids.*.exists' => 'Niektorý z vybraných článkov neexistuje'
         ]);
 
         $deletedCount = Article::whereIn('id', $validated['article_ids'])->delete();
 
         return response()->json([
-            'message' => "{$deletedCount} articles deleted successfully",
+            'message' => "{$deletedCount} článkov bolo úspešne vymazaných",
             'deleted_count' => $deletedCount
         ]);
     }
@@ -238,7 +253,7 @@ class ArticleController extends Controller
             'data' => $articles,
             'export_date' => now()->toISOString(),
             'total_count' => $articles->count(),
-            'message' => 'Articles exported successfully'
+            'message' => 'Články boli úspešne exportované'
         ]);
     }
 }

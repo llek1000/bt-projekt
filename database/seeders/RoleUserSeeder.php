@@ -14,15 +14,14 @@ class RoleUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the users we created in UserSeeder
+
         $adminUser = User::where('email', 'admin@example.com')->first();
         $editorUser = User::where('email', 'editor@example.com')->first();
 
-        // Get the roles
         $adminRole = Role::where('name', 'admin')->first();
         $editorRole = Role::where('name', 'editor')->first();
 
-        // Only assign roles if both user and role exist
+
         if ($adminUser && $adminRole) {
             DB::table('role_user')->insert([
                 'user_id' => $adminUser->id,

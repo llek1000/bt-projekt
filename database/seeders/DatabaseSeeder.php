@@ -15,15 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create roles and users first
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
             RoleUserSeeder::class,
-            DepartmentSeeder::class,
         ]);
 
-        // Create conference years with unique combinations
+
         ConferenceYear::factory()
             ->count(6)
             ->sequence(
@@ -36,10 +34,10 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-        // Create articles - remove the user_id assignment
+
         Article::factory()->count(20)->create();
 
-        // Create editor assignments using existing users and conference years
+
         EditorAssignment::factory()->count(10)->create();
     }
 }

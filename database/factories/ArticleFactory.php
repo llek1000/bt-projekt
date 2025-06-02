@@ -35,9 +35,6 @@ class ArticleFactory extends Factory
         ];
     }
 
-    /**
-     * Set a specific conference year.
-     */
     public function forConferenceYear(ConferenceYear $conferenceYear): static
     {
         return $this->state(fn (array $attributes) => [
@@ -45,9 +42,6 @@ class ArticleFactory extends Factory
         ]);
     }
 
-    /**
-     * Set a specific author name.
-     */
     public function byAuthor(string $authorName): static
     {
         return $this->state(fn (array $attributes) => [

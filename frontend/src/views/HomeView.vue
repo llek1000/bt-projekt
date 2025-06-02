@@ -1,68 +1,67 @@
 <template>
   <div class="page-container">
-    <!-- Top Navigation Bar -->
+    <!-- Horná lišta -->
     <div class="topbar">
       <div class="topbar-container">
         <div class="topbar-right">
           <button @click="toggleSearch" class="topbar-button">
             <span class="icon-search">🔍</span>
-            <span class="button-text">Search</span>
+            <span class="button-text">Vyhľadať</span>
           </button>
           
           <button @click="toggleQuicklinks" class="topbar-button">
             <span class="icon-quicklinks">≡</span>
-            <span class="button-text">Quicklinks</span>
+            <span class="button-text">Rýchle odkazy</span>
           </button>
           
           <a href="/login" class="topbar-button">
             <span class="icon-login">👤</span>
-            <span class="button-text">Login</span>
+            <span class="button-text">Prihlásenie</span>
           </a>
         </div>
       </div>
       
-      <!-- Search Dropdown -->
+      <!-- Dropdown vyhľadávania -->
       <transition name="slide-down">
         <div class="search-dropdown" v-if="searchOpen">
           <form class="search-form">
-            <input type="text" placeholder="Search for staff and content" class="search-input">
+            <input type="text" placeholder="Vyhľadajte zamestnancov a obsah" class="search-input">
             <button type="submit" class="search-submit">
-              <span>Search</span>
+              <span>Hľadať</span>
               <i class="search-icon">→</i>
             </button>
           </form>
         </div>
       </transition>
       
-      <!-- Quicklinks Dropdown -->
+      <!-- Dropdown rýchlych odkazov -->
       <transition name="slide-down">
         <div class="quicklinks-dropdown" v-if="quicklinksOpen">
           <div class="quicklinks-grid">
             <div class="quicklinks-column">
-              <h3>Links</h3>
+              <h3>Odkazy</h3>
               <ul>
-                <li><a href="#">Publications</a></li>
-                <li><a href="#">Research Projects</a></li>
-                <li><a href="#">Faculty Resources</a></li>
-                <li><a href="#">Student Portal</a></li>
+                <li><a href="#">Výskumné projekty</a></li>
+                <li><a href="#">Materiály fakulty</a></li>
+                <li><a href="#">Portál študentov</a></li>
               </ul>
             </div>
             <div class="quicklinks-column">
-              <h3>Resources</h3>
+              <h3>Zdroje</h3>
               <ul>
-                <li><a href="#">Library</a></li>
-                <li><a href="#">Online Learning</a></li>
-                <li><a href="#">Databases</a></li>
-                <li><a href="#">Research Tools</a></li>
+                <li><a href="#">Knižnica</a></li>
+                <li><a href="#">Online výučba</a></li>
+                <li><a href="#">Databázy</a></li>
+                <li><a href="#">Nástroje pre výskum</a></li>
               </ul>
             </div>
             <div class="quicklinks-column">
-              <h3>Contact</h3>
+              <h3>Kontakt</h3>
               <ul>
-                <li><a href="#">Faculty Directory</a></li>
-                <li><a href="#">Department Office</a></li>
-                <li><a href="#">Campus Map</a></li>
-                <li><a href="#">Support</a></li>
+                <li><a href="#">Adresár fakulty</a></li>
+                <li><a href="#">Kancelária oddelenia</a></li>
+                <li><a href="#">Mapa areálu</a></li>
+                <li><a href="#">Podpora</a></li>
               </ul>
             </div>
           </div>
@@ -76,45 +75,41 @@
       </transition>
     </div>
     
-    <!-- Main Navigation Bar -->
+    <!-- Hlavné menu -->
     <nav class="main-navbar">
       <div class="navbar-container">
         <div class="logo-container">
           <a href="/" class="logo-link">
             <div class="logo-wrapper">
-              <img src="/src/assets/logo.png" alt="Research Institute Logo" class="logo">
+              <img src="/src/assets/logo.png" alt="Logo výskumného inštitútu" class="logo">
               <div class="logo-text">
-                <span class="institute-name">Research Institute</span>
-                <span class="institute-subtitle">Excellence in Science</span>
+                <span class="institute-name">Výskumný inštitút</span>
+                <span class="institute-subtitle">Excelencia vo vede</span>
               </div>
             </div>
           </a>
         </div>
         
         <div class="main-nav-links">
-          <a href="/research" class="main-nav-link">
-            <span>Research</span>
-            <div class="nav-underline"></div>
-          </a>
           <a href="/publications" class="main-nav-link">
-            <span>Publications</span>
+            <span>Publikácie</span>
             <div class="nav-underline"></div>
           </a>
           <a href="/departments" class="main-nav-link">
-            <span>Departments</span>
+            <span>Oddelenia</span>
             <div class="nav-underline"></div>
           </a>
           <a href="/about" class="main-nav-link">
-            <span>About</span>
+            <span>O nás</span>
             <div class="nav-underline"></div>
           </a>
         </div>
       </div>
     </nav>
     
-    <!-- Main Content -->
+    <!-- Hlavný obsah -->
     <main class="main-content">
-      <!-- Hero Section -->
+      <!-- Hero sekcia -->
       <section class="hero-section">
         <div class="hero-background">
           <div class="hero-overlay"></div>
@@ -123,189 +118,184 @@
         <div class="hero-content">
           <div class="hero-text">
             <h1 class="hero-title">
-              <span class="title-line">Center for</span>
-              <span class="title-line highlight">Scientific Research</span>
+              <span class="title-line">Centrum pre</span>
+              <span class="title-line highlight">Vedecký výskum</span>
             </h1>
-            <p class="hero-subtitle">Advancing knowledge through innovation and collaboration</p>
+            <p class="hero-subtitle">
+              Posúvanie hraníc poznania prostredníctvom inovácií a spolupráce
+            </p>
             <div class="hero-buttons">
-              <a href="/research" class="hero-btn primary">
-                <span>Explore Research</span>
-                <i class="btn-arrow">→</i>
-              </a>
               <a href="/about" class="hero-btn secondary">
-                <span>Learn More</span>
+                <span>O nás</span>
+                <span class="btn-arrow">→</span>
               </a>
             </div>
           </div>
           <div class="hero-stats">
             <div class="stat-item">
-              <div class="stat-number">150+</div>
-              <div class="stat-label">Researchers</div>
+              <span class="stat-number">150+</span>
+              <span class="stat-label">Projektov</span>
             </div>
             <div class="stat-item">
-              <div class="stat-number">50+</div>
-              <div class="stat-label">Projects</div>
+              <span class="stat-number">200+</span>
+              <span class="stat-label">Publikácií</span>
             </div>
             <div class="stat-item">
-              <div class="stat-number">500+</div>
-              <div class="stat-label">Publications</div>
+              <span class="stat-number">500+</span>
+              <span class="stat-label">Partnerov</span>
             </div>
           </div>
         </div>
-        <div class="scroll-indicator">
-          <span>Scroll to explore</span>
-          <div class="scroll-arrow">↓</div>
-        </div>
       </section>
       
-      <!-- Welcome Section -->
+      <!-- Vítacia sekcia -->
       <section class="welcome-section">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">Welcome to the Future of Research</h2>
-            <p class="section-subtitle">Where innovation meets excellence</p>
+            <h2 class="section-title">Vitajte v budúcnosti výskumu</h2>
+            <p class="section-subtitle">Kde sa inovácie stretávajú s excelentnosťou</p>
           </div>
           <div class="welcome-content">
             <div class="welcome-text">
               <p class="highlight-text">
-                Our institute is dedicated to advancing scientific knowledge through cutting-edge research across multiple disciplines.
+                Náš inštitút je zameraný na pokrok vo vedeckom poznaní prostredníctvom inovatívneho výskumu v rôznych disciplínach.
               </p>
               <p>
-                We bring together world-class researchers, state-of-the-art facilities, and innovative approaches to tackle the most pressing challenges of our time.
+                Spojujeme svetových odborníkov, moderné zariadenia a inovatívne prístupy na riešenie najnaliehavejších výziev našej doby.
               </p>
               <p>
-                Through collaborative partnerships with industry, government, and other academic institutions, we strive to translate scientific discoveries 
-                into real-world applications that benefit society and improve lives.
+                Prostredníctvom spolupráce s priemyslom, vládou a inými akademickými inštitúciami sa snažíme previesť vedecké objavy 
+                do praktických aplikácií, ktoré prospievajú spoločnosti a zlepšujú životy.
               </p>
             </div>
             <div class="welcome-features">
               <div class="feature-item">
                 <div class="feature-icon">🎯</div>
-                <h4>Focused Research</h4>
-                <p>Targeted studies in key scientific areas</p>
+                <h4>Zameraný výskum</h4>
+                <p>Cielené štúdie v kľúčových vedeckých oblastiach</p>
               </div>
               <div class="feature-item">
                 <div class="feature-icon">🤝</div>
-                <h4>Collaboration</h4>
-                <p>Global partnerships and knowledge sharing</p>
+                <h4>Spolupráca</h4>
+                <p>Globálne partnerstvá a zdieľanie poznatkov</p>
               </div>
               <div class="feature-item">
                 <div class="feature-icon">💡</div>
-                <h4>Innovation</h4>
-                <p>Cutting-edge technologies and methods</p>
+                <h4>Inovácia</h4>
+                <p>Moderné technológie a metódy</p>
               </div>
             </div>
           </div>
         </div>
       </section>
       
-      <!-- Research Areas Section -->
+      <!-- Sekcia výskumných oblastí -->
       <section class="research-areas">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">Our Research Areas</h2>
-            <p class="section-subtitle">Pioneering discoveries across multiple disciplines</p>
+            <h2 class="section-title">Výskumné oblasti</h2>
+            <p class="section-subtitle">Preskúmajte naše kľúčové oblasti pôsobenia</p>
           </div>
           <div class="research-grid">
             <div class="research-card">
               <div class="card-header">
                 <div class="research-icon life-sciences">🧪</div>
-                <h3>Life Sciences</h3>
+                <h3>Životné vedy</h3>
               </div>
-              <p>Investigating fundamental biological processes and developing new approaches to health and disease.</p>
+              <p>Skúmanie základných biologických procesov a vývoj nových prístupov k zdraviu a chorobám.</p>
               <div class="card-footer">
-                <a href="#" class="learn-more">Learn More →</a>
+                <a href="#" class="learn-more">Zistiť viac →</a>
               </div>
             </div>
             <div class="research-card">
               <div class="card-header">
                 <div class="research-icon data-science">💻</div>
-                <h3>Data Science</h3>
+                <h3>Údaje a vedy o údajoch</h3>
               </div>
-              <p>Developing computational methods and AI algorithms to extract insights from complex datasets.</p>
+              <p>Vývoj výpočtových metód a algoritmov AI na extrakciu poznatkov z komplexných dátových súborov.</p>
               <div class="card-footer">
-                <a href="#" class="learn-more">Learn More →</a>
+                <a href="#" class="learn-more">Zistiť viac →</a>
               </div>
             </div>
             <div class="research-card">
               <div class="card-header">
                 <div class="research-icon environmental">🌍</div>
-                <h3>Environmental Science</h3>
+                <h3>Environmentálne vedy</h3>
               </div>
-              <p>Studying climate change, biodiversity, and developing sustainable solutions for environmental challenges.</p>
+              <p>Štúdium zmien klímy, biodiverzity a vývoj udržateľných riešení pre environmentálne výzvy.</p>
               <div class="card-footer">
-                <a href="#" class="learn-more">Learn More →</a>
+                <a href="#" class="learn-more">Zistiť viac →</a>
               </div>
             </div>
             <div class="research-card">
               <div class="card-header">
                 <div class="research-icon materials">⚡</div>
-                <h3>Materials Science</h3>
+                <h3>Vedy o materiáloch</h3>
               </div>
-              <p>Creating and analyzing new materials with applications in energy, healthcare, and technology.</p>
+              <p>Tvorba a analýza nových materiálov s aplikáciami v energetike, zdravotnej starostlivosti a technológii.</p>
               <div class="card-footer">
-                <a href="#" class="learn-more">Learn More →</a>
+                <a href="#" class="learn-more">Zistiť viac →</a>
               </div>
             </div>
           </div>
         </div>
       </section>
       
-      <!-- Latest News Section -->
+      <!-- Najnovšie správy -->
       <section class="latest-news">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">Latest News & Discoveries</h2>
-            <p class="section-subtitle">Stay updated with our groundbreaking research</p>
+            <h2 class="section-title">Najnovšie správy</h2>
+            <p class="section-subtitle">Aktuality z nášho inštitútu</p>
           </div>
           <div class="news-grid">
             <article class="news-card featured">
               <div class="news-image">
-                <div class="news-category">Breakthrough</div>
+                <div class="news-category">Prelom</div>
               </div>
               <div class="news-content">
                 <div class="news-meta">
-                  <span class="news-date">May 18, 2025</span>
-                  <span class="reading-time">5 min read</span>
+                  <span class="news-date">18. mája 2025</span>
+                  <span class="reading-time">5 min čítania</span>
                 </div>
-                <h3>Major Breakthrough in Quantum Computing</h3>
-                <p>Our researchers have achieved a significant milestone in quantum error correction, bringing practical quantum computing closer to reality.</p>
-                <a href="#" class="read-more">Read Full Story →</a>
-              </div>
-            </article>
-            <article class="news-card">
-              <div class="news-content">
-                <div class="news-meta">
-                  <span class="news-date">May 5, 2025</span>
-                  <span class="reading-time">3 min read</span>
-                </div>
-                <h3>New International Research Collaboration</h3>
-                <p>The institute has established a new partnership with leading research centers in Europe and Asia.</p>
-                <a href="#" class="read-more">Read More →</a>
+                <h3>Veľký prielom v kvantovej výpočtovej technike</h3>
+                <p>Naši výskumníci dosiahli významný míľnik v kvantovej korekcii chýb, čo priblížilo praktické kvantové počítanie k realite.</p>
+                <a href="#" class="read-more">Prečítať celú správu →</a>
               </div>
             </article>
             <article class="news-card">
               <div class="news-content">
                 <div class="news-meta">
-                  <span class="news-date">April 22, 2025</span>
-                  <span class="reading-time">2 min read</span>
+                  <span class="news-date">5. mája 2025</span>
+                  <span class="reading-time">3 min čítania</span>
                 </div>
-                <h3>Annual Science Symposium Announced</h3>
-                <p>The 15th Annual Science Symposium will be held this October, featuring keynote speakers from around the world.</p>
-                <a href="#" class="read-more">Read More →</a>
+                <h3>Nová medzinárodná výskumná spolupráca</h3>
+                <p>Inštitút nadviazal nové partnerstvo s poprednými výskumnými centrami v Európe a Ázii.</p>
+                <a href="#" class="read-more">Prečítať viac →</a>
+              </div>
+            </article>
+            <article class="news-card">
+              <div class="news-content">
+                <div class="news-meta">
+                  <span class="news-date">22. apríla 2025</span>
+                  <span class="reading-time">2 min čítania</span>
+                </div>
+                <h3>Oznámenie o ročnej vedeckej sympózii</h3>
+                <p>15. ročník Vedeckej sympózy sa uskutoční tento október, s hlavnými rečníkmi z celého sveta.</p>
+                <a href="#" class="read-more">Prečítať viac →</a>
               </div>
             </article>
           </div>
         </div>
       </section>
       
-      <!-- Events & Department Highlights -->
+      <!-- Udalosti a zaujímavosti oddelení -->
       <section class="events-departments">
         <div class="container">
           <div class="section-grid">
-            <!-- Upcoming Events -->
+            <!-- Nadchádzajúce udalosti -->
             <div class="events-section">
-              <h2 class="section-title">Upcoming Events</h2>
+              <h2 class="section-title">Nadchádzajúce udalosti</h2>
               <div class="events-list">
                 <div class="event-card">
                   <div class="event-date">
@@ -313,11 +303,11 @@
                     <span class="date-month">JUN</span>
                   </div>
                   <div class="event-details">
-                    <h4>Research Methodology Workshop</h4>
-                    <p>Advanced research methodologies and data analysis techniques.</p>
+                    <h4>Workshop o výskumnej metodológii</h4>
+                    <p>Pokročilé výskumné metodológie a techniky analýzy dát.</p>
                     <div class="event-meta">
-                      <span class="event-time">⏰ 10:00 AM - 4:00 PM</span>
-                      <span class="event-location">📍 Science Building</span>
+                      <span class="event-time">⏰ 10:00 - 16:00</span>
+                      <span class="event-location">📍 Budova vedy</span>
                     </div>
                   </div>
                 </div>
@@ -327,44 +317,44 @@
                     <span class="date-month">JUL</span>
                   </div>
                   <div class="event-details">
-                    <h4>Future of Renewable Energy</h4>
-                    <p>Guest lecture by Dr. Elena Rodriguez from MIT.</p>
+                    <h4>Budúcnosť obnoviteľnej energie</h4>
+                    <p>Prednáška hostí Dr. Eleny Rodriguezovej z MIT.</p>
                     <div class="event-meta">
-                      <span class="event-time">⏰ 2:00 PM - 4:00 PM</span>
-                      <span class="event-location">📍 Main Auditorium</span>
+                      <span class="event-time">⏰ 14:00 - 16:00</span>
+                      <span class="event-location">📍 Hlavná audítka</span>
                     </div>
                   </div>
                 </div>
               </div>
-              <a href="/events" class="view-all-btn">View All Events →</a>
+              <a href="/events" class="view-all-btn">Zobraziť všetky udalosti →</a>
             </div>
             
-            <!-- Department Highlights -->
+            <!-- Zaujímavosti oddelení -->
             <div class="departments-section">
-              <h2 class="section-title">Our Departments</h2>
+              <h2 class="section-title">Naše oddelenia</h2>
               <div class="departments-grid">
                 <a href="/departments/animal-science" class="department-card">
                   <div class="department-icon">🐄</div>
-                  <h4>Animal Science</h4>
-                  <p>Sustainable farming practices</p>
+                  <h4>Živočíšna veda</h4>
+                  <p>Udržateľné poľnohospodárske praktiky</p>
                 </a>
                 <a href="/departments/biochemistry" class="department-card">
                   <div class="department-icon">🧬</div>
-                  <h4>Biochemistry</h4>
-                  <p>Chemical processes in life</p>
+                  <h4>Biochémia</h4>
+                  <p>Chemické procesy v živote</p>
                 </a>
                 <a href="/departments/physics" class="department-card">
                   <div class="department-icon">⚛️</div>
-                  <h4>Physics</h4>
-                  <p>Fundamental principles</p>
+                  <h4>Fyzika</h4>
+                  <p>Základné princípy</p>
                 </a>
                 <a href="/departments/earth-sciences" class="department-card">
                   <div class="department-icon">🌋</div>
-                  <h4>Earth Sciences</h4>
-                  <p>Planet's characteristics</p>
+                  <h4>Vedy o Zemi</h4>
+                  <p>Charakteristiky planéty</p>
                 </a>
               </div>
-              <a href="/departments" class="view-all-btn">View All Departments →</a>
+              <a href="/departments" class="view-all-btn">Zobraziť všetky oddelenia →</a>
             </div>
           </div>
         </div>
@@ -378,13 +368,13 @@
           <div class="footer-grid">
             <div class="footer-column main">
               <div class="footer-logo">
-                <h3>Research Institute</h3>
-                <p class="footer-tagline">Excellence in Science & Innovation</p>
+                <h3>Výskumný inštitút</h3>
+                <p class="footer-tagline">Excelencia vo vede & inováciách</p>
               </div>
               <div class="contact-info">
                 <div class="contact-item">
                   <span class="contact-icon">📍</span>
-                  <span>University Campus, 1180 Vienna, Austria</span>
+                  <span>Univerzitný kampus, 1180 Viedeň, Rakúsko</span>
                 </div>
                 <div class="contact-item">
                   <span class="contact-icon">📞</span>
@@ -397,17 +387,17 @@
               </div>
             </div>
             <div class="footer-column">
-              <h4>Quick Links</h4>
+              <h4>Rýchle odkazy</h4>
               <ul>
-                <li><a href="/research">Research</a></li>
-                <li><a href="/publications">Publications</a></li>
-                <li><a href="/departments">Departments</a></li>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Contact</a></li>
+                <li><a href="/research">Výskum</a></li>
+                <li><a href="/publications">Publikácie</a></li>
+                <li><a href="/departments">Oddelenia</a></li>
+                <li><a href="/about">O nás</a></li>
+                <li><a href="/contact">Kontakt</a></li>
               </ul>
             </div>
             <div class="footer-column">
-              <h4>Connect With Us</h4>
+              <h4>Kontaktujte nás</h4>
               <div class="social-links">
                 <a href="#" class="social-link facebook">📘 Facebook</a>
                 <a href="#" class="social-link twitter">🐦 Twitter</a>
@@ -416,10 +406,10 @@
               </div>
               <div class="newsletter">
                 <h5>Newsletter</h5>
-                <p>Stay updated with our latest research</p>
+                <p>Buďte informovaní o našich najnovších výskumoch</p>
                 <div class="newsletter-form">
-                  <input type="email" placeholder="Your email">
-                  <button>Subscribe</button>
+                  <input type="email" placeholder="Váš email">
+                  <button>Prihlásiť sa</button>
                 </div>
               </div>
             </div>
@@ -428,11 +418,11 @@
       </div>
       <div class="footer-bottom">
         <div class="container">
-          <p>© 2025 Research Institute. All rights reserved.</p>
+          <p>© 2025 Výskumný inštitút. Všetky práva vyhradené.</p>
           <div class="footer-links">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Use</a>
-            <a href="/sitemap">Sitemap</a>
+            <a href="/privacy">Zásady ochrany osobných údajov</a>
+            <a href="/terms">Podmienky používania</a>
+            <a href="/sitemap">Mapa stránok</a>
           </div>
         </div>
       </div>
@@ -447,22 +437,18 @@ export default defineComponent({
   name: 'HomeView',
   data() {
     return {
-      quicklinksOpen: false,
-      searchOpen: false
+      searchOpen: false,
+      quicklinksOpen: false
     }
   },
   methods: {
-    toggleQuicklinks() {
-      this.quicklinksOpen = !this.quicklinksOpen
-      if (this.quicklinksOpen) {
-        this.searchOpen = false
-      }
-    },
     toggleSearch() {
       this.searchOpen = !this.searchOpen
-      if (this.searchOpen) {
-        this.quicklinksOpen = false
-      }
+      if (this.searchOpen) this.quicklinksOpen = false
+    },
+    toggleQuicklinks() {
+      this.quicklinksOpen = !this.quicklinksOpen
+      if (this.quicklinksOpen) this.searchOpen = false
     }
   }
 })
@@ -572,7 +558,7 @@ export default defineComponent({
   transform: translateY(-10px);
 }
 
-/* Top Navigation Bar */
+/* Horná lišta */
 .topbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   backdrop-filter: blur(10px);
@@ -742,7 +728,7 @@ export default defineComponent({
 .social-icon.instagram:hover { background: #e4405f; color: white; }
 .social-icon.linkedin:hover { background: #0077b5; color: white; }
 
-/* Main Navigation */
+/* Hlavné menu */
 .main-navbar {
   background: white;
   box-shadow: var(--shadow-md);
@@ -831,7 +817,7 @@ export default defineComponent({
   width: 100%;
 }
 
-/* Hero Section */
+/* Hero sekcia */
 .hero-section {
   position: relative;
   height: 100vh;
@@ -1020,7 +1006,7 @@ export default defineComponent({
   font-weight: 300;
 }
 
-/* Welcome Section */
+/* Vítacia sekcia */
 .welcome-section {
   padding: 6rem 0;
   background: var(--bg-primary);
@@ -1081,7 +1067,7 @@ export default defineComponent({
   font-size: 0.875rem;
 }
 
-/* Research Areas */
+/* Výskumné oblasti */
 .research-areas {
   padding: 6rem 0;
   background: var(--bg-secondary);
@@ -1177,7 +1163,7 @@ export default defineComponent({
   gap: 1rem;
 }
 
-/* Latest News */
+/* Najnovšie správy */
 .latest-news {
   padding: 6rem 0;
   background: var(--bg-primary);
@@ -1274,7 +1260,7 @@ export default defineComponent({
   color: var(--primary-dark);
 }
 
-/* Events & Departments Section */
+/* Udalosti a oddelenia */
 .events-departments {
   padding: 6rem 0;
   background: var(--bg-secondary);

@@ -57,20 +57,20 @@ export default {
   },
 
   // Conference‐years CRUD (admin)
-  createYear(data)     { return api.post('/admin/conference-years', data) },
-  updateYear(id, data) { return api.put(`/admin/conference-years/${id}`, data) },
-  deleteYear(id)       { return api.delete(`/admin/conference-years/${id}`) },
+  createYear(data: any)     { return api.post('/admin/conference-years', data) },
+  updateYear(id: number, data: any) { return api.put(`/admin/conference-years/${id}`, data) },
+  deleteYear(id: number)       { return api.delete(`/admin/conference-years/${id}`) },
 
   // Editor assignments
-  listYearEditors(yearId){ return api.get(`/admin/years/${yearId}/editors`) },
-  assignEditor(yearId,userId){ return api.post(`/admin/years/${yearId}/editors`,{user_id:userId}) },
-  removeEditor(yearId, assignmentId){ return api.delete(`/admin/years/${yearId}/editors/${assignmentId}`) },
+  listYearEditors(yearId: number){ return api.get(`/admin/years/${yearId}/editors`) },
+  assignEditor(yearId: number, userId: number){ return api.post(`/admin/years/${yearId}/editors`,{user_id:userId}) },
+  removeEditor(yearId: number, assignmentId: number){ return api.delete(`/admin/years/${yearId}/editors/${assignmentId}`) },
 
   // Subpages
-  listSubpages(yearId){ return api.get(`/admin/years/${yearId}/subpages`) },
-  createSubpage(yearId,data){ return api.post(`/admin/years/${yearId}/subpages`,data) },
-  updateSubpage(id,data){ return api.put(`/admin/subpages/${id}`,data) },
-  deleteSubpage(id){ return api.delete(`/admin/subpages/${id}`) },
+  listSubpages(yearId: number){ return api.get(`/admin/years/${yearId}/subpages`) },
+  createSubpage(yearId: number, data: any){ return api.post(`/admin/years/${yearId}/subpages`,data) },
+  updateSubpage(id: number, data: any){ return api.put(`/admin/subpages/${id}`,data) },
+  deleteSubpage(id: number){ return api.delete(`/admin/subpages/${id}`) },
 
   // Articles
   listArticles(params?: { conference_year_id?: number }) {

@@ -48,7 +48,7 @@ export default defineComponent({
       
       // TinyMCE editor
       content: '' as string,
-      tinymceKey: import.meta.env.VITE_TINYMCE_API_KEY as string,
+      tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       config: {
         menubar: true,
         plugins: 'lists link image code',
@@ -56,6 +56,8 @@ export default defineComponent({
           'undo redo | bold italic underline | alignleft aligncenter | ' +
           'bullist numlist | image | code',
         height: 350,
+        // API kľúč priamo v konfigurácii
+        api_key: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
         images_upload_handler: (
           blobInfo: any,
           success: (url: string) => void,

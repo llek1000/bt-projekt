@@ -1,367 +1,394 @@
 <template>
-  <div class="department-page">
-    <!-- Department Header -->
-    <section class="department-header">
-      <div class="department-image">
-        <img :src="department.image" :alt="department.name">
-        <div class="department-title">
-          <h1>{{ department.name }}</h1>
-          <p>{{ department.description }}</p>
+  <div class="page-container">
+    <!-- Horná lišta -->
+    <div class="topbar">
+      <div class="topbar-container">
+        <div class="topbar-right">
+          <button @click="toggleSearch" class="topbar-button">
+            <span class="icon-search">🔍</span>
+            <span class="button-text">Vyhľadať</span>
+          </button>
+          
+          <button @click="toggleQuicklinks" class="topbar-button">
+            <span class="icon-quicklinks">≡</span>
+            <span class="button-text">Rýchle odkazy</span>
+          </button>
+          
+          <a href="/login" class="topbar-button">
+            <span class="icon-login">👤</span>
+            <span class="button-text">Prihlásenie</span>
+          </a>
         </div>
       </div>
-    </section>
-    
-    <!-- Department Navigation -->
-    <div class="department-nav">
-      <div class="container">
-        <button 
-          @click="setActiveTab('overview')" 
-          :class="['tab-button', { active: activeTab === 'overview' }]"
-        >
-          Overview
-        </button>
-        <button 
-          @click="setActiveTab('research')" 
-          :class="['tab-button', { active: activeTab === 'research' }]"
-        >
-          Research Areas
-        </button>
-        <button 
-          @click="setActiveTab('faculty')" 
-          :class="['tab-button', { active: activeTab === 'faculty' }]"
-        >
-          Faculty & Staff
-        </button>
-        <button 
-          @click="setActiveTab('programs')" 
-          :class="['tab-button', { active: activeTab === 'programs' }]"
-        >
-          Programs
-        </button>
-        <button 
-          @click="setActiveTab('publications')" 
-          :class="['tab-button', { active: activeTab === 'publications' }]"
-        >
-          Publications
-        </button>
-        <button 
-          @click="setActiveTab('contact')" 
-          :class="['tab-button', { active: activeTab === 'contact' }]"
-        >
-          Contact
-        </button>
-      </div>
+      
+      <!-- Dropdown vyhľadávania -->
+      <transition name="slide-down">
+        <div class="search-dropdown" v-if="searchOpen">
+          <form class="search-form">
+            <input type="text" placeholder="Vyhľadajte zamestnancov a obsah" class="search-input">
+            <button type="submit" class="search-submit">
+              <span>Hľadať</span>
+              <i class="search-icon">→</i>
+            </button>
+          </form>
+        </div>
+      </transition>
+      
+      <!-- Dropdown rýchlych odkazov -->
+      <transition name="slide-down">
+        <div class="quicklinks-dropdown" v-if="quicklinksOpen">
+          <div class="quicklinks-grid">
+            <div class="quicklinks-column">
+              <h3>Odkazy</h3>
+              <ul>
+                <li><a href="#">Výskumné projekty</a></li>
+                <li><a href="#">Materiály fakulty</a></li>
+                <li><a href="#">Portál študentov</a></li>
+              </ul>
+            </div>
+            <div class="quicklinks-column">
+              <h3>Zdroje</h3>
+              <ul>
+                <li><a href="#">Databázy</a></li>
+                <li><a href="#">Nástroje pre výskum</a></li>
+              </ul>
+            </div>
+            <div class="quicklinks-column">
+              <h3>Kontakt</h3>
+              <ul>
+                <li><a href="#">Adresár fakulty</a></li>
+                <li><a href="#">Kancelária oddelenia</a></li>
+                <li><a href="#">Mapa areálu</a></li>
+                <li><a href="#">Podpora</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="social-media">
+            <a href="#" class="social-icon facebook">📘</a>
+            <a href="#" class="social-icon twitter">🐦</a>
+            <a href="#" class="social-icon instagram">📷</a>
+            <a href="#" class="social-icon linkedin">💼</a>
+          </div>
+        </div>
+      </transition>
     </div>
     
-    <!-- Department Content -->
-    <main class="department-content">
-      <div class="container">
-        <!-- Overview Tab -->
-        <section v-if="activeTab === 'overview'" class="content-section">
-          <h2>Department Overview</h2>
-          <div class="overview-content">
-            <p>{{ department.overview }}</p>
-            
-            <div class="overview-highlights">
-              <div class="highlight-card">
-                <div class="highlight-icon">🎓</div>
-                <h3>Education</h3>
-                <p>Offering comprehensive programs at bachelor's, master's, and doctoral levels.</p>
-              </div>
-              <div class="highlight-card">
-                <div class="highlight-icon">🔬</div>
-                <h3>Research</h3>
-                <p>Conducting innovative research with real-world applications for animal sciences.</p>
-              </div>
-              <div class="highlight-card">
-                <div class="highlight-icon">🌱</div>
-                <h3>Sustainability</h3>
-                <p>Committed to developing environmentally responsible farming practices.</p>
+    <!-- Hlavné menu -->
+    <nav class="main-navbar">
+      <div class="navbar-container">
+        <div class="logo-container">
+          <a href="/" class="logo-link">
+            <div class="logo-wrapper">
+              <img src="/src/assets/logo.png" alt="Logo výskumného inštitútu" class="logo">
+              <div class="logo-text">
+                <span class="institute-name">Výskumný inštitút</span>
+                <span class="institute-subtitle">Excelencia vo vede</span>
               </div>
             </div>
-            
-            <div class="department-stats">
-              <div class="stat-item">
-                <span class="stat-number">{{ department.faculty.length }}+</span>
-                <span class="stat-label">Faculty Members</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">250</span>
-                <span class="stat-label">Students</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">15</span>
-                <span class="stat-label">Research Labs</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">{{ articles.length }}+</span>
-                <span class="stat-label">Published Articles</span>
-              </div>
-            </div>
-          </div>
-        </section>
+          </a>
+        </div>
         
-        <!-- Research Areas Tab -->
-        <section v-if="activeTab === 'research'" class="content-section">
-          <h2>Research Areas</h2>
-          <div class="research-areas-grid">
-            <div 
-              v-for="(area, index) in department.researchAreas" 
-              :key="index" 
-              class="research-area-card"
-            >
-              <h3>{{ area.title }}</h3>
-              <p>{{ area.description }}</p>
-              <a href="#" class="learn-more">Learn more</a>
-            </div>
-          </div>
-          
-          <div class="research-facilities">
-            <h3>Research Facilities</h3>
-            <p>Our department is equipped with state-of-the-art facilities that support our diverse research initiatives:</p>
-            <ul class="facilities-list">
-              <li>Genomics and Bioinformatics Laboratory</li>
-              <li>Animal Nutrition Analysis Center</li>
-              <li>Livestock Behavior Assessment Facility</li>
-              <li>Experimental Farm and Field Research Station</li>
-              <li>Climate-Controlled Housing Systems</li>
-            </ul>
-          </div>
-        </section>
-        
-        <!-- Faculty Tab -->
-        <section v-if="activeTab === 'faculty'" class="content-section">
-          <h2>Faculty & Staff</h2>
-          <div class="faculty-grid">
-            <div 
-              v-for="(member, index) in department.faculty" 
-              :key="index" 
-              class="faculty-card"
-            >
-              <div class="faculty-image">
-                <img :src="member.image" :alt="member.name">
-              </div>
-              <div class="faculty-info">
-                <h3>{{ member.name }}</h3>
-                <p class="faculty-title">{{ member.title }}</p>
-                <p class="faculty-specialty">Specialty: {{ member.specialty }}</p>
-                <a href="#" class="faculty-profile-link">View Profile</a>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Programs Tab -->
-        <section v-if="activeTab === 'programs'" class="content-section">
-          <h2>Educational Programs</h2>
-          <div class="programs-list">
-            <div 
-              v-for="(program, index) in department.programs" 
-              :key="index" 
-              class="program-item"
-            >
-              <h3>{{ program.title }}</h3>
-              <p>{{ program.description }}</p>
-              <div class="program-details">
-                <a href="#" class="program-link">Program Details</a>
-                <a href="#" class="application-link">How to Apply</a>
-              </div>
-            </div>
-          </div>
-          
-          <div class="additional-offerings">
-            <h3>Additional Educational Offerings</h3>
-            <ul class="offerings-list">
-              <li>Professional Development Workshops</li>
-              <li>Industry-Focused Certificate Programs</li>
-              <li>Summer Research Opportunities for Students</li>
-              <li>International Exchange Programs</li>
-            </ul>
-          </div>
-        </section>
-        
-        <!-- Publications Tab -->
-        <section v-if="activeTab === 'publications'" class="content-section">
-          <!-- Article Reader View -->
-          <div v-if="selectedArticle" class="article-reader">
-            <button @click="backToPublications" class="back-button">
-              ← Back to Publications
-            </button>
-            
-            <article class="article-content">
-              <header class="article-header">
-                <h1>{{ selectedArticle.title }}</h1>
-                <div class="article-meta">
-                  <p class="article-authors">{{ selectedArticle.author_name }}</p>
-                  <p class="article-publication">
-                    <span class="journal">
-                      {{ selectedArticle.conference_year ? 
-                          formatConferenceYear(selectedArticle.conference_year) : 
-                          'Conference Proceedings' }}
-                    </span> •
-                    <span class="year">
-                      {{ selectedArticle.conference_year?.year || new Date().getFullYear() }}
-                    </span>
-                  </p>
-                  <p class="article-doi">DOI: 10.1234/article.{{ selectedArticle.id }}</p>
-                  <p class="article-date">
-                    Published: {{ formatDate(selectedArticle.created_at) }}
-                  </p>
-                </div>
-              </header>
-              
-              <div class="article-body">
-                <section class="abstract-section">
-                  <h2>Abstract</h2>
-                  <p>{{ formatArticleSummary(selectedArticle) }}</p>
-                </section>
-                
-                <section class="fulltext-section">
-                  <h2>Full Text</h2>
-                  <div class="article-text" v-html="selectedArticle.content || 'Full text content not available.'">
-                  </div>
-                </section>
-              </div>
-            </article>
-          </div>
-          
-          <!-- Publications List View -->
-          <div v-else>
-            <div class="publications-header">
-              <h2>Publications</h2>
-              
-              <div class="publications-controls">
-                <!-- Search Input -->
-                <div class="search-controls">
-                  <input 
-                    v-model="searchQuery" 
-                    @keyup.enter="searchArticles"
-                    type="text" 
-                    placeholder="Search articles..." 
-                    class="search-input"
-                  >
-                  <button @click="searchArticles" class="search-button">Search</button>
-                  <button v-if="searchQuery" @click="clearSearch" class="clear-button">Clear</button>
-                </div>
-                
-                <!-- Year Filter -->
-                <div class="year-filter">
-                  <label for="year-select">Filter by Year:</label>
-                  <select id="year-select" v-model="selectedYear" class="year-dropdown">
-                    <option value="all">All Years</option>
-                    <option v-for="year in availableYears" :key="year" :value="year">
-                      {{ year }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Loading State -->
-            <div v-if="loading" class="loading-state">
-              <p>Loading publications...</p>
-            </div>
-            
-            <!-- Error State -->
-            <div v-else-if="error" class="error-state">
-              <p>{{ error }}</p>
-              <button @click="fetchArticles" class="retry-button">Retry</button>
-            </div>
-            
-            <!-- Publications List -->
-            <div v-else class="publications-list">
-              <div 
-                v-for="publication in publicationsFromArticles" 
-                :key="publication.id" 
-                class="publication-item"
-              >
-                <h3>{{ publication.title }}</h3>
-                <p class="publication-authors">{{ publication.authors }}</p>
-                <p class="publication-details">
-                  <span class="journal">{{ publication.journal }}</span>,
-                  <span class="year">{{ publication.year }}</span>
-                </p>
-                <p class="publication-doi">DOI: {{ publication.doi }}</p>
-                <p class="publication-date">
-                  Published: {{ formatDate(publication.created_at) }}
-                </p>
-                <p class="publication-abstract">{{ publication.abstract }}</p>
-                <div class="publication-actions">
-                  <button @click="selectArticle(publication)" class="read-article-btn">
-                    Read Full Article
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div v-if="!loading && !error && publicationsFromArticles.length === 0" class="no-publications">
-              <p v-if="searchQuery">No publications found for "{{ searchQuery }}".</p>
-              <p v-else-if="selectedYear !== 'all'">No publications found for {{ selectedYear }}.</p>
-              <p v-else>No publications available.</p>
-            </div>
-            
-            <div v-if="publicationsFromArticles.length > 0" class="publications-summary">
-              <p>Showing {{ publicationsFromArticles.length }} of {{ articles.length }} publications</p>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Contact Tab -->
-        <section v-if="activeTab === 'contact'" class="content-section">
-          <h2>Contact Information</h2>
-          <div class="contact-container">
-            <div class="contact-details">
-              <div class="contact-group">
-                <h3>Address</h3>
-                <p>{{ department.contact.address }}</p>
-              </div>
-              
-              <div class="contact-group">
-                <h3>Email</h3>
-                <p><a :href="`mailto:${department.contact.email}`">{{ department.contact.email }}</a></p>
-              </div>
-              
-              <div class="contact-group">
-                <h3>Phone</h3>
-                <p>{{ department.contact.phone }}</p>
-              </div>
-              
-              <div class="contact-group">
-                <h3>Office Hours</h3>
-                <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
-              </div>
-            </div>
-            
-            <div class="contact-form">
-              <h3>Send Us a Message</h3>
-              <form>
-                <div class="form-group">
-                  <label for="name">Name</label>
-                  <input type="text" id="name" placeholder="Your name">
-                </div>
-                
-                <div class="form-group">
-                  <label for="email">Email</label>
-                  <input type="email" id="email" placeholder="Your email">
-                </div>
-                
-                <div class="form-group">
-                  <label for="subject">Subject</label>
-                  <input type="text" id="subject" placeholder="Message subject">
-                </div>
-                
-                <div class="form-group">
-                  <label for="message">Message</label>
-                  <textarea id="message" rows="5" placeholder="Your message"></textarea>
-                </div>
-                
-                <button type="submit" class="submit-button">Send Message</button>
-              </form>
-            </div>
-          </div>
-        </section>
+        <div class="main-nav-links">
+          <a href="/publications" class="main-nav-link">
+            <span>Publikácie</span>
+            <div class="nav-underline"></div>
+          </a>
+          <a href="/departments" class="main-nav-link active">
+            <span>Oddelenia</span>
+            <div class="nav-underline"></div>
+          </a>
+          <a href="/about" class="main-nav-link">
+            <span>O nás</span>
+            <div class="nav-underline"></div>
+          </a>
+        </div>
       </div>
+    </nav>
+    
+    <!-- Hlavný obsah -->
+    <main class="main-content">
+      <!-- Hero sekcia -->
+      <section class="hero-section">
+        <div class="hero-background">
+          <div class="hero-overlay"></div>
+          <div class="hero-particles"></div>
+        </div>
+        <div class="hero-content">
+          <div class="hero-text">
+            <h1 class="hero-title">
+              <span class="title-line">Naše</span>
+              <span class="title-line highlight">Oddelenia</span>
+            </h1>
+            <p class="hero-subtitle">
+              Preskúmajte rozmanité výskumné oblasti a špecializácie našich oddelení
+            </p>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">12</span>
+              <span class="stat-label">Oddelení</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">150+</span>
+              <span class="stat-label">Výskumníkov</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">50+</span>
+              <span class="stat-label">Projektov</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Oddelenia Grid -->
+      <section class="departments-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Výskumné oddelenia</h2>
+            <p class="section-subtitle">Každé oddelenie sa špecializuje na špecifické oblasti výskumu</p>
+          </div>
+          
+          <div class="departments-grid">
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon biology">🧬</div>
+                <h3>Biológia a biotechnológie</h3>
+              </div>
+              <p class="department-description">
+                Výskum v oblasti molekulárnej biológie, genetiky a biotechnologických aplikácií.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">25</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">8</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+            
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon physics">⚛️</div>
+                <h3>Fyzika a materiálové vedy</h3>
+              </div>
+              <p class="department-description">
+                Štúdium fyzikálnych javov a vývoj nových materiálov s pokročilými vlastnosťami.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">18</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">6</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+            
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon chemistry">🧪</div>
+                <h3>Chémia a farmácia</h3>
+              </div>
+              <p class="department-description">
+                Syntéza nových zlúčenín a vývoj farmaceutických látok pre medicínu.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">22</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">10</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+            
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon computer">💻</div>
+                <h3>Informatika a AI</h3>
+              </div>
+              <p class="department-description">
+                Vývoj algoritmov umelej inteligencie a výpočtových systémov novej generácie.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">30</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">12</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+            
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon environment">🌍</div>
+                <h3>Environmentálne vedy</h3>
+              </div>
+              <p class="department-description">
+                Štúdium klimatických zmien a udržateľných riešení pre životné prostredie.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">16</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">7</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+            
+            <div class="department-card">
+              <div class="card-header">
+                <div class="department-icon mathematics">📊</div>
+                <h3>Matematika a štatistika</h3>
+              </div>
+              <p class="department-description">
+                Teoretická matematika a aplikovaná štatistika pre vedecký výskum.
+              </p>
+              <div class="department-stats">
+                <div class="stat">
+                  <span class="stat-number">14</span>
+                  <span class="stat-label">Výskumníkov</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">5</span>
+                  <span class="stat-label">Projektov</span>
+                </div>
+              </div>
+              <div class="card-footer">
+                <a href="#" class="department-link">Zistiť viac →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Spolupráce a partnerstvá -->
+      <section class="partnerships-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Spolupráce a partnerstvá</h2>
+            <p class="section-subtitle">Naše oddelenia aktívne spolupracujú s medzinárodnými inštitúciami</p>
+          </div>
+          
+          <div class="partnerships-grid">
+            <div class="partnership-card">
+              <div class="partnership-icon">🤝</div>
+              <h4>Univerzitné partnerstvá</h4>
+              <p>Spolupráca s 25+ univerzitami po celom svete</p>
+            </div>
+            <div class="partnership-card">
+              <div class="partnership-icon">🏭</div>
+              <h4>Priemyselné projekty</h4>
+              <p>Aplikovaný výskum pre komerčnú sféru</p>
+            </div>
+            <div class="partnership-card">
+              <div class="partnership-icon">🌐</div>
+              <h4>Medzinárodné programy</h4>
+              <p>Účasť v európskych výskumných programoch</p>
+            </div>
+            <div class="partnership-card">
+              <div class="partnership-icon">💡</div>
+              <h4>Inovačné centrum</h4>
+              <p>Transfer technológií do praxe</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="container">
+          <div class="footer-grid">
+            <div class="footer-column main">
+              <div class="footer-logo">
+                <h3>Výskumný inštitút</h3>
+                <p class="footer-tagline">Excelencia vo vede & inováciách</p>
+              </div>
+              <div class="contact-info">
+                <div class="contact-item">
+                  <span class="contact-icon">📍</span>
+                  <span>Univerzitný kampus, 1180 Viedeň, Rakúsko</span>
+                </div>
+                <div class="contact-item">
+                  <span class="contact-icon">📞</span>
+                  <span>+43 1 47654 0</span>
+                </div>
+                <div class="contact-item">
+                  <span class="contact-icon">✉️</span>
+                  <span>research@institute.ac.at</span>
+                </div>
+              </div>
+            </div>
+            <div class="footer-column">
+              <h4>Rýchle odkazy</h4>
+              <ul>
+                <li><a href="/publications">Publikácie</a></li>
+                <li><a href="/departments">Oddelenia</a></li>
+                <li><a href="/about">O nás</a></li>
+                <li><a href="/contact">Kontakt</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h4>Kontaktujte nás</h4>
+              <div class="social-links">
+                <a href="#" class="social-link facebook">📘 Facebook</a>
+                <a href="#" class="social-link twitter">🐦 Twitter</a>
+                <a href="#" class="social-link linkedin">💼 LinkedIn</a>
+                <a href="#" class="social-link youtube">📺 YouTube</a>
+              </div>
+              <div class="newsletter">
+                <h5>Newsletter</h5>
+                <p>Buďte informovaní o našich najnovších výskumoch</p>
+                <div class="newsletter-form">
+                  <input type="email" placeholder="Váš email">
+                  <button>Prihlásiť sa</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="container">
+          <p>© 2025 Výskumný inštitút. Všetky práva vyhradené.</p>
+          <div class="footer-links">
+            <a href="/privacy">Zásady ochrany osobných údajov</a>
+            <a href="/terms">Podmienky používania</a>
+            <a href="/sitemap">Mapa stránok</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -374,145 +401,15 @@ export default {
   
   data() {
     return {
-      // State management
-      loading: false,
-      error: null,
-      
-      // Department data (static for now - could be moved to API later)
-      department: {
-        name: 'Department of Animal Science',
-        image: '/test.png',
-        description: 'Advancing knowledge in animal health, nutrition, and sustainable farming practices through innovative research and education.',
-        overview: 'The Department of Animal Science is dedicated to advancing the understanding of domesticated animals and their interactions with humans and the environment. Our faculty conducts cutting-edge research in genetics, nutrition, physiology, behavior, and sustainable farming systems.',
-        researchAreas: [
-          {
-            title: 'Animal Genetics and Breeding',
-            description: 'Developing advanced breeding methods and studying genetic diversity to improve animal health and productivity.'
-          },
-          {
-            title: 'Animal Nutrition',
-            description: 'Researching optimal feeding strategies and nutritional requirements for various species and production systems.'
-          },
-          {
-            title: 'Animal Health and Welfare',
-            description: 'Investigating disease prevention, welfare assessment, and housing systems to ensure optimal animal wellbeing.'
-          },
-          {
-            title: 'Sustainable Livestock Systems',
-            description: 'Developing environmentally friendly practices that balance productivity with ecological responsibility and resource conservation.'
-          }
-        ],
-        faculty: [
-          {
-            name: 'Prof. Dr. Maria Schmidt',
-            title: 'Department Chair',
-            specialty: 'Animal Reproduction',
-            image: '/test.png'
-          },
-          {
-            name: 'Dr. Thomas Weber',
-            title: 'Associate Professor',
-            specialty: 'Animal Nutrition',
-            image: '/test.png'
-          },
-          {
-            name: 'Dr. Sarah Johnson',
-            title: 'Assistant Professor',
-            specialty: 'Animal Genetics',
-            image: '/test.png'
-          },
-          {
-            name: 'Dr. Michael Chen',
-            title: 'Associate Professor',
-            specialty: 'Animal Welfare',
-            image: '/test.png'
-          }
-        ],
-        programs: [
-          {
-            title: 'Bachelor of Science in Animal Science',
-            description: 'A comprehensive undergraduate program covering fundamental principles of animal biology, nutrition, production, and management.'
-          },
-          {
-            title: 'Master of Science in Animal Science',
-            description: 'An advanced degree focusing on specialized areas within animal science, with emphasis on research methods and critical analysis.'
-          },
-          {
-            title: 'PhD in Animal Science',
-            description: 'A research-intensive doctoral program developing scholars who will advance the field through original contributions and innovations.'
-          }
-        ],
-        contact: {
-          address: 'Institute of Animal Science, University Campus, 1180 Vienna, Austria',
-          email: 'animalscience@university.ac.at',
-          phone: '+43 1 47654 3900',
-          office: 'Schwackhöfer-Haus, 3rd Floor'
-        }
-      },
-      
-      // API-driven data
-      articles: [],
-      conferenceYears: [],
-      activeTab: 'overview',
-      selectedYear: 'all',
-      selectedArticle: null,
-      searchQuery: ''
+      searchOpen: false,
+      quicklinksOpen: false,
+      departments: [],
+      loading: false
     }
   },
   
   computed: {
-    departmentSlug() {
-      return this.$route.params.slug
-    },
-    
-    availableYears() {
-      const years = [...new Set(this.articles.map(article => {
-        return article.conference_year?.year || 'Unknown'
-      }))]
-      return years.sort((a, b) => {
-        if (a === 'Unknown') return 1
-        if (b === 'Unknown') return -1
-        return parseInt(b) - parseInt(a) // Sort descending (newest first)
-      })
-    },
-    
-    filteredArticles() {
-      let filtered = this.articles
-
-      // Filter by conference year
-      if (this.selectedYear !== 'all') {
-        filtered = filtered.filter(article => 
-          article.conference_year?.year === this.selectedYear
-        )
-      }
-
-      // Filter by search query
-      if (this.searchQuery.trim()) {
-        filtered = articleHelpers.filterArticles(filtered, {
-          search: this.searchQuery.trim()
-        })
-      }
-
-      // Sort by date (newest first)
-      return articleHelpers.sortArticles(filtered, 'date', 'desc')
-    },
-    
-    publicationsFromArticles() {
-      return this.filteredArticles.map(article => ({
-        id: article.id,
-        title: article.title,
-        authors: article.author_name,
-        journal: article.conference_year ? 
-          conferenceYearHelpers.formatConferenceYear(article.conference_year) : 
-          'Conference Proceedings',
-        year: article.conference_year?.year ? parseInt(article.conference_year.year) : new Date().getFullYear(),
-        doi: `10.1234/article.${article.id}`,
-        abstract: articleHelpers.formatArticleSummary(article),
-        fullText: article.content || 'Full text not available.',
-        created_at: article.created_at,
-        conference_year: article.conference_year
-      }))
-    }
+    // Existujúce computed properties...
   },
   
   mounted() {
@@ -520,984 +417,905 @@ export default {
   },
   
   methods: {
-    setActiveTab(tab) {
-      this.activeTab = tab
-      this.selectedArticle = null
-      
-      // Load articles when publications tab is opened
-      if (tab === 'publications' && this.articles.length === 0) {
-        this.fetchArticles()
-      }
+    toggleSearch() {
+      this.searchOpen = !this.searchOpen
+      if (this.searchOpen) this.quicklinksOpen = false
     },
-    
-    selectArticle(publication) {
-      // Find the original article
-      const article = this.articles.find(a => a.id === publication.id)
-      if (article) {
-        this.selectedArticle = article
-      }
+    toggleQuicklinks() {
+      this.quicklinksOpen = !this.quicklinksOpen
+      if (this.quicklinksOpen) this.searchOpen = false
     },
-    
-    backToPublications() {
-      this.selectedArticle = null
-    },
-    
-    async fetchArticles() {
-      try {
-        this.loading = true
-        this.error = null
-        
-        // Fetch articles with optional search
-        const params = this.searchQuery.trim() ? { search: this.searchQuery.trim() } : undefined
-        this.articles = await articleApi.getArticles(params)
-        
-      } catch (err) {
-        this.error = 'Failed to load articles. Please try again later.'
-        console.error('Error fetching articles:', err)
-      } finally {
-        this.loading = false
-      }
-    },
-    
-    async fetchConferenceYears() {
-      try {
-        this.conferenceYears = await conferenceYearApi.getConferenceYears()
-      } catch (err) {
-        console.error('Error fetching conference years:', err)
-      }
-    },
-    
-    async searchArticles() {
-      if (this.searchQuery.trim()) {
-        try {
-          this.loading = true
-          const result = await articleApi.searchArticles(this.searchQuery.trim())
-          this.articles = result.articles || []
-        } catch (err) {
-          this.error = 'Search failed. Please try again.'
-          console.error('Search error:', err)
-        } finally {
-          this.loading = false
-        }
-      } else {
-        // If search is cleared, fetch all articles
-        this.fetchArticles()
-      }
-    },
-    
-    clearSearch() {
-      this.searchQuery = ''
-      this.fetchArticles()
-    },
-    
-    async fetchDepartmentData() {
-      console.log(`Loading data for department: ${this.departmentSlug}`)
-      
-      // Fetch conference years for reference
-      await this.fetchConferenceYears()
-      
-      // Articles will be loaded when publications tab is opened
-      if (this.activeTab === 'publications') {
-        await this.fetchArticles()
-      }
-    },
-    
-    // Helper methods for template
-    formatConferenceYear(conferenceYear) {
-      return conferenceYearHelpers.formatConferenceYear(conferenceYear)
-    },
-    
-    formatDate(dateString) {
-      return articleHelpers.formatDate(dateString)
-    },
-    
-    formatArticleSummary(article) {
-      return articleHelpers.formatArticleSummary(article)
+    fetchDepartmentData() {
+      // Existujúce metódy...
     }
   }
 }
 </script>
 
 <style scoped>
-/* All existing styles remain exactly the same */
-/* Base Styles */
-.department-page {
-  font-family: 'Open Sans', Arial, sans-serif;
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+/* CSS Variables - rovnaké ako v HomeView */
+:root {
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #3b82f6;
+  --secondary-color: #f59e0b;
+  --accent-color: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-dark: #0f172a;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Všetky base styles z HomeView */
+* {
+  box-sizing: border-box;
+}
+
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.6;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 }
 
-/* Department Header */
-.department-header {
+/* Transitions */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Horná lišta - rovnaké ako HomeView */
+.topbar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  overflow: hidden;
 }
 
-.department-image {
-  position: relative;
-  width: 100%;
-  height: 40vh;
-  max-height: 400px;
+.topbar-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.department-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.department-title {
+.topbar-button {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.topbar-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.icon-search, .icon-quicklinks, .icon-login {
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Search & Quicklinks Dropdowns - rovnaké ako HomeView */
+.search-dropdown, .quicklinks-dropdown {
   position: absolute;
-  bottom: 0;
+  top: 100%;
   left: 0;
   right: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.search-dropdown {
   padding: 1.5rem;
 }
 
-.department-title h1 {
-  font-size: 2.5rem;
-  margin: 0 0 0.5rem 0;
+.search-form {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
-.department-title p {
-  font-size: 1.1rem;
+.search-input {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+  background: white;
+}
+
+.search-submit {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.search-submit:hover {
+  transform: scale(1.05);
+}
+
+.quicklinks-dropdown {
+  padding: 2rem;
+}
+
+.quicklinks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+  max-width: 1000px;
+  margin: 0 auto 2rem;
+}
+
+.quicklinks-column h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.quicklinks-column ul {
+  list-style: none;
+  padding: 0;
   margin: 0;
-  max-width: 800px;
 }
 
-/* Department Navigation */
-.department-nav {
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.quicklinks-column li {
+  margin-bottom: 0.75rem;
+}
+
+.quicklinks-column a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.quicklinks-column a:hover {
+  color: var(--primary-color);
+  transform: translateX(5px);
+}
+
+.social-media {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.social-icon {
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.social-icon:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.social-icon.facebook:hover { background: #1877f2; color: white; }
+.social-icon.twitter:hover { background: #1da1f2; color: white; }
+.social-icon.instagram:hover { background: #e4405f; color: white; }
+.social-icon.linkedin:hover { background: #0077b5; color: white; }
+
+/* Hlavné menu - rovnaké ako HomeView */
+.main-navbar {
+  background: white;
+  box-shadow: var(--shadow-md);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
 }
 
-.department-nav .container {
+.navbar-container {
   display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-}
-
-.department-nav .container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
-}
-
-.tab-button {
-  background: none;
-  border: none;
+  justify-content: space-between;
+  align-items: center;
   padding: 1rem 1.5rem;
-  font-size: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo-container {
+  flex: 0 0 auto;
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  max-height: 50px;
+  width: auto;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.institute-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.institute-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.main-nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.main-nav-link {
+  text-decoration: none;
+  color: var(--text-primary);
   font-weight: 500;
-  color: #555;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 1.1rem;
   position: relative;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
 }
 
-.tab-button:hover {
-  color: #3498db;
+.main-nav-link:hover,
+.main-nav-link.active {
+  color: var(--primary-color);
 }
 
-.tab-button.active {
-  color: #3498db;
-}
-
-.tab-button.active::after {
-  content: '';
+.nav-underline {
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background-color: #3498db;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  transition: width 0.3s ease;
 }
 
-/* Department Content */
-.department-content {
-  padding: 3rem 0;
+.main-nav-link:hover .nav-underline,
+.main-nav-link.active .nav-underline {
+  width: 100%;
 }
 
-.content-section {
-  margin-bottom: 2rem;
-}
-
-.content-section h2 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 2rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-/* Overview Tab */
-.overview-content p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #555;
-  margin-bottom: 2rem;
-}
-
-.overview-highlights {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.highlight-card {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-  text-align: center;
-  transition: transform 0.3s ease;
-}
-
-.highlight-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.highlight-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.highlight-card h3 {
-  font-size: 1.3rem;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.highlight-card p {
-  color: #666;
-  margin: 0;
-}
-
-.department-stats {
+/* Hero sekcia */
+.hero-section {
+  position: relative;
+  min-height: 60vh;
   display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  background-color: #3498db;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--gradient-primary);
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.hero-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle><circle cx="80" cy="40" r="1" fill="white" opacity="0.4"><animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite"/></circle><circle cx="40" cy="80" r="1" fill="white" opacity="0.2"><animate attributeName="opacity" values="0.2;1;0.2" dur="4s" repeatCount="indefinite"/></circle></svg>') repeat;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
   color: white;
-  padding: 2rem;
-  border-radius: 8px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.hero-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.title-line {
+  display: block;
+}
+
+.title-line.highlight {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
   margin-top: 2rem;
 }
 
 .stat-item {
   text-align: center;
-  padding: 1rem;
 }
 
 .stat-number {
   display: block;
   font-size: 2.5rem;
   font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  color: #ffd700;
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
   font-size: 1rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Research Areas Tab */
-.research-areas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.research-area-card {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
-}
-
-.research-area-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.research-area-card h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.research-area-card p {
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.learn-more {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.learn-more:hover {
-  text-decoration: underline;
-}
-
-.research-facilities {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-}
-
-.research-facilities h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.research-facilities p {
-  color: #555;
-  margin-bottom: 1rem;
-}
-
-.facilities-list {
-  padding-left: 1.5rem;
-  margin-bottom: 0;
-}
-
-.facilities-list li {
-  margin-bottom: 0.5rem;
-  color: #555;
-}
-
-/* Faculty Tab */
-.faculty-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.faculty-card {
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
-}
-
-.faculty-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.faculty-image {
-  height: 200px;
-  overflow: hidden;
-}
-
-.faculty-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.faculty-info {
-  padding: 1.5rem;
-}
-
-.faculty-info h3 {
-  font-size: 1.3rem;
-  color: #333;
-  margin: 0 0 0.5rem 0;
-}
-
-.faculty-title {
-  color: #3498db;
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.faculty-specialty {
-  color: #666;
-  margin: 0 0 1rem 0;
-}
-
-.faculty-profile-link {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.faculty-profile-link:hover {
-  text-decoration: underline;
-}
-
-/* Programs Tab */
-.programs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.program-item {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
-}
-
-.program-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.program-item h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.program-item p {
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.program-details {
-  display: flex;
-  gap: 1rem;
-}
-
-.program-link, .application-link {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.program-link {
-  background-color: #3498db;
-  color: white;
-}
-
-.application-link {
-  background-color: transparent;
-  color: #3498db;
-  border: 1px solid #3498db;
-}
-
-.program-link:hover {
-  background-color: #2980b9;
-}
-
-.application-link:hover {
-  background-color: rgba(52, 152, 219, 0.1);
-}
-
-.additional-offerings {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-}
-
-.additional-offerings h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.offerings-list {
-  padding-left: 1.5rem;
-  margin-bottom: 0;
-}
-
-.offerings-list li {
-  margin-bottom: 0.5rem;
-  color: #555;
-}
-
-/* Publications Tab */
-.publications-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.publication-item {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease;
-}
-
-.publication-item:hover {
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.publication-item h3 {
-  font-size: 1.3rem;
-  color: #333;
-  margin: 0 0 0.75rem 0;
-}
-
-.publication-authors {
-  color: #555;
-  font-style: italic;
-  margin: 0;
-}
-
-.publication-details {
-  color: #666;
-  margin: 0 0 0.5rem 0;
-}
-
-.publication-doi {
-  color: #888;
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-}
-
-.publication-link {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.publication-link:hover {
-  text-decoration: underline;
-}
-
-.publications-more {
+/* Section Headers */
+.section-header {
   text-align: center;
-  margin-top: 2rem;
+  margin-bottom: 4rem;
 }
 
-.view-all-link {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #3498db;
-  color: white;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
+.section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
 }
 
-.view-all-link:hover {
-  background-color: #2980b9;
-}
-
-/* Contact Tab */
-.contact-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-}
-
-.contact-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.contact-group h3 {
-  font-size: 1.2rem;
-  color: #333;
-  margin: 0 0 0.5rem 0;
-}
-
-.contact-group p {
-  color: #555;
-  margin: 0;
-}
-
-.contact-group a {
-  color: #3498db;
-  text-decoration: none;
-}
-
-.contact-group a:hover {
-  text-decoration: underline;
-}
-
-.contact-form {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-}
-
-.contact-form h3 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.submit-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-  background-color: #2980b9;
-}
-
-/* Publications Tab Enhanced Styles */
-.publications-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.publications-controls {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.search-controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.search-input {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  min-width: 200px;
-}
-
-.search-button, .clear-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-}
-
-.search-button {
-  background-color: #3498db;
-  color: white;
-}
-
-.search-button:hover {
-  background-color: #2980b9;
-}
-
-.clear-button {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.clear-button:hover {
-  background-color: #c0392b;
-}
-
-.year-filter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.year-filter label {
-  font-weight: 500;
-  color: #555;
-}
-
-.year-dropdown {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  background-color: white;
-  cursor: pointer;
-}
-
-.publication-abstract {
-  color: #666;
-  line-height: 1.5;
-  margin: 1rem 0;
-  font-style: italic;
-}
-
-.publication-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.read-article-btn {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-}
-
-.read-article-btn:hover {
-  background-color: #2980b9;
-}
-
-.external-link {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.external-link:hover {
-  text-decoration: underline;
-}
-
-.loading-state, .error-state {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin: 2rem 0;
-}
-
-.error-state {
-  background-color: #ffeaea;
-  color: #e74c3c;
-}
-
-.retry-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
-.no-publications {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin: 2rem 0;
-}
-
-.no-publications p {
-  color: #666;
+.section-subtitle {
   font-size: 1.1rem;
-  margin: 0;
-}
-
-.publications-summary {
-  text-align: center;
-  margin-top: 2rem;
-  color: #666;
-  font-style: italic;
-}
-
-/* Article Reader Styles */
-.article-reader {
-  max-width: 800px;
+  color: var(--text-secondary);
+  max-width: 600px;
   margin: 0 auto;
+  line-height: 1.6;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  color: #3498db;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  padding: 0.5rem 0;
-  transition: color 0.3s ease;
+/* Departments Section */
+.departments-section {
+  padding: 5rem 0;
+  background: var(--bg-primary);
 }
 
-.back-button:hover {
-  color: #2980b9;
-  text-decoration: underline;
+.departments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
 }
 
-.article-content {
-  background-color: white;
+.department-card {
+  background: white;
+  border-radius: 20px;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.article-header {
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 2rem;
-  margin-bottom: 2rem;
+.department-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
-.article-header h1 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 1rem;
+.department-card:hover::before {
+  opacity: 0.05;
+}
+
+.department-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.department-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.department-icon.biology { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.department-icon.physics { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.department-icon.chemistry { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.department-icon.computer { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.department-icon.environment { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.department-icon.mathematics { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+
+.department-card h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
   line-height: 1.3;
 }
 
-.article-meta {
+.department-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.department-stats {
   display: flex;
-  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat .stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.stat .stat-label {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.department-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.article-authors {
-  font-size: 1.1rem;
-  color: #555;
-  font-style: italic;
-  margin: 0;
+.department-link:hover {
+  color: var(--primary-dark);
+  transform: translateX(5px);
 }
 
-.article-publication {
-  color: #666;
-  margin: 0;
+/* Partnerships Section */
+.partnerships-section {
+  padding: 5rem 0;
+  background: var(--bg-secondary);
 }
 
-.article-doi {
-  color: #888;
+.partnerships-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.partnership-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.partnership-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.partnership-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.partnership-card h4 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.partnership-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Footer - rovnaké ako HomeView */
+.footer {
+  background: var(--bg-dark);
+  color: white;
+  margin-top: auto;
+}
+
+.footer-content {
+  padding: 3rem 0;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 3rem;
+}
+
+.footer-column.main {
+  padding-right: 2rem;
+}
+
+.footer-logo h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.footer-tagline {
+  color: #9ca3af;
+  margin-bottom: 2rem;
   font-size: 0.9rem;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.contact-icon {
+  font-size: 1rem;
+}
+
+.footer-column h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-.article-date {
-  color: #888;
+.footer-column li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-column a {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.3s ease;
   font-size: 0.9rem;
-  margin: 0;
 }
 
-.publication-date {
-  color: #888;
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
+.footer-column a:hover {
+  color: white;
 }
 
-.article-body {
-  line-height: 1.7;
-}
-
-.abstract-section,
-.fulltext-section {
+.social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-bottom: 2rem;
 }
 
-.abstract-section h2,
-.fulltext-section h2 {
-  font-size: 1.5rem;
-  color: #333;
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.social-link:hover {
+  color: white;
+}
+
+.newsletter h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.newsletter p {
+  color: #9ca3af;
+  font-size: 0.85rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
 }
 
-.abstract-section p {
-  font-size: 1.1rem;
-  color: #555;
-  font-style: italic;
-  background-color: #f9f9f9;
-  padding: 1.5rem;
+.newsletter-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.newsletter-form input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #374151;
   border-radius: 8px;
-  border-left: 4px solid #3498db;
+  background: #374151;
+  color: white;
+  font-size: 0.85rem;
 }
 
-.article-paragraph {
-  margin-bottom: 1.5rem;
-  color: #444;
-  text-align: justify;
+.newsletter-form input::placeholder {
+  color: #9ca3af;
 }
 
-/* Responsive adjustments */
+.newsletter-form button {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s ease;
+}
+
+.newsletter-form button:hover {
+  background: var(--primary-dark);
+}
+
+.footer-bottom {
+  background: #111827;
+  padding: 1.5rem 0;
+}
+
+.footer-bottom .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-bottom p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-links a {
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .publications-controls {
+  .topbar-container {
+    padding: 0.5rem 1rem;
+  }
+  
+  .navbar-container {
     flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-controls {
-    justify-content: center;
-  }
-  
-  .search-input {
-    min-width: auto;
-    flex: 1;
-  }
-  
-  .year-filter {
-    justify-content: center;
-  }
-  
-  .publication-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .read-article-btn,
-  .external-link {
-    text-align: center;
-    width: 100%;
-  }
-  
-  .article-content {
+    gap: 1rem;
     padding: 1rem;
   }
   
-  .article-header h1 {
-    font-size: 1.5rem;
+  .main-nav-links {
+    gap: 1rem;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .departments-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .partnerships-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .footer-bottom .container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .quicklinks-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .departments-grid {
+    gap: 1rem;
+  }
+  
+  .department-card {
+    padding: 1.5rem;
+  }
+  
+  .partnerships-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

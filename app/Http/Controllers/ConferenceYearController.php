@@ -60,11 +60,6 @@ class ConferenceYearController extends Controller
             ], 422);
         }
 
-        // If setting this as active, deactivate others
-        if (isset($validated['is_active']) && $validated['is_active']) {
-            ConferenceYear::where('is_active', true)->update(['is_active' => false]);
-        }
-
         $conferenceYear = ConferenceYear::create($validated);
 
         return response()->json([
@@ -113,13 +108,6 @@ class ConferenceYearController extends Controller
             'semester.required' => 'Semester je povinný',
             'semester.in' => 'Semester musí byť buď Winter alebo Summer'
         ]);
-
-        // If setting this as active, deactivate others
-        if (isset($validated['is_active']) && $validated['is_active']) {
-            ConferenceYear::where('is_active', true)
-                         ->where('id', '!=', $id)
-                         ->update(['is_active' => false]);
-        }
 
         $conferenceYear->update($validated);
 

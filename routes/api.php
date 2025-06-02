@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConferenceYearController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\EditorAssignmentController;
+use App\Http\Controllers\SubpageController;
 
 // Auth routes (Guest only)
 Route::middleware('guest')->group(function () {
@@ -57,31 +59,28 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Admin routes (Admin only)
-    Route::prefix('admin')->middleware('checkrole:admin')->group(function () {
-        // User Management
-        Route::get('/users', [AdminController::class, 'getUsers']);
-        Route::post('/users', [AdminController::class, 'createUser']);
-        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
-        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+    Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
+        // Conference Years
+        Route::apiResource('conference-years', ConferenceYearController::class)
+            ->except(['show', 'index']);
 
-        // Role Management
-        Route::get('/roles', [AdminController::class, 'getRoles']);
-        Route::post('/users/{userId}/roles', [AdminController::class, 'assignUserRole']);
+        // Editors & Admins (users + roles)
+        Route::get('users', [AdminController::class, 'getUsers']);
+        Route::post('users', [AdminController::class, 'createUser']);
+        Route::put('users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
+        Route::get('roles', [AdminController::class, 'getRoles']);
+        Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
 
-        // Conference Year Management
-        Route::prefix('conference-years')->group(function () {
-            Route::post('/', [ConferenceYearController::class, 'store']);
-            Route::put('/{id}', [ConferenceYearController::class, 'update']);
-            Route::delete('/{id}', [ConferenceYearController::class, 'destroy']);
-            Route::patch('/{id}/set-active', [ConferenceYearController::class, 'setActive']);
-        });
+        // Editor assignments to years
+        Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
+        Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
+        Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
 
-        // Full Article Management (Admin can do everything)
-        Route::prefix('articles')->group(function () {
-            Route::post('/', [ArticleController::class, 'store']);
-            Route::put('/{id}', [ArticleController::class, 'update']);
-            Route::delete('/{id}', [ArticleController::class, 'destroy']);
-            Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
-        });
+        // Subpages per year
+        Route::get('years/{year}/subpages', [SubpageController::class, 'index']);
+        Route::post('years/{year}/subpages', [SubpageController::class, 'store']);
+        Route::put('subpages/{subpage}', [SubpageController::class, 'update']);
+        Route::delete('subpages/{subpage}', [SubpageController::class, 'destroy']);
     });
 });

@@ -14,20 +14,15 @@ class SubpageController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(Request $request, $year)
     {
-        $validator = Validator::make($request->all(), [
+        $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $subpage = Subpage::create($validator->validated());
-
-        return response()->json(['data' => $subpage, 'message' => 'Podstránka úspešne vytvorená.'], 201);
+        $data['conference_year_id'] = $year;
+        $sub = Subpage::create($data);
+        return response()->json($sub, 201);
     }
 
     public function show($id)

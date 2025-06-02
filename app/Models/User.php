@@ -23,7 +23,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'role', 
+        'role_id',
     ];
 
     /**
@@ -49,7 +49,7 @@ class User extends Authenticatable
         ];
     }
 
-    // Add this relationship
+        // Add this relationship
     public function roles()
     {
         return $this->belongsToMany(Role::class);

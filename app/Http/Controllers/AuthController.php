@@ -76,7 +76,7 @@ class AuthController extends Controller
         }
 
 
-        return '/dashboard';
+        return '/';
     }
 
 

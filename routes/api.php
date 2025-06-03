@@ -2,86 +2,48 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ConferenceYearController;
+use App\Http\Controllers\Api\SubpageController;
+use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ConferenceYearController;
-use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\EventController;
 
-// Auth routes (Guest only)
+// Public API routes
+Route::apiResource('subpages', SubpageController::class);
+Route::apiResource('conference-years', ConferenceYearController::class);
+Route::apiResource('articles', ArticleController::class);
+Route::post('articles/upload-image', [ArticleController::class, 'uploadImageForTinyMCE']);
+Route::get('test', fn() => ['message' => 'API is working']);
+
+// Auth routes
 Route::middleware('guest')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:50,1')
-        ->name('login');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login'])
+         ->middleware('throttle:50,1')
+         ->name('login');
+    Route::post('register', [AuthController::class, 'register']);
 });
 
-// Public routes (Read-only access for everyone)
-Route::prefix('conference-years')->group(function () {
-    Route::get('/', [ConferenceYearController::class, 'index']);
-    Route::get('/{id}', [ConferenceYearController::class, 'show']);
-    Route::get('/active/current', [ConferenceYearController::class, 'active']);
-    Route::get('/year/{year}', [ConferenceYearController::class, 'getByYear']);
-    Route::get('/years/available', [ConferenceYearController::class, 'availableYears']);
-    Route::get('/{id}/statistics', [ConferenceYearController::class, 'statistics']);
-});
-
-Route::prefix('articles')->group(function () {
-    Route::get('/', [ArticleController::class, 'index']);
-    Route::get('/{id}', [ArticleController::class, 'show']);
-    Route::get('/conference-year/{conferenceYearId}', [ArticleController::class, 'getByConferenceYear']);
-    Route::get('/author/{authorName}', [ArticleController::class, 'getByAuthor']);
-    Route::post('/search', [ArticleController::class, 'search']);
-    Route::get('/stats/overview', [ArticleController::class, 'statistics']);
-    Route::get('/export/json', [ArticleController::class, 'export']);
-});
-
-// Protected routes (Authentication required)
+// Protected routes (requires sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    // User routes
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return response()->json([
-            'user' => $request->user()->load('roles')
-        ]);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('user', function (Request $request) {
+        return response()->json(['user' => $request->user()]);
     });
 
-    // Editor routes (Admin + Editor access)
-    Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {
-        // Article management
-        Route::prefix('articles')->group(function () {
-            Route::post('/', [ArticleController::class, 'store']);
-            Route::put('/{id}', [ArticleController::class, 'update']);
-            Route::delete('/{id}', [ArticleController::class, 'destroy']);
-            Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
-        });
-    });
+    // Protected event management
+    Route::apiResource('events', EventController::class);
 
-    // Admin routes (Admin only)
+    // Admin‐only routes
     Route::prefix('admin')->middleware('checkrole:admin')->group(function () {
         // User Management
-        Route::get('/users', [AdminController::class, 'getUsers']);
-        Route::post('/users', [AdminController::class, 'createUser']);
-        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
-        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+        Route::get('users', [AdminController::class, 'getUsers']);
+        Route::post('users', [AdminController::class, 'createUser']);
+        Route::put('users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
 
         // Role Management
-        Route::get('/roles', [AdminController::class, 'getRoles']);
-        Route::post('/users/{userId}/roles', [AdminController::class, 'assignUserRole']);
-
-        // Conference Year Management
-        Route::prefix('conference-years')->group(function () {
-            Route::post('/', [ConferenceYearController::class, 'store']);
-            Route::put('/{id}', [ConferenceYearController::class, 'update']);
-            Route::delete('/{id}', [ConferenceYearController::class, 'destroy']);
-            Route::patch('/{id}/set-active', [ConferenceYearController::class, 'setActive']);
-        });
-
-        // Full Article Management (Admin can do everything)
-        Route::prefix('articles')->group(function () {
-            Route::post('/', [ArticleController::class, 'store']);
-            Route::put('/{id}', [ArticleController::class, 'update']);
-            Route::delete('/{id}', [ArticleController::class, 'destroy']);
-            Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
-        });
+        Route::get('roles', [AdminController::class, 'getRoles']);
+        Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
     });
 });

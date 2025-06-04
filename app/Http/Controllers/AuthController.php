@@ -6,15 +6,14 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
+        return $this->executeWithTransaction(function() use ($request) {
+            $errors = $this->validateRequest($request, [
                 'email' => 'required|email|exists:users,email',
                 'password' => 'required',
             ], [
@@ -24,34 +23,14 @@ class AuthController extends Controller
                 'password.required' => 'Heslo je povinné',
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Neplatné údaje',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
 
             if (!Auth::attempt($request->only('email', 'password'))) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Nesprávny email alebo heslo'
-                ], 401);
+                return $this->error('Nesprávny email alebo heslo', null, 401);
             }
 
             $user = User::with('roles')->where('email', $request->email)->first();
-
-            if (!$user) {
-                throw new \Exception('Nepodarilo sa načítať údaje používateľa');
-            }
-
             $token = $user->createToken('auth-token')->plainTextToken;
-
-            if (!$token) {
-                throw new \Exception('Nepodarilo sa vytvoriť prístupový token');
-            }
-
-            $redirectUrl = $this->getRedirectUrl($user);
 
             Log::info('Úspešné prihlásenie', [
                 'user_id' => $user->id,
@@ -59,189 +38,48 @@ class AuthController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Prihlásenie úspešné',
+            return $this->success([
                 'user' => $user,
                 'token' => $token,
-                'redirect_url' => $redirectUrl
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Chyba pri prihlasovaní', [
-                'email' => $request->email ?? 'neznámy',
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Nepodarilo sa prihlásiť',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+                'redirect_url' => $this->getRedirectUrl($user)
+            ], 'Prihlásenie úspešné');
+        }, 'Chyba pri prihlasovaní');
     }
 
     public function logout(Request $request)
     {
         try {
-            $user = $request->user();
-
-            if (!$user) {
-                throw new \Exception('Používateľ nie je prihlásený');
-            }
-
-            $currentToken = $request->user()->currentAccessToken();
-
-            if (!$currentToken) {
-                throw new \Exception('Neplatný prístupový token');
-            }
-
-            $currentToken->delete();
+            $request->user()->currentAccessToken()->delete();
 
             Log::info('Úspešné odhlásenie', [
-                'user_id' => $user->id,
+                'user_id' => $request->user()->id,
                 'ip' => $request->ip()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Odhlásenie úspešné'
-            ]);
-
+            return $this->success([], 'Odhlásenie úspešné');
         } catch (\Exception $e) {
-            Log::error('Chyba pri odhlasovaní', [
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Nepodarilo sa odhlásiť',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function getRedirectUrl($user)
-    {
-        try {
-            if (!$user) {
-                throw new \Exception('Používateľ neexistuje');
-            }
-
-            if ($user->roles()->where('name', 'Admin')->exists()) {
-                return '/admin/dashboard';
-            }
-
-            if ($user->roles()->where('name', 'Editor')->exists()) {
-                return '/editor/dashboard';
-            }
-
-            return '/';
-
-        } catch (\Exception $e) {
-            Log::error('Chyba pri získavaní redirect URL', [
-                'user_id' => $user->id ?? 'neznámy',
-                'error' => $e->getMessage()
-            ]);
-
-            return '/'; // Fallback na hlavnú stránku
+            return $this->handleException($e, 'Chyba pri odhlasovaní', 'Nepodarilo sa odhlásiť');
         }
     }
 
     public function me(Request $request)
     {
         try {
-            $user = $request->user();
+            $user = $request->user()->load('roles');
 
-            if (!$user) {
-                throw new \Exception('Používateľ nie je prihlásený');
-            }
-
-            $userWithRoles = $user->load('roles');
-
-            if (!$userWithRoles) {
-                throw new \Exception('Nepodarilo sa načítať údaje používateľa');
-            }
-
-            $redirectUrl = $this->getRedirectUrl($userWithRoles);
-
-            return response()->json([
-                'success' => true,
-                'user' => $userWithRoles,
-                'redirect_url' => $redirectUrl
+            return $this->success([
+                'user' => $user,
+                'redirect_url' => $this->getRedirectUrl($user)
             ]);
-
         } catch (\Exception $e) {
-            Log::error('Chyba pri získavaní údajov používateľa', [
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Nepodarilo sa načítať údaje používateľa',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function refresh(Request $request)
-    {
-        try {
-            $user = $request->user();
-
-            if (!$user) {
-                throw new \Exception('Používateľ nie je prihlásený');
-            }
-
-            $currentToken = $request->user()->currentAccessToken();
-
-            if (!$currentToken) {
-                throw new \Exception('Neplatný prístupový token');
-            }
-
-            // Vymazať starý token
-            $currentToken->delete();
-
-            // Vytvoriť nový token
-            $newToken = $user->createToken('auth-token')->plainTextToken;
-
-            if (!$newToken) {
-                throw new \Exception('Nepodarilo sa vytvoriť nový token');
-            }
-
-            Log::info('Token úspešne obnovený', [
-                'user_id' => $user->id,
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Token úspešne obnovený',
-                'token' => $newToken,
-                'user' => $user->load('roles')
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Chyba pri obnovovaní tokenu', [
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Nepodarilo sa obnoviť token',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Chyba pri získavaní údajov používateľa', 'Nepodarilo sa načítať údaje používateľa');
         }
     }
 
     public function register(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
+        return $this->executeWithTransaction(function() use ($request) {
+            $errors = $this->validateRequest($request, [
                 'username' => 'required|string|max:255|unique:users',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8|confirmed',
@@ -256,13 +94,7 @@ class AuthController extends Controller
                 'password.confirmed' => 'Potvrdenie hesla sa nezhoduje',
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Neplatné údaje',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
 
             $user = User::create([
                 'username' => $request->username,
@@ -270,15 +102,7 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            if (!$user) {
-                throw new \Exception('Nepodarilo sa vytvoriť používateľa');
-            }
-
             $token = $user->createToken('auth-token')->plainTextToken;
-
-            if (!$token) {
-                throw new \Exception('Nepodarilo sa vytvoriť prístupový token');
-            }
 
             Log::info('Úspešná registrácia', [
                 'user_id' => $user->id,
@@ -286,26 +110,18 @@ class AuthController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Registrácia úspešná',
+            return $this->success([
                 'user' => $user,
                 'token' => $token,
                 'redirect_url' => $this->getRedirectUrl($user)
-            ], 201);
+            ], 'Registrácia úspešná', 201);
+        }, 'Chyba pri registrácii');
+    }
 
-        } catch (\Exception $e) {
-            Log::error('Chyba pri registrácii', [
-                'email' => $request->email ?? 'neznámy',
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Nepodarilo sa zaregistrovať',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    private function getRedirectUrl($user)
+    {
+        if ($this->hasRole($user, 'Admin')) return '/admin/dashboard';
+        if ($this->hasRole($user, 'Editor')) return '/editor/dashboard';
+        return '/';
     }
 }

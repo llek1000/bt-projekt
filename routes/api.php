@@ -91,6 +91,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('roles', [AdminController::class, 'getRoles']);
         Route::post('users/{userId}/assign-role', [AdminController::class, 'assignUserRole']);
         
+        // Editor Assignment Management - ADD THESE MISSING ROUTES
+        Route::prefix('years/{year}/editors')->group(function () {
+            Route::get('/', [EditorAssignmentController::class, 'index']);
+            Route::post('/', [EditorAssignmentController::class, 'store']);
+            Route::delete('/{assignment}', [EditorAssignmentController::class, 'destroy']);
+            Route::get('/available', [EditorAssignmentController::class, 'availableUsers']);
+        });
+        
+        // Editor related routes
+        Route::get('editors', [AdminController::class, 'getEditors']);
+        Route::get('assignments', [EditorAssignmentController::class, 'all']);
+        Route::get('assignments/user/{userId}', [EditorAssignmentController::class, 'byUser']);
+        
         // System info
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });

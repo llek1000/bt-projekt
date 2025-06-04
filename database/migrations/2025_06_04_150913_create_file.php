@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('mime_type');
             $table->integer('file_size');
             $table->string('category')->nullable(); // pre organizáciu súborov
-            $table->foreignId('article_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

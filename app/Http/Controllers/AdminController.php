@@ -300,4 +300,24 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get all users with editor role
+     */
+    public function getEditors()
+    {
+        try {
+            $editors = User::with('roles')
+                ->whereHas('roles', function($query) {
+                    $query->where('name', 'editor');
+                })
+                ->get();
+                
+            return response()->json(['editors' => $editors]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Chyba pri načítavaní editorov: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

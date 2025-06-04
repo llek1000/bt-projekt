@@ -9,6 +9,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\EditorAssignmentController;
 use App\Http\Controllers\SubpageController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\FileController;
 
 // Auth routes (Guest only)
 Route::middleware('guest')->group(function () {
@@ -36,6 +37,8 @@ Route::prefix('articles')->group(function () {
     Route::post('/search', [ArticleController::class, 'search']);
     Route::get('/stats/overview', [ArticleController::class, 'statistics']);
     Route::get('/export/json', [ArticleController::class, 'export']);
+
+    Route::get('/{article}/files/{file}/download', [FileController::class, 'download']);
 });
 
 // Protected routes (Authentication required)
@@ -59,6 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{id}', [ArticleController::class, 'update']);
             Route::delete('/{id}', [ArticleController::class, 'destroy']);
             Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
+
+            Route::post('/{article}/files', [FileController::class, 'store']);
+            Route::delete('/files/{file}', [FileController::class, 'destroy']);
         });
 
         // Editor assignments - get current user's assignments

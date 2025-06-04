@@ -1,311 +1,156 @@
 <template>
   <div class="dashboard-container">
     <NavbarComponent />
+    
     <!-- Hero Section -->
     <section class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-overlay"></div>
-      <div class="hero-particles"></div>
+      <div class="hero-background">
+        <div class="hero-overlay"></div>
+        <div class="hero-particles">
+          <div class="particle" v-for="i in 20" :key="i"></div>
+        </div>
+      </div>
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">
             <span class="title-line">Editor</span>
             <span class="title-line highlight">Dashboard</span>
           </h1>
-          <p class="hero-subtitle">Správa článkov pre vaše priradené ročníky konferencie</p>
+          <p class="hero-subtitle">
+            Spravujte články pre svoje priradené ročníky
+          </p>
           <div class="hero-stats">
             <div class="stat-item">
               <span class="stat-number">{{ assignedYears.length }}</span>
-              <span class="stat-label">Ročníkov</span>
+              <span class="stat-label">Priradené ročníky</span>
             </div>
             <div class="stat-item">
               <span class="stat-number">{{ articles.length }}</span>
-              <span class="stat-label">Článkov</span>
+              <span class="stat-label">Články</span>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ filteredSubpages.length }}</span>
-              <span class="stat-label">Zobrazených</span>
+              <span class="stat-number">{{ articlesInSelectedYear.length }}</span>
+              <span class="stat-label">Články v ročníku</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Error Alert -->
-    <div v-if="error" class="management-section alt-bg">
+    <!-- Filter Section -->
+    <section class="management-section">
       <div class="container">
-        <div class="alert alert-danger">
-          <span>{{ error }}</span>
-          <button @click="clearError" class="close-button">&times;</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Conference Years Selection -->
-    <div class="management-section">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Výber ročníka konferencie</h2>
-          <p class="section-subtitle">Vyberte ročník pre správu článkov</p>
-        </div>
-        
-        <div class="management-content">
-          <div v-if="loadingYears" class="loading-state">
-            <p>Načítavanie ročníkov konferencie...</p>
-          </div>
-          
-          <div v-else-if="assignedYears.length === 0" class="empty-state">
-            <div class="empty-icon">📅</div>
-            <h3>Žiadne dostupné ročníky</h3>
-            <p>Nemáte priradené žiadne ročníky konferencie.</p>
-          </div>
-          
-          <div v-else class="cards-grid">
-            <div
-              v-for="year in assignedYears"
-              :key="year.id"
-              @click="selectYear(year.id)"
-              class="feature-card year-card"
-              :class="{ active: selectedYearId === year.id }"
-            >
-              <div class="card-header">
-                <h3>{{ year.semester }} {{ year.year }}</h3>
-                <span class="status-badge" :class="{ active: year.is_active }">
-                  {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
-                </span>
-              </div>
-              <div class="year-info">
-                <p>Kliknite pre správu článkov tohto ročníka</p>
-              </div>
-            </div>
+        <div class="filter-controls">
+          <div class="form-group">
+            <label>Ročník konferencie:</label>
+            <select v-model="selectedYearId" @change="loadArticlesForYear" class="modern-select">
+              <option value="">Vyberte ročník</option>
+              <option v-for="year in assignedYears" :key="year.id" :value="year.id">
+                {{ year.semester }} {{ year.year }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Article Management -->
-    <div v-if="selectedYearId" class="management-section alt-bg">
+    <!-- Articles Management -->
+    <section class="management-section" v-if="selectedYearId">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Správa článkov</h2>
-          <p class="section-subtitle">{{ formattedSelectedYear }}</p>
+          <h2 class="section-title">Články pre {{ selectedYearName }}</h2>
+          <p class="section-subtitle">Spravujte články pre vybraný ročník</p>
         </div>
         
         <div class="management-content">
           <div class="management-actions">
-            <div class="search-container">
-              <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Hľadať články..." 
-                class="search-input"
-              />
-            </div>
-            <div class="filter-controls">
-              <select v-model="statusFilter" class="modern-select">
-                <option value="all">Všetky stavy</option>
-                <option value="published">Len publikované</option>
-                <option value="draft">Len koncepty</option>
-              </select>
-            </div>
-            <button @click="showAddSubpageForm" class="hero-btn primary">
-              <span class="icon">+</span>
+            <button @click="openArticleModal()" class="hero-btn primary">
               Pridať článok
             </button>
           </div>
 
-          <!-- Add Article Form -->
-          <div v-if="showAddForm" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Pridať nový článok</h3>
-                <button @click="cancelAdd" class="close-button">&times;</button>
-              </div>
-              
-              <form @submit.prevent="saveSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="title">Názov *</label>
-                  <input
-                    id="title"
-                    v-model="newArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label for="author_name">Meno autora *</label>
-                  <input
-                    id="author_name"
-                    v-model="newArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-                
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Ukladanie...</span>
-                    <span v-else>Uložiť článok</span>
-                  </button>
-                  <button type="button" @click="cancelAdd" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <h3>Načítavam články...</h3>
           </div>
 
-          <!-- Edit Article Form -->
-          <div v-if="showEditForm && editingArticle" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Upraviť článok</h3>
-                <button @click="cancelEdit" class="close-button">&times;</button>
-              </div>
-              
-              <form @submit.prevent="updateSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="edit-title">Názov *</label>
-                  <input
-                    id="edit-title"
-                    v-model="editingArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label for="edit-author_name">Meno autora *</label>
-                  <input
-                    id="edit-author_name"
-                    v-model="editingArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-                
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Aktualizovanie...</span>
-                    <span v-else>Aktualizovať článok</span>
-                  </button>
-                  <button type="button" @click="cancelEdit" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
+          <div v-else-if="articlesInSelectedYear.length === 0" class="empty-state">
+            <div class="empty-icon">📄</div>
+            <h3>Žiadne články</h3>
+            <p>Pre tento ročník ešte neboli vytvorené žiadne články.</p>
           </div>
 
-          <!-- Articles List -->
-          <div class="articles-section">
-            <div v-if="loading" class="loading-state">
-              <p>Načítavanie článkov...</p>
-            </div>
-            
-            <div v-else-if="filteredSubpages.length === 0" class="empty-state">
-              <div class="empty-icon">📄</div>
-              <h3>Žiadne články</h3>
-              <p v-if="searchQuery || statusFilter !== 'all'">
-                Skúste upraviť vyhľadávanie alebo filter.
-              </p>
-              <p v-else>
-                Pre tento ročník konferencie zatiaľ neboli vytvorené žiadne články.
-              </p>
-            </div>
-            
-            <div v-else class="cards-grid">
-              <div
-                v-for="subpage in filteredSubpages"
-                :key="subpage.id"
-                class="feature-card article-card"
-                :class="{ draft: !subpage.isPublished }"
-              >
-                <div class="card-header">
-                  <h3>{{ subpage.title }}</h3>
-                  <span class="status-badge" :class="{ active: subpage.isPublished }">
-                    {{ subpage.isPublished ? 'Publikovaný' : 'Koncept' }}
-                  </span>
+          <div v-else class="cards-grid">
+            <div v-for="article in articlesInSelectedYear" :key="article.id" class="feature-card article-card">
+              <div class="card-header">
+                <h3>{{ article.title }}</h3>
+                <span class="meta-item">{{ article.author_name }}</span>
+              </div>
+              
+              <div class="card-content">
+                <div class="content-preview">
+                  <p>{{ formatArticleSummary(article.content) }}</p>
                 </div>
-                
-                <div class="card-content">
-                  <p class="content-preview">{{ formatArticleSummary(subpage.content) }}</p>
-                  
-                  <div class="card-meta">
-                    <span class="meta-item">Vytvorené: {{ subpage.createdAt }}</span>
-                    <span class="meta-item">Upravené: {{ subpage.updatedAt }}</span>
+                <div class="card-meta">
+                  <div class="meta-item">
+                    <strong>Autor:</strong> {{ article.author_name }}
+                  </div>
+                  <div class="meta-item">
+                    <strong>Vytvorené:</strong> {{ formatDate(article.created_at) }}
                   </div>
                 </div>
-                
-                <div class="card-actions">
-                  <button @click="editSubpage(subpage)" class="action-btn edit">
-                    Upraviť
-                  </button>
-                  <button @click="confirmDelete(subpage)" class="action-btn delete">
-                    Zmazať
-                  </button>
-                </div>
+              </div>
+
+              <div class="card-actions">
+                <button @click="openArticleModal(article)" class="action-btn edit">Upraviť</button>
+                <button @click="deleteArticle(article.id)" class="action-btn delete">Vymazať</button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-container" @click.stop>
+    <!-- No Year Selected State -->
+    <section v-else class="management-section">
+      <div class="container">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <h3>Vyberte ročník</h3>
+          <p>Vyberte ročník konferencie zo zoznamu vyššie pre zobrazenie článkov.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Article Modal -->
+    <div v-if="showArticleForm" class="modal-overlay">
+      <div class="modal-container">
         <div class="modal-header">
-          <h3>Potvrdiť zmazanie</h3>
-          <button @click="cancelDelete" class="close-button">&times;</button>
+          <h3>{{ editArticle ? 'Upraviť článok' : 'Pridať článok' }}</h3>
+          <button @click="closeArticleModal" class="close-button">×</button>
         </div>
-        <div class="modal-form">
-          <p v-if="deletingArticle">
-            Ste si istí, že chcete zmazať "<strong>{{ deletingArticle.title }}</strong>"?
-          </p>
-          <p class="warning-text">Túto akciu nie je možné vrátiť späť.</p>
-          
-          <div class="form-actions">
-            <button
-              @click="deleteSubpage"
-              :disabled="deleting"
-              class="hero-btn primary delete-confirm"
-            >
-              <span v-if="deleting">Mazanie...</span>
-              <span v-else>Zmazať článok</span>
-            </button>
-            <button @click="cancelDelete" class="hero-btn secondary">
-              Zrušiť
-            </button>
+        <form @submit.prevent="saveArticle" class="modal-form">
+          <div class="form-group">
+            <label>Názov článku</label>
+            <input v-model="formArticle.title" type="text" required class="modern-input" />
           </div>
-        </div>
+          <div class="form-group">
+            <label>Autor</label>
+            <input v-model="formArticle.author_name" type="text" required class="modern-input" />
+          </div>
+          <div class="form-group">
+            <label>Obsah</label>
+            <Editor
+              v-model="formArticle.content"
+              :api-key="tinymceKey"
+              :init="tinymceConfig"
+            />
+          </div>
+          <div class="form-actions">
+            <button type="button" @click="closeArticleModal" class="hero-btn secondary">Zrušiť</button>
+            <button type="submit" class="hero-btn primary">{{ editArticle ? 'Uložiť' : 'Vytvoriť' }}</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -314,9 +159,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
-import axios from 'axios'
-import { articleApi, type Article, type UpdateArticleRequest } from '@/services/article'
-import { conferenceYearApi, conferenceYearHelpers, type ConferenceYear } from '@/services/conferenceYear'
+import { articleApi, type Article } from '@/services/article'
 import adminPanel from '@/services/adminPanel'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import type { Settings } from 'tinymce'
@@ -324,425 +167,219 @@ import type { Settings } from 'tinymce'
 export default defineComponent({
   name: 'EditDashboardView',
   components: { 
-    Editor,
-    NavbarComponent
+    NavbarComponent,
+    Editor
   },
   
   data() {
     return {
-      // Editor's assigned academic years - will be loaded from API
-      assignedYears: [] as ConferenceYear[],
-      
-      // Articles for the selected year
+      assignedYears: [] as any[],
       articles: [] as Article[],
-      
-      // Form states
       selectedYearId: null as number | null,
-      showAddForm: false,
-      showEditForm: false,
-      showDeleteModal: false,
-      editingArticle: null as Article | null,
-      deletingArticle: null as Article | null,
+      loading: false,
       
-      // New article form
-      newArticle: {
+      showArticleForm: false,
+      editArticle: null as Article | null,
+      formArticle: {
         title: '',
         content: '',
         author_name: ''
       },
-      
-      // Loading states
-      loading: false,
-      saving: false,
-      deleting: false,
-      loadingYears: false,
-      
-      // Filter and search
-      searchQuery: '',
-      statusFilter: 'all' as 'all' | 'published' | 'draft',
-      
-      // Error handling
-      error: null as string | null,
-      
-      // TinyMCE editor
-      content: '' as string,
+
+      // TinyMCE configuration
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       tinymceConfig: {
-        menubar: true,
-        plugins: 'lists link image code',
-        toolbar:
-          'undo redo | bold italic underline | alignleft aligncenter | ' +
-          'bullist numlist | image | code',
-        height: 350,
-        // API kľúč priamo v konfigurácii
-        api_key: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
-        automatic_uploads: true,
-        images_upload_handler: function(
-          blobInfo: any,
-          success: (url: string) => void,
-          failure: (errMsg: string) => void
-        ) {
-          const fd = new FormData()
-          fd.append('file', blobInfo.blob(), blobInfo.filename())
-
-          adminPanel.uploadImage(fd)
-            .then(res => {
-              success(res.data.location)
-            })
-            .catch(err => {
-              console.error('Image upload error:', err)
-              if (typeof failure === 'function') {
-                failure(
-                  'Image upload failed: ' +
-                  (err.response?.data?.message || err.message || 'Unknown error')
-                )
-              }
-            })
+        height: 400,
+        menubar: false,
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        images_upload_handler: async (blobInfo: any, progress: any) => {
+          return new Promise(async (resolve, reject) => {
+            try {
+              const formData = new FormData();
+              formData.append('file', blobInfo.blob(), blobInfo.filename());
+              
+              const response = await adminPanel.uploadImage(formData);
+              resolve(response.data.location);
+            } catch (error) {
+              console.error('Upload error:', error);
+              reject('Image upload failed');
+            }
+          });
         }
       } as Settings
     }
   },
   
   computed: {
-    // Convert API articles to subpage format for display
-    filteredSubpages(): Subpage[] {
+    articlesInSelectedYear(): Article[] {
       if (!this.selectedYearId) return []
-      
-      let filtered = this.articles.map(article => ({
-        id: article.id,
-        title: article.title,
-        slug: this.getArticleSlug(article),
-        content: article.content,
-        yearId: article.conference_year_id,
-        createdAt: this.formatDate(article.created_at || ''),
-        updatedAt: this.formatDate(article.updated_at || ''),
-        isPublished: true // API doesn't have publish status, assume published
-      }))
-      
-      // Apply search filter
-      if (this.searchQuery) {
-        filtered = filtered.filter(subpage => {
-          const query = this.searchQuery.toLowerCase()
-          return subpage.title.toLowerCase().includes(query) ||
-                 (subpage.content && subpage.content.toLowerCase().includes(query))
-        })
-      }
-      
-      // Status filter (keeping for UI compatibility)
-      if (this.statusFilter === 'published') {
-        filtered = filtered.filter(subpage => subpage.isPublished)
-      } else if (this.statusFilter === 'draft') {
-        filtered = filtered.filter(subpage => !subpage.isPublished)
-      }
-      
-      return filtered
+      return this.articles.filter(article => article.conference_year_id === this.selectedYearId)
     },
-    
-    selectedYear(): ConferenceYear | undefined {
-      return this.assignedYears.find(year => year.id === this.selectedYearId)
-    },
-    
-    formattedSelectedYear(): string {
-      return this.selectedYear ? conferenceYearHelpers.formatConferenceYear(this.selectedYear) : ''
+
+    selectedYearName(): string {
+      if (!this.selectedYearId) return ''
+      const year = this.assignedYears.find(y => y.id === this.selectedYearId)
+      return year ? `${year.semester} ${year.year}` : ''
     }
   },
   
   methods: {
-    // Helper methods (replacing articleHelpers)
-    getArticleSlug(article: Article): string {
-      return article.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-    },
-
-    formatDate(dateString: string): string {
+    async loadAssignedYears() {
       try {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+        // Získame prihláseneho používateľa
+        const userResponse = await fetch('/api/user', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Accept': 'application/json'
+          }
         })
-      } catch (error) {
-        return 'Invalid date'
-      }
-    },
-
-    formatArticleSummary(content: string | null): string {
-      if (!content) {
-        return 'No content available...'
-      }
-      
-      const maxLength = 150
-      const cleanContent = content.replace(/<[^>]*>/g, '') // Strip HTML tags
-      
-      if (cleanContent.length <= maxLength) {
-        return cleanContent
-      }
-      
-      return cleanContent.substring(0, maxLength).trim() + '...'
-    },
-
-    validateArticle(articleData: CreateArticleRequest | UpdateArticleRequest): string[] {
-      const errors: string[] = []
-      
-      if (!articleData.title || articleData.title.trim().length === 0) {
-        errors.push('Title is required')
-      }
-      
-      if (articleData.title && articleData.title.length > 255) {
-        errors.push('Title must be less than 255 characters')
-      }
-      
-      if (!articleData.author_name || articleData.author_name.trim().length === 0) {
-        errors.push('Author name is required')
-      }
-      
-      if (articleData.author_name && articleData.author_name.length > 255) {
-        errors.push('Author name must be less than 255 characters')
-      }
-      
-      if (!articleData.conference_year_id) {
-        errors.push('Conference year is required')
-      }
-      
-      return errors
-    },
-
-    // Load conference years from API
-    async loadConferenceYears() {
-      this.loadingYears = true
-      this.error = null
-      
-      try {
-        this.assignedYears = await conferenceYearApi.getConferenceYears()
         
-        // Sort conference years
-        this.assignedYears = conferenceYearHelpers.sortConferenceYears(this.assignedYears)
-        
-        // Select first year if available
-        if (this.assignedYears.length > 0) {
-          this.selectedYearId = this.assignedYears[0].id
-          await this.loadArticles()
+        if (!userResponse.ok) {
+          throw new Error('Failed to get user info')
         }
+        
+        const userData = await userResponse.json()
+        const userId = userData.user.id
+
+        // Načítame všetky ročníky
+        const yearsResponse = await adminPanel.getConferenceYears()
+        const allYears = yearsResponse.data?.data || []
+
+        // Pre každý ročník zistíme, či je používateľ priradený
+        const assigned = []
+        for (const year of allYears) {
+          try {
+            const assignmentsResponse = await adminPanel.listYearEditors(year.id)
+            const assignments = assignmentsResponse.data || []
+            
+            // Skontrolujeme, či je aktuálny používateľ v zozname editorov
+            const isAssigned = assignments.some((assignment: any) => assignment.user_id === userId)
+            
+            if (isAssigned) {
+              assigned.push(year)
+            }
+          } catch (error) {
+            console.error(`Error checking assignments for year ${year.id}:`, error)
+          }
+        }
+
+        this.assignedYears = assigned
       } catch (error) {
-        console.error('Error loading conference years:', error)
-        this.error = 'Failed to load conference years'
-      } finally {
-        this.loadingYears = false
+        console.error('Error loading assigned years:', error)
+        this.assignedYears = []
       }
     },
-    
-    // Year selection
-    async selectYear(yearId: number) {
-      this.selectedYearId = yearId
-      this.showAddForm = false
-      this.showEditForm = false
-      await this.loadArticles()
-    },
-    
-    // Load articles for selected year
-    async loadArticles() {
-      if (!this.selectedYearId) return
-      
+
+    async loadArticlesForYear() {
+      if (!this.selectedYearId) {
+        this.articles = []
+        return
+      }
+
       this.loading = true
-      this.error = null
-      
       try {
-        const result = await articleApi.getArticlesByConferenceYear(this.selectedYearId)
-        this.articles = result.articles || []
+        const response = await adminPanel.listArticles({ conference_year_id: this.selectedYearId })
+        this.articles = response.data?.data || []
       } catch (error) {
         console.error('Error loading articles:', error)
-        this.error = 'Failed to load articles'
         this.articles = []
       } finally {
         this.loading = false
       }
     },
-    
-    // Add new article
-    showAddSubpageForm() {
-      this.showAddForm = true
-      this.showEditForm = false
-      this.newArticle = {
+
+    openArticleModal(article: Article | null = null) {
+      this.editArticle = article
+      if (article) {
+        this.formArticle = {
+          title: article.title,
+          content: article.content || '',
+          author_name: article.author_name
+        }
+      } else {
+        this.formArticle = {
+          title: '',
+          content: '',
+          author_name: ''
+        }
+      }
+      this.showArticleForm = true
+    },
+
+    closeArticleModal() {
+      this.showArticleForm = false
+      this.editArticle = null
+      this.formArticle = {
         title: '',
         content: '',
         author_name: ''
       }
     },
-    
-    async saveSubpage() {
-      if (!this.newArticle.title.trim() || !this.selectedYearId) return
-      
-      // Validate the article data
-      const createRequest: CreateArticleRequest = {
-        title: this.newArticle.title,
-        content: this.newArticle.content,
-        conference_year_id: this.selectedYearId,
-        author_name: this.newArticle.author_name
-      }
-      
-      const validationErrors = this.validateArticle(createRequest)
-      if (validationErrors.length > 0) {
-        this.error = validationErrors.join(', ')
+
+    async saveArticle() {
+      if (!this.selectedYearId) {
+        alert('Vyberte ročník konferencie')
         return
       }
-      
-      this.saving = true
-      this.error = null
-      
+
       try {
-        const result = await articleApi.createArticle(createRequest)
-        
-        if (result.article) {
-          this.articles.push(result.article)
-          this.showAddForm = false
-          this.newArticle = { title: '', content: '', author_name: '' }
-          
-          if (result.message) {
-            console.log('Success:', result.message)
-          }
+        const articleData = {
+          ...this.formArticle,
+          conference_year_id: this.selectedYearId
         }
-      } catch (error) {
-        console.error('Error creating article:', error)
-        this.error = 'Failed to create article'
-      } finally {
-        this.saving = false
-      }
-    },
-    
-    // Edit article
-    editSubpage(subpage: Subpage) {
-      // Find the actual article by ID
-      const article = this.articles.find(a => a.id === subpage.id)
-      if (article) {
-        this.editingArticle = { ...article }
-        this.content = article.content   // <-- load backend HTML into editor
-        this.showEditForm = true
-        this.showAddForm = false
-      }
-    },
-    
-    async updateSubpage() {
-      if (!this.editingArticle || !this.editingArticle.title.trim()) return
-      
-      const updateRequest: UpdateArticleRequest = {
-        title: this.editingArticle.title,
-        content: this.content,        // <-- send edited HTML back
-        conference_year_id: this.editingArticle.conference_year_id,
-        author_name: this.editingArticle.author_name
-      }
-      
-      const validationErrors = this.validateArticle(updateRequest)
-      if (validationErrors.length > 0) {
-        this.error = validationErrors.join(', ')
-        return
-      }
-      
-      this.saving = true
-      this.error = null
-      
-      try {
-        const result = await articleApi.updateArticle(this.editingArticle.id, updateRequest)
-        
-        if (result.article) {
-          // Find and update the article in the array
-          const index = this.articles.findIndex(a => a.id === this.editingArticle!.id)
-          if (index !== -1) {
-            this.articles[index] = result.article
-          }
-          
-          this.showEditForm = false
-          this.editingArticle = null
-          
-          if (result.message) {
-            console.log('Success:', result.message)
-          }
+
+        if (this.editArticle) {
+          await adminPanel.updateArticle(this.editArticle.id, articleData)
+        } else {
+          await adminPanel.createArticle(articleData)
         }
+
+        await this.loadArticlesForYear()
+        this.closeArticleModal()
       } catch (error) {
-        console.error('Error updating article:', error)
-        this.error = 'Failed to update article'
-      } finally {
-        this.saving = false
+        console.error('Error saving article:', error)
+        alert('Chyba pri ukladaní článku')
       }
     },
-    
-    // Delete article
-    confirmDelete(subpage: Subpage) {
-      const article = this.articles.find(a => a.id === subpage.id)
-      if (article) {
-        this.deletingArticle = article
-        this.showDeleteModal = true
-      }
-    },
-    
-    async deleteSubpage() {
-      if (!this.deletingArticle) return
-      
-      this.deleting = true
-      this.error = null
-      
-      try {
-        const result = await articleApi.deleteArticle(this.deletingArticle.id)
-        
-        if (result.success) {
-          // Remove from local array
-          const index = this.articles.findIndex(a => a.id === this.deletingArticle!.id)
-          if (index !== -1) {
-            this.articles.splice(index, 1)
-          }
-          
-          this.showDeleteModal = false
-          this.deletingArticle = null
-          
-          if (result.message) {
-            console.log('Success:', result.message)
-          }
+
+    async deleteArticle(id: number) {
+      if (confirm('Naozaj chcete vymazať tento článok?')) {
+        try {
+          await adminPanel.deleteArticle(id)
+          await this.loadArticlesForYear()
+        } catch (error) {
+          console.error('Error deleting article:', error)
+          alert('Chyba pri mazaní článku')
         }
-      } catch (error) {
-        console.error('Error deleting article:', error)
-        this.error = 'Failed to delete article'
-      } finally {
-        this.deleting = false
       }
     },
-    
-    // Toggle publish status (keeping for UI compatibility)
-    async togglePublishStatus(subpage: Subpage) {
-      try {
-        // API doesn't support publish status, so this is just UI feedback
-        console.log(`Article ${subpage.isPublished ? 'unpublished' : 'published'}`)
-      } catch (error) {
-        console.error('Error toggling publish status:', error)
-        this.error = 'Failed to toggle publish status'
-      }
+
+    formatDate(dateString?: string): string {
+      if (!dateString) return 'Neznámy dátum'
+      return new Date(dateString).toLocaleDateString('sk-SK')
     },
-    
-    // Cancel forms
-    cancelAdd() {
-      this.showAddForm = false
-      this.newArticle = { title: '', content: '', author_name: '' }
-    },
-    
-    cancelEdit() {
-      this.showEditForm = false
-      this.editingArticle = null
-    },
-    
-    cancelDelete() {
-      this.showDeleteModal = false
-      this.deletingArticle = null
-    },
-    
-    // Clear error
-    clearError() {
-      this.error = null
+
+    formatArticleSummary(content: string | null): string {
+      if (!content) return 'Žiadny obsah...'
+      const cleanContent = content.replace(/<[^>]*>/g, '')
+      return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent
     }
   },
   
   async mounted() {
-    await this.loadConferenceYears()
+    await this.loadAssignedYears()
+    
+    // Ak je len jeden priradený ročník, automaticky ho vyberieme
+    if (this.assignedYears.length === 1) {
+      this.selectedYearId = this.assignedYears[0].id
+      await this.loadArticlesForYear()
+    }
   }
 })
 </script>
@@ -958,11 +595,23 @@ export default defineComponent({
 }
 
 .filter-controls {
-  display: flex;
-  gap: 1rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
 }
 
-/* Buttons */
+.filter-controls .form-group {
+  margin-bottom: 0;
+}
+
+.filter-controls label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
 .hero-btn {
   display: inline-flex;
   align-items: center;
@@ -1193,19 +842,28 @@ export default defineComponent({
   margin: 2rem 0;
 }
 
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
 .empty-icon {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
 }
 
 .empty-state h3 {
+  margin-bottom: 1rem;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
 }
 
 .empty-state p {
   color: var(--text-secondary);
-  margin: 0;
 }
 
 /* Alert */

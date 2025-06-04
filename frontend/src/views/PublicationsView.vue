@@ -1,124 +1,112 @@
 <template>
   <div class="page-container">
-    <!-- Použitie spoločného navbar komponentu -->
     <NavbarComponent />
-
-    <!-- Hlavný obsah -->
-    <main class="main-content">
-      <!-- Hero sekcia -->
-      <section class="hero-section">
-        <div class="hero-background">
-          <div class="hero-overlay"></div>
-          <div class="hero-particles"></div>
-        </div>
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-background">
+        <div class="hero-overlay"></div>
+        <div class="hero-particles"></div>
+      </div>
+      <div class="container">
         <div class="hero-content">
-          <div class="hero-text">
-            <h1 class="hero-title">
-              <span class="title-line">Vedecké</span>
-              <span class="title-line highlight">Publikácie</span>
-            </h1>
-            <p class="hero-subtitle">
-              Preskúmajte naše najnovšie výskumne práce a vedecké príspevky
-            </p>
-          </div>
+          <h1 class="hero-title">
+            <span class="title-line">Vedecké</span>
+            <span class="title-line highlight">Publikácie</span>
+          </h1>
+          <p class="hero-subtitle">
+            Preskúmajte našu rozsiahlu zbierku vedeckých článkov a výskumných prác
+          </p>
           <div class="hero-stats">
             <div class="stat-item">
-              <span class="stat-number">{{ totalPublications }}+</span>
-              <span class="stat-label">Publikácií</span>
+              <div class="stat-number">{{ articles.length }}</div>
+              <div class="stat-label">Publikácií</div>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ totalAuthors }}+</span>
-              <span class="stat-label">Autorov</span>
+              <div class="stat-number">{{ conferenceYears.length }}</div>
+              <div class="stat-label">Ročníkov</div>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ conferenceYears.length }}+</span>
-              <span class="stat-label">Ročníkov</span>
+              <div class="stat-number">{{ uniqueAuthors.length }}</div>
+              <div class="stat-label">Autorov</div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Filter sekcia -->
-      <section class="filter-section">
-        <div class="container">
-          <div class="filter-wrapper">
-            <div class="search-container">
-              <div class="search-input-wrapper">
-                <span class="search-icon">🔍</span>
-                <input 
-                  type="text" 
-                  v-model="searchQuery" 
-                  placeholder="Vyhľadajte publikácie podľa názvu alebo autora..."
-                  class="search-input"
-                  @input="performSearch"
-                />
-                <button 
-                  v-if="searchQuery" 
-                  @click="clearSearch" 
-                  class="clear-button"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            
-            <div class="filter-controls">
-              <div class="filter-group">
-                <label for="conferenceYear">Ročník konferencie</label>
-                <select 
-                  id="conferenceYear" 
-                  v-model="selectedConferenceYear" 
-                  class="filter-select"
-                  @change="applyFilters"
-                >
-                  <option value="">Všetky ročníky</option>
-                  <option 
-                    v-for="year in conferenceYears" 
-                    :key="year.id" 
-                    :value="year.id"
-                  >
-                    {{ year.semester }} {{ year.year }}
-                  </option>
-                </select>
-              </div>
-              
-              <div class="filter-group">
-                <label for="sortBy">Zoradiť podľa</label>
-                <select 
-                  id="sortBy" 
-                  v-model="sortBy" 
-                  class="filter-select"
-                  @change="applySort"
-                >
-                  <option value="created_at">Najnovšie</option>
-                  <option value="title">Názov (A-Z)</option>
-                  <option value="author_name">Autor (A-Z)</option>
-                </select>
-              </div>
+    <!-- Filter Section -->
+    <section class="filter-section">
+      <div class="container">
+        <div class="filter-wrapper">
+          <!-- Search -->
+          <div class="search-container">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input 
+                v-model="searchQuery"
+                type="text" 
+                placeholder="Hľadať v publikáciách..." 
+                class="search-input"
+              />
+              <button 
+                v-if="searchQuery" 
+                @click="searchQuery = ''" 
+                class="clear-button"
+              >
+                ✕
+              </button>
             </div>
           </div>
 
-          <!-- Aktívne filtre -->
-          <div v-if="hasActiveFilters" class="active-filters">
-            <span class="filter-label">Aktívne filtre:</span>
-            <div class="filter-tags">
-              <span v-if="selectedConferenceYear" class="filter-tag">
-                {{ getConferenceYearName(selectedConferenceYear) }}
-                <button @click="clearConferenceYearFilter" class="remove-filter">×</button>
-              </span>
-              <span v-if="searchQuery" class="filter-tag">
-                Hľadanie: "{{ searchQuery }}"
-                <button @click="clearSearch" class="remove-filter">×</button>
-              </span>
+          <!-- Filters -->
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label>Ročník:</label>
+              <select v-model="selectedYear" class="filter-select">
+                <option value="">Všetky ročníky</option>
+                <option v-for="year in availableYears" :key="year" :value="year">
+                  {{ year }}
+                </option>
+              </select>
             </div>
-            <button @click="clearAllFilters" class="clear-all-filters">
-              Vymazať všetky filtre
-            </button>
+
+            <div class="filter-group">
+              <label>Semester:</label>
+              <select v-model="selectedSemester" class="filter-select">
+                <option value="">Všetky semestre</option>
+                <option value="Winter">Winter</option>
+                <option value="Summer">Summer</option>
+              </select>
+            </div>
           </div>
         </div>
-      </section>
 
-      <!-- Publikácie obsah -->
+        <!-- Active Filters -->
+        <div v-if="hasActiveFilters" class="active-filters">
+          <span class="filter-label">Aktívne filtre:</span>
+          <div class="filter-tags">
+            <span v-if="searchQuery" class="filter-tag">
+              Hľadanie: "{{ searchQuery }}"
+              <button @click="searchQuery = ''" class="remove-filter">×</button>
+            </span>
+            <span v-if="selectedYear" class="filter-tag">
+              Rok: {{ selectedYear }}
+              <button @click="selectedYear = ''" class="remove-filter">×</button>
+            </span>
+            <span v-if="selectedSemester" class="filter-tag">
+              Semester: {{ selectedSemester }}
+              <button @click="selectedSemester = ''" class="remove-filter">×</button>
+            </span>
+          </div>
+          <button @click="clearAllFilters" class="clear-all-filters">
+            Vymazať všetky filtre
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <main class="main-content">
       <section class="publications-content">
         <div class="container">
           <!-- Loading stav -->
@@ -164,53 +152,51 @@
             </div>
 
             <div class="publications-grid">
-              <article 
-                v-for="article in paginatedArticles" 
-                :key="article.id" 
+              <div 
+                v-for="publication in paginatedPublications" 
+                :key="publication.id" 
                 class="publication-card"
               >
                 <div class="card-header">
                   <span class="type-badge">Vedecký článok</span>
                   <span class="publication-date">
-                    {{ formatDate(article.created_at) }}
+                    {{ formatDate(publication.created_at) }}
                   </span>
                 </div>
                 
                 <div class="card-body">
-                  <h3 class="publication-title">{{ article.title }}</h3>
+                  <h3 class="publication-title">{{ publication.title }}</h3>
                   
                   <div class="publication-author">
                     <span class="author-icon">👤</span>
-                    {{ article.author_name }}
+                    <span>{{ publication.author_name }}</span>
                   </div>
                   
                   <div class="publication-meta">
                     <div class="conference-info">
-                      <span class="conference-icon">🎓</span>
+                      <span class="conference-icon">📅</span>
                       <span>
-                        {{ article.conference_year ? 
-                           `${article.conference_year.semester} ${article.conference_year.year}` : 
-                           'Nezadaný ročník' 
-                        }}
+                        {{ publication.conference_year?.semester }} 
+                        {{ publication.conference_year?.year }}
                       </span>
                     </div>
                   </div>
-                  
-                  <div v-if="article.content" class="publication-abstract">
-                    {{ truncateContent(article.content, 150) }}
+
+                  <div class="publication-abstract">
+                    {{ getExcerpt(publication.content) }}
                   </div>
                 </div>
                 
                 <div class="card-footer">
-                  <button 
-                    @click="openArticle(article)" 
+                  <router-link 
+                    :to="`/articles/${publication.id}`" 
                     class="read-more-btn"
                   >
-                    Čítať viac
+                    Čítať celý článok
                     <span class="arrow">→</span>
-                  </button>
+                  </router-link>
                 </div>
-              </article>
+              </div>
             </div>
 
             <!-- Paginácia -->
@@ -218,87 +204,57 @@
               <div class="pagination">
                 <div class="page-numbers">
                   <button 
-                    @click="goToPage(currentPage - 1)"
+                    @click="currentPage = 1" 
                     :disabled="currentPage === 1"
                     class="page-btn"
                   >
-                    ‹ Predošlá
+                    Prvá
+                  </button>
+                  <button 
+                    @click="currentPage--" 
+                    :disabled="currentPage === 1"
+                    class="page-btn"
+                  >
+                    ‹
                   </button>
                   
                   <button 
                     v-for="page in visiblePages" 
                     :key="page"
-                    @click="goToPage(page)"
-                    :class="['page-btn', { active: page === currentPage }]"
+                    @click="currentPage = page"
+                    :class="{ active: currentPage === page }"
+                    class="page-btn"
                   >
                     {{ page }}
                   </button>
                   
                   <button 
-                    @click="goToPage(currentPage + 1)"
+                    @click="currentPage++" 
                     :disabled="currentPage === totalPages"
                     class="page-btn"
                   >
-                    Ďalšia ›
+                    ›
+                  </button>
+                  <button 
+                    @click="currentPage = totalPages" 
+                    :disabled="currentPage === totalPages"
+                    class="page-btn"
+                  >
+                    Posledná
                   </button>
                 </div>
                 
                 <div class="pagination-info">
-                  Strana {{ currentPage }} z {{ totalPages }} 
-                  ({{ filteredArticles.length }} publikácií)
+                  Stránka {{ currentPage }} z {{ totalPages }} 
+                  ({{ filteredArticles.length }} celkom)
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      <!-- Article Reader Modal -->
-      <div v-if="selectedArticle" class="article-reader-modal">
-        <div class="modal-overlay" @click="closeArticle"></div>
-        <div class="modal-container">
-          <div class="modal-header">
-            <h2>{{ selectedArticle.title }}</h2>
-            <button @click="closeArticle" class="close-button">×</button>
-          </div>
-          
-          <div class="modal-content">
-            <div class="article-header">
-              <h1>{{ selectedArticle.title }}</h1>
-              
-              <div class="article-meta">
-                <div class="meta-item">
-                  <span class="meta-label">Autor:</span>
-                  <span class="meta-value">{{ selectedArticle.author_name }}</span>
-                </div>
-                <div class="meta-item">
-                  <span class="meta-label">Ročník konferencie:</span>
-                  <span class="meta-value">
-                    {{ selectedArticle.conference_year ? 
-                       `${selectedArticle.conference_year.semester} ${selectedArticle.conference_year.year}` : 
-                       'Nezadaný ročník' 
-                    }}
-                  </span>
-                </div>
-                <div class="meta-item">
-                  <span class="meta-label">Publikované:</span>
-                  <span class="meta-value">{{ formatDate(selectedArticle.created_at) }}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="article-content">
-              <div v-if="selectedArticle.content" class="content-body" v-html="selectedArticle.content"></div>
-              <div v-else class="no-content">
-                <p>Obsah tohto článku nie je k dispozícii.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
 
-    <!-- Footer -->
     <FooterComponent />
   </div>
 </template>
@@ -319,69 +275,66 @@ export default {
   
   data() {
     return {
-      loading: false,
-      error: null,
       articles: [],
       conferenceYears: [],
+      loading: true,
+      error: null,
+      
+      // Filter states
       searchQuery: '',
-      selectedConferenceYear: '',
-      sortBy: 'created_at',
-      selectedArticle: null,
+      selectedYear: '',
+      selectedSemester: '',
+      
+      // Pagination
       currentPage: 1,
       itemsPerPage: 12
     }
   },
   
   computed: {
-    totalPublications() {
-      return this.articles.length
-    },
-    totalAuthors() {
-      const authors = new Set(this.articles.map(article => article.author_name))
-      return authors.size
-    },
+    // Filtered articles based on search and filters
     filteredArticles() {
       let filtered = [...this.articles]
       
       // Search filter
-      if (this.searchQuery.trim()) {
+      if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase()
         filtered = filtered.filter(article => 
           article.title.toLowerCase().includes(query) ||
-          article.author_name.toLowerCase().includes(query)
+          article.author_name.toLowerCase().includes(query) ||
+          (article.content && article.content.toLowerCase().includes(query))
         )
       }
       
-      // Conference year filter
-      if (this.selectedConferenceYear) {
+      // Year filter
+      if (this.selectedYear) {
         filtered = filtered.filter(article => 
-          article.conference_year_id == this.selectedConferenceYear
+          article.conference_year?.year === this.selectedYear
         )
       }
       
-      // Sort
-      filtered.sort((a, b) => {
-        switch (this.sortBy) {
-          case 'title':
-            return a.title.localeCompare(b.title)
-          case 'author_name':
-            return a.author_name.localeCompare(b.author_name)
-          case 'created_at':
-          default:
-            return new Date(b.created_at) - new Date(a.created_at)
-        }
-      })
+      // Semester filter
+      if (this.selectedSemester) {
+        filtered = filtered.filter(article => 
+          article.conference_year?.semester === this.selectedSemester
+        )
+      }
       
       return filtered
     },
-    paginatedArticles() {
+
+    // Paginated articles
+    paginatedPublications() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
       return this.filteredArticles.slice(start, end)
     },
+
+    // Pagination info
     totalPages() {
       return Math.ceil(this.filteredArticles.length / this.itemsPerPage)
     },
+
     visiblePages() {
       const pages = []
       const start = Math.max(1, this.currentPage - 2)
@@ -392,113 +345,102 @@ export default {
       }
       return pages
     },
+
+    // Available filter options
+    availableYears() {
+      const years = new Set()
+      this.articles.forEach(article => {
+        if (article.conference_year?.year) {
+          years.add(article.conference_year.year)
+        }
+      })
+      return Array.from(years).sort().reverse()
+    },
+
+    uniqueAuthors() {
+      const authors = new Set()
+      this.articles.forEach(article => {
+        if (article.author_name) {
+          authors.add(article.author_name)
+        }
+      })
+      return Array.from(authors)
+    },
+
+    // Check if any filters are active
     hasActiveFilters() {
-      return this.searchQuery.trim() || this.selectedConferenceYear
+      return !!(this.searchQuery || this.selectedYear || this.selectedSemester)
+    }
+  },
+
+  watch: {
+    // Reset to first page when filters change
+    searchQuery() {
+      this.currentPage = 1
+    },
+    selectedYear() {
+      this.currentPage = 1
+    },
+    selectedSemester() {
+      this.currentPage = 1
     }
   },
   
   mounted() {
     this.loadData()
-    
-    // Check for search query from URL params
-    const urlParams = new URLSearchParams(window.location.search)
-    const searchParam = urlParams.get('search')
-    if (searchParam) {
-      this.searchQuery = searchParam
-    }
   },
   
   methods: {
     async loadData() {
-      this.loading = true
-      this.error = null
-      
       try {
-        const [articlesData, conferenceYearsData] = await Promise.all([
+        this.loading = true
+        this.error = null
+        
+        const [articlesData, yearsData] = await Promise.all([
           articleApi.getArticles(),
           conferenceYearApi.getConferenceYears()
         ])
         
-        this.articles = articlesData
-        this.conferenceYears = conferenceYearsData
+        this.articles = articlesData || []
+        this.conferenceYears = yearsData || []
+        
       } catch (error) {
         console.error('Error loading data:', error)
-        this.error = 'Chyba pri načítavaní dát. Skúste to znovu.'
+        this.error = 'Nepodarilo sa načítať publikácie. Skúste to znovu.'
       } finally {
         this.loading = false
       }
     },
-    performSearch() {
-      this.currentPage = 1 // Reset to first page when searching
-    },
-    clearSearch() {
-      this.searchQuery = ''
-      this.currentPage = 1
+
+    formatDate(dateString) {
+      if (!dateString) return 'Neznámy dátum'
       
-      // Remove search parameter from URL
-      const url = new URL(window.location)
-      url.searchParams.delete('search')
-      window.history.replaceState({}, '', url)
+      try {
+        return new Date(dateString).toLocaleDateString('sk-SK', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch {
+        return 'Neznámy dátum'
+      }
     },
-    applyFilters() {
-      this.currentPage = 1
+
+    getExcerpt(content) {
+      if (!content) return 'Žiadny obsah dostupný...'
+      
+      // Remove HTML tags and limit to 150 characters
+      const plainText = content.replace(/<[^>]*>/g, '')
+      return plainText.length > 150 
+        ? plainText.substring(0, 150) + '...'
+        : plainText
     },
-    applySort() {
-      this.currentPage = 1
-    },
-    clearConferenceYearFilter() {
-      this.selectedConferenceYear = ''
-      this.currentPage = 1
-    },
+
     clearAllFilters() {
       this.searchQuery = ''
-      this.selectedConferenceYear = ''
+      this.selectedYear = ''
+      this.selectedSemester = ''
       this.currentPage = 1
-      
-      // Remove search parameter from URL
-      const url = new URL(window.location)
-      url.searchParams.delete('search')
-      window.history.replaceState({}, '', url)
-    },
-    getConferenceYearName(yearId) {
-      const year = this.conferenceYears.find(y => y.id == yearId)
-      return year ? `${year.semester} ${year.year}` : 'Neznámy ročník'
-    },
-    formatDate(dateString) {
-      if (!dateString) return 'Nezadané'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('sk-SK', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    },
-    truncateContent(content, maxLength) {
-      if (!content) return ''
-      const stripped = content.replace(/<[^>]*>/g, '') // Remove HTML tags
-      return stripped.length > maxLength 
-        ? stripped.substring(0, maxLength) + '...'
-        : stripped
-    },
-    openArticle(article) {
-      this.selectedArticle = article
-      document.body.style.overflow = 'hidden' // Prevent background scroll
-    },
-    closeArticle() {
-      this.selectedArticle = null
-      document.body.style.overflow = 'auto' // Restore scroll
-    },
-    goToPage(page) {
-      if (page >= 1 && page <= this.totalPages) {
-        this.currentPage = page
-        // Scroll to top of publications section
-        this.$nextTick(() => {
-          const element = document.querySelector('.publications-content')
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' })
-          }
-        })
-      }
     }
   }
 }
@@ -1077,227 +1019,5 @@ export default {
 .pagination-info {
   color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-/* Article Reader Modal */
-.article-reader-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-}
-
-.modal-container {
-  position: relative;
-  background: white;
-  border-radius: 16px;
-  max-width: 800px;
-  max-height: 90vh;
-  width: 100%;
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-}
-
-.modal-header h2 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: var(--text-light);
-  transition: color 0.3s ease;
-  padding: 0;
-  line-height: 1;
-}
-
-.close-button:hover {
-  color: var(--text-primary);
-}
-
-.modal-content {
-  overflow-y: auto;
-  max-height: calc(90vh - 80px);
-}
-
-.article-header {
-  padding: 2rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.article-header h1 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  line-height: 1.3;
-}
-
-.article-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.meta-label {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.meta-value {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.article-content {
-  padding: 2rem;
-}
-
-.content-body {
-  line-height: 1.8;
-  color: var(--text-primary);
-}
-
-.content-body h1,
-.content-body h2,
-.content-body h3 {
-  font-family: 'Poppins', sans-serif;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
-}
-
-.content-body p {
-  margin-bottom: 1rem;
-}
-
-.content-body ul,
-.content-body ol {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-}
-
-.no-content {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-light);
-}
-
-/* Animations */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  
-  .hero-stats {
-    flex-direction: column;
-    gap: 2rem;
-  }
-  
-  .filter-wrapper {
-    gap: 1.5rem;
-  }
-  
-  .filter-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  
-  .publications-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .pagination {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .modal-container {
-    margin: 1rem;
-    max-height: calc(100vh - 2rem);
-  }
-  
-  .article-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .article-meta {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-  
-  .publications-grid {
-    gap: 1rem;
-  }
-  
-  .publication-card {
-    padding: 1rem;
-  }
-  
-  .page-numbers {
-    gap: 0.25rem;
-  }
-  
-  .page-btn {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
-    min-width: 36px;
-  }
 }
 </style>

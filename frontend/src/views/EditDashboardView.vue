@@ -401,7 +401,7 @@ export default defineComponent({
           formData.append('file', blobInfo.blob(), blobInfo.filename())
 
           try {
-            const response = await editorPanel.uploadImage(formData)
+            const response = await editorPanel.uploadFile(formData)
             return response.data.location
           } catch (error) {
             console.error('Image upload failed:', error)
@@ -710,28 +710,28 @@ export default defineComponent({
   --warning-color: #f59e0b;
   --danger-color: #ef4444;
   --info-color: #06b6d4;
-  
+
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
   --text-white: #ffffff;
-  
+
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
   --bg-dark: #1f2937;
-  
+
   --border-color: #e5e7eb;
   --border-light: #f3f4f6;
   --border-dark: #d1d5db;
-  
+
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  
+
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -739,7 +739,7 @@ export default defineComponent({
   --radius-xl: 16px;
   --radius-2xl: 24px;
   --radius-full: 9999px;
-  
+
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -824,16 +824,16 @@ p {
 }
 
 @keyframes float {
-  0%, 100% { 
-    transform: translateY(0px) rotate(0deg) scale(1); 
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
     opacity: 0.7;
   }
-  33% { 
-    transform: translateY(-30px) rotate(120deg) scale(1.2); 
+  33% {
+    transform: translateY(-30px) rotate(120deg) scale(1.2);
     opacity: 1;
   }
-  66% { 
-    transform: translateY(-15px) rotate(240deg) scale(0.8); 
+  66% {
+    transform: translateY(-15px) rotate(240deg) scale(0.8);
     opacity: 0.8;
   }
 }
@@ -1542,11 +1542,11 @@ p {
 }
 
 @keyframes slideUp {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(30px) scale(0.95);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
@@ -1625,40 +1625,40 @@ p {
   .container {
     padding: 0 1rem;
   }
-  
+
   .management-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-container {
     max-width: none;
     width: 100%;
   }
-  
+
   .filter-controls {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .cards-grid,
   .files-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-container {
     width: 95vw;
     max-height: 95vh;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .file-actions {
     flex-direction: column;
   }
-  
+
   .hero-stats {
     grid-template-columns: 1fr;
     gap: 1rem;

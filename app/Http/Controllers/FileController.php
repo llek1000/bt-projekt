@@ -17,16 +17,20 @@ class FileController extends Controller
     public function uploadForEditor(Request $request)
     {
         try {
-            // Validate file for TinyMCE
-            $request->validate([
+            // Validate file for TinyMCE using base controller method
+            $errors = $this->validateRequest($request, [
                 'file' => 'required|file|max:10240', // 10MB max
                 'category' => 'nullable|string|max:255'
             ], [
                 'file.max' => 'Súbor môže mať maximálne 10MB'
             ]);
 
+            if ($errors) {
+                return response()->json(['errors' => $errors], 422);
+            }
+
             $uploadedFile = $request->file('file');
-            
+
             // Generate unique filename
             $fileName = time() . '_' . Str::slug(pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $uploadedFile->getClientOriginalExtension();
 
@@ -51,27 +55,27 @@ class FileController extends Controller
                 'download_url' => route('files.download', $file->id)
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
-            \Log::error('File upload failed: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Nahrávanie súboru zlyhalo: ' . $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'File upload failed', 'Nahrávanie súboru zlyhalo: ' . $e->getMessage(), 500);
         }
     }
 
     public function store(Request $request, Article $article)
     {
         try {
-            $request->validate([
+            $errors = $this->validateRequest($request, [
                 'file' => 'required|file|max:10240',
                 'category' => 'nullable|string|max:255'
             ], [
                 'file.max' => 'Súbor môže mať maximálne 10MB'
             ]);
+
+            if ($errors) {
+                if ($request->expectsJson()) {
+                    return response()->json(['errors' => $errors], 422);
+                }
+                return redirect()->back()->withErrors($errors);
+            }
 
             $uploadedFile = $request->file('file');
             $fileName = time() . '_' . Str::slug(pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $uploadedFile->getClientOriginalExtension();
@@ -95,16 +99,11 @@ class FileController extends Controller
 
             return redirect()->back()->with('success', 'Súbor bol úspešne nahraný.');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if ($request->expectsJson()) {
-                return response()->json(['errors' => $e->errors()], 422);
-            }
-            return redirect()->back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            \Log::error('File upload failed: ' . $e->getMessage());
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Nahrávanie súboru zlyhalo'], 500);
+                return $this->handleException($e, 'File upload failed', 'Nahrávanie súboru zlyhalo', 500);
             }
+            $this->handleException($e, 'File upload failed', 'Nahrávanie súboru zlyhalo', 500);
             return redirect()->back()->with('error', 'Nahrávanie súboru zlyhalo');
         }
     }
@@ -118,10 +117,10 @@ class FileController extends Controller
 
             return response()->download(storage_path('app/public/' . $file->file_path), $file->original_name);
         } catch (\Exception $e) {
-            \Log::error('File download failed: ' . $e->getMessage());
             if (request()->expectsJson()) {
-                return response()->json(['message' => 'Sťahovanie súboru zlyhalo'], 500);
+                return $this->handleException($e, 'File download failed', 'Sťahovanie súboru zlyhalo', 500);
             }
+            $this->handleException($e, 'File download failed', 'Sťahovanie súboru zlyhalo', 500);
             abort(500, 'Sťahovanie súboru zlyhalo');
         }
     }
@@ -129,8 +128,8 @@ class FileController extends Controller
     public function destroy(File $file)
     {
         try {
-            // Check if user has permission to delete this file
-            if (Auth::id() !== $file->uploaded_by && !Auth::user()->hasRole('admin')) {
+            // Check if user has permission to delete this file using base controller method
+            if (Auth::id() !== $file->uploaded_by && !$this->hasRole(Auth::user(), 'admin')) {
                 return response()->json(['message' => 'Nemáte oprávnenie vymazať tento súbor'], 403);
             }
 
@@ -143,10 +142,10 @@ class FileController extends Controller
 
             return redirect()->back()->with('success', 'Súbor bol odstránený.');
         } catch (\Exception $e) {
-            \Log::error('File deletion failed: ' . $e->getMessage());
             if (request()->expectsJson()) {
-                return response()->json(['message' => 'Vymazanie súboru zlyhalo'], 500);
+                return $this->handleException($e, 'File deletion failed', 'Vymazanie súboru zlyhalo', 500);
             }
+            $this->handleException($e, 'File deletion failed', 'Vymazanie súboru zlyhalo', 500);
             return redirect()->back()->with('error', 'Vymazanie súboru zlyhalo');
         }
     }
@@ -166,8 +165,7 @@ class FileController extends Controller
                 'message' => 'Súbory boli úspešne načítané'
             ]);
         } catch (\Exception $e) {
-            \Log::error('File listing failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Načítanie súborov zlyhalo'], 500);
+            return $this->handleException($e, 'File listing failed', 'Načítanie súborov zlyhalo', 500);
         }
     }
 }

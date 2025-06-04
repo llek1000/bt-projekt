@@ -8,12 +8,12 @@
             <span class="icon-search">🔍</span>
             <span class="button-text">Vyhľadať</span>
           </button>
-          
+
           <button @click="toggleQuicklinks" class="topbar-button">
             <span class="icon-quicklinks">≡</span>
             <span class="button-text">Rýchle odkazy</span>
           </button>
-          
+
           <!-- Dynamické zobrazenie prihlásenia/odhlásenia -->
           <div v-if="!isLoggedIn" class="auth-section">
             <router-link to="/login" class="topbar-button">
@@ -21,14 +21,14 @@
               <span class="button-text">Prihlásenie</span>
             </router-link>
           </div>
-          
+
           <div v-else class="auth-section user-menu">
             <div class="user-dropdown" @click="toggleUserMenu">
               <span class="icon-user">👤</span>
               <span class="user-name">{{ currentUser?.username || 'Používateľ' }}</span>
               <span class="dropdown-arrow" :class="{ 'open': userMenuOpen }">▼</span>
             </div>
-            
+
             <!-- User Dropdown Menu -->
             <transition name="slide-down">
               <div v-if="userMenuOpen" class="user-dropdown-menu">
@@ -41,30 +41,30 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="menu-divider"></div>
-                
+
                 <div class="menu-actions">
-                  <router-link 
-                    v-if="isAdmin" 
-                    to="/admin/dashboard" 
+                  <router-link
+                    v-if="isAdmin"
+                    to="/admin/dashboard"
                     class="menu-item admin-link"
                     @click="closeUserMenu"
                   >
                     <span class="menu-icon">⚙️</span>
                     Admin Dashboard
                   </router-link>
-                  
-                  <router-link 
-                    v-if="isEditor" 
-                    to="/edit/dashboard" 
+
+                  <router-link
+                    v-if="isEditor"
+                    to="/edit/dashboard"
                     class="menu-item editor-link"
                     @click="closeUserMenu"
                   >
                     <span class="menu-icon">✏️</span>
                     Editor Dashboard
                   </router-link>
-                  
+
                   <button @click="handleLogout" class="menu-item logout-button">
                     <span class="menu-icon">🚪</span>
                     Odhlásiť sa
@@ -75,14 +75,14 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Dropdown vyhľadávania -->
       <transition name="slide-down">
         <div class="search-dropdown" v-if="searchOpen">
           <form class="search-form" @submit.prevent="searchArticles">
-            <input 
-              type="text" 
-              placeholder="Vyhľadajte články..." 
+            <input
+              type="text"
+              placeholder="Vyhľadajte články..."
               class="search-input"
               v-model="searchQuery"
             >
@@ -93,7 +93,7 @@
           </form>
         </div>
       </transition>
-      
+
       <!-- Dropdown rýchlych odkazov -->
       <transition name="slide-down">
         <div class="quicklinks-dropdown" v-if="quicklinksOpen">
@@ -135,7 +135,7 @@
         </div>
       </transition>
     </div>
-    
+
     <!-- Hlavné menu -->
     <nav class="main-navbar">
       <div class="navbar-container">
@@ -150,7 +150,7 @@
             </div>
           </router-link>
         </div>
-        
+
         <div class="main-nav-links">
           <router-link to="/" class="main-nav-link">
             Domov
@@ -186,23 +186,23 @@ export default defineComponent({
       searchOpen: false,
       userMenuOpen: false,
       searchQuery: '',
-      
+
       // User authentication
       currentUser: null as any,
       isLoggedIn: false,
     }
   },
-  
+
   computed: {
     isAdmin() {
       return this.currentUser?.roles?.some((role: any) => role.name.toLowerCase() === 'admin') || false
     },
-    
+
     isEditor() {
       return this.currentUser?.roles?.some((role: any) => role.name.toLowerCase() === 'editor') || false
     }
   },
-  
+
   methods: {
     toggleQuicklinks() {
       this.quicklinksOpen = !this.quicklinksOpen
@@ -211,7 +211,7 @@ export default defineComponent({
         this.userMenuOpen = false
       }
     },
-    
+
     toggleSearch() {
       this.searchOpen = !this.searchOpen
       if (this.searchOpen) {
@@ -219,7 +219,7 @@ export default defineComponent({
         this.userMenuOpen = false
       }
     },
-    
+
     toggleUserMenu() {
       this.userMenuOpen = !this.userMenuOpen
       if (this.userMenuOpen) {
@@ -227,39 +227,39 @@ export default defineComponent({
         this.searchOpen = false
       }
     },
-    
+
     closeUserMenu() {
       this.userMenuOpen = false
     },
-    
+
     async searchArticles() {
       if (this.searchQuery.trim()) {
         this.$router.push(`/publications?search=${encodeURIComponent(this.searchQuery)}`)
         this.searchOpen = false
       }
     },
-    
+
     async handleLogout() {
       try {
         await authentification.logout()
-        
+
         // Vyčisti lokálne dáta
         this.currentUser = null
         this.isLoggedIn = false
         this.userMenuOpen = false
-        
+
         // Presmeruj na domovskú stránku
         this.$router.push('/')
-        
+
         // Zobraz správu o úspešnom odhlásení
         alert('Boli ste úspešne odhlásení')
-        
+
       } catch (error) {
         console.error('Chyba pri odhlasovaní:', error)
         alert('Nastala chyba pri odhlasovaní')
       }
     },
-    
+
     async checkAuthStatus() {
       try {
         const token = localStorage.getItem('token')
@@ -268,15 +268,15 @@ export default defineComponent({
           this.currentUser = null
           return
         }
-        
+
         // Skontroluj platnosť tokenu a získaj používateľské údaje
-        const response = await fetch('http://localhost/bt/bt-projekt/public/api/user', {
+        const response = await fetch('http://localhost/bt-projekt/public/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         })
-        
+
         if (response.ok) {
           const data = await response.json()
           this.currentUser = data.user
@@ -287,45 +287,45 @@ export default defineComponent({
           this.isLoggedIn = false
           this.currentUser = null
         }
-        
+
       } catch (error) {
         console.error('Chyba pri kontrole autentifikácie:', error)
         this.isLoggedIn = false
         this.currentUser = null
       }
     },
-    
+
     // Zatvorenie menu pri kliknutí mimo
     handleClickOutside(event: Event) {
       const target = event.target as HTMLElement
-      
+
       if (!target.closest('.user-dropdown') && !target.closest('.user-dropdown-menu')) {
         this.userMenuOpen = false
       }
-      
+
       if (!target.closest('.search-dropdown') && !target.closest('.topbar-button')) {
         this.searchOpen = false
       }
-      
+
       if (!target.closest('.quicklinks-dropdown') && !target.closest('.topbar-button')) {
         this.quicklinksOpen = false
       }
     }
   },
-  
+
   async mounted() {
     // Skontroluj stav autentifikácie pri načítaní
     await this.checkAuthStatus()
-    
+
     // Pridaj event listener pre kliknutie mimo menu
     document.addEventListener('click', this.handleClickOutside)
   },
-  
+
   beforeUnmount() {
     // Odstráň event listener
     document.removeEventListener('click', this.handleClickOutside)
   },
-  
+
   // Watch for route changes to update auth status
   watch: {
     '$route'() {
@@ -748,12 +748,12 @@ export default defineComponent({
   .user-name {
     display: none;
   }
-  
+
   .user-dropdown-menu {
     min-width: 250px;
     right: -10px;
   }
-  
+
   .quicklinks-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -764,17 +764,17 @@ export default defineComponent({
   .button-text {
     display: none;
   }
-  
+
   .user-dropdown-menu {
     min-width: 220px;
     right: -20px;
   }
-  
+
   .navbar-container {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .main-nav-links {
     flex-wrap: wrap;
     justify-content: center;

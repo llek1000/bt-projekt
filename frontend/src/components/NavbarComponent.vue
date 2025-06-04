@@ -256,7 +256,7 @@ export default defineComponent({
           return
         }
 
-        const response = await fetch('http://localhost/bt/bt-projekt/public/api/user', {
+        const response = await fetch('http://localhost/bt-projekt/public/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

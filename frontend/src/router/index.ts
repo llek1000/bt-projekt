@@ -55,7 +55,7 @@ const router = createRouter({
       name: 'department',
       component: DepartmentView,
       props: true
-    }, 
+    },
     {
       path: '/publications',
       name: 'publications',
@@ -78,13 +78,13 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = auth.isAuthenticated()
-  
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     localStorage.setItem('redirectAfterLogin', to.fullPath)
     next('/login')
     return
   }
-  
+
   if (to.meta.requiredRole && isAuthenticated) {
     try {
       const response = await fetch('http://localhost/bt-projekt/public/api/user', {
@@ -93,18 +93,18 @@ router.beforeEach(async (to, from, next) => {
           'Content-Type': 'application/json'
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         const user = data.user
-        
-        const hasRequiredRole = user.roles?.some((role: any) => 
+
+        const hasRequiredRole = user.roles?.some((role: any) =>
           typeof role.name === 'string' && role.name.toLowerCase() === String(to.meta.requiredRole).toLowerCase()
         )
-        
+
         if (!hasRequiredRole) {
           const userRoles = user.roles?.map((role: any) => role.name.toLowerCase()) || []
-          
+
           if (userRoles.includes('admin')) {
             next('/admin/dashboard')
           } else if (userRoles.includes('editor')) {
@@ -126,7 +126,7 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
-  
+
   next()
 })
 

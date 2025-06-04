@@ -1,4 +1,4 @@
-import apiClient from './api'
+import api from './api'
 
 export interface ConferenceYear {
   id: number
@@ -52,61 +52,63 @@ export interface AvailableYearsResponse extends BaseApiResponse {
   data?: string[]
 }
 
-export default {
+export const conferenceYearApi = {
   // Get all conference years
   getConferenceYears(): Promise<ConferenceYearListResponse> {
-    return apiClient.get('/conference-years')
+    return api.get('/conference-years')
   },
 
   // Get conference year by ID
   getConferenceYear(id: string | number): Promise<ConferenceYearResponse> {
-    return apiClient.get(`/conference-years/${id}`)
+    return api.get(`/conference-years/${id}`)
   },
 
   // Create new conference year
   createConferenceYear(data: CreateConferenceYearRequest): Promise<ConferenceYearResponse> {
-    return apiClient.post('/conference-years', data)
+    return api.post('/conference-years', data)
   },
 
   // Update existing conference year
   updateConferenceYear(id: string | number, data: UpdateConferenceYearRequest): Promise<ConferenceYearResponse> {
-    return apiClient.put(`/conference-years/${id}`, data)
+    return api.put(`/conference-years/${id}`, data)
   },
 
   // Delete conference year
   deleteConferenceYear(id: string | number): Promise<BaseApiResponse> {
-    return apiClient.delete(`/conference-years/${id}`)
+    return api.delete(`/conference-years/${id}`)
   },
 
   // Get active conference year
   getActiveConferenceYear(): Promise<ConferenceYearResponse> {
-    return apiClient.get('/conference-years/active/current')
+    return api.get('/conference-years/active/current')
   },
 
   // Set conference year as active
   setActiveConferenceYear(id: string | number): Promise<ConferenceYearResponse> {
-    return apiClient.patch(`/conference-years/${id}/set-active`)
+    return api.patch(`/conference-years/${id}/set-active`)
   },
 
   // Get conference years by year
   getConferenceYearsByYear(year: string): Promise<ConferenceYearListResponse> {
-    return apiClient.get(`/conference-years/year/${year}`)
+    return api.get(`/conference-years/year/${year}`)
   },
 
   // Get available years
   getAvailableYears(): Promise<AvailableYearsResponse> {
-    return apiClient.get('/conference-years/years/available')
+    return api.get('/conference-years/years/available')
   },
 
   // Get conference year statistics
   getConferenceYearStatistics(id: string | number): Promise<ConferenceYearStatisticsResponse> {
-    return apiClient.get(`/conference-years/${id}/statistics`)
-  },
+    return api.get(`/conference-years/${id}/statistics`)
+  }
+}
 
-  // Helper functions
+// Helper functions
+export const conferenceYearHelpers = {
   // Format conference year for display
   formatConferenceYear(conferenceYear?: ConferenceYear): string {
-    if (!conferenceYear) return 'N/A'
+    if (!conferenceYear) return 'Neznámy ročník'
     return `${conferenceYear.semester} ${conferenceYear.year}`
   },
 
@@ -125,24 +127,24 @@ export default {
     const errors: string[] = []
 
     if (!conferenceYear) {
-      errors.push('Conference year data is required')
+      errors.push('Údaje o ročníku konferencie sú povinné')
       return errors
     }
 
     if (!conferenceYear.year?.trim()) {
-      errors.push('Year is required')
+      errors.push('Rok je povinný')
     }
 
     if (conferenceYear.year && !/^\d{4}$/.test(conferenceYear.year)) {
-      errors.push('Year must be a valid 4-digit number')
+      errors.push('Rok musí byť 4-ciferné číslo')
     }
 
     if (!conferenceYear.semester?.trim()) {
-      errors.push('Semester is required')
+      errors.push('Semester je povinný')
     }
 
     if (conferenceYear.semester && !['Winter', 'Summer'].includes(conferenceYear.semester)) {
-      errors.push('Semester must be either Winter or Summer')
+      errors.push('Semester musí byť Winter alebo Summer')
     }
 
     return errors
@@ -151,12 +153,21 @@ export default {
   // Sort conference years
   sortConferenceYears(conferenceYears?: ConferenceYear[], order: 'asc' | 'desc' = 'desc'): ConferenceYear[] {
     if (!conferenceYears) return []
-
+    
     return [...conferenceYears].sort((a, b) => {
-      const aValue = `${a.year}-${a.semester}`
-      const bValue = `${b.year}-${b.semester}`
-      const comparison = aValue.localeCompare(bValue)
-      return order === 'desc' ? -comparison : comparison
+      const yearA = parseInt(a.year)
+      const yearB = parseInt(b.year)
+      
+      if (yearA !== yearB) {
+        return order === 'desc' ? yearB - yearA : yearA - yearB
+      }
+      
+      // If years are the same, sort by semester (Winter before Summer)
+      const semesterOrder = { 'Winter': 0, 'Summer': 1 }
+      const semA = semesterOrder[a.semester as keyof typeof semesterOrder]
+      const semB = semesterOrder[b.semester as keyof typeof semesterOrder]
+      
+      return order === 'desc' ? semB - semA : semA - semB
     })
   },
 
@@ -166,3 +177,6 @@ export default {
     return conferenceYears.find(cy => cy.is_active) || null
   }
 }
+
+// Default export for backward compatibility
+export default conferenceYearApi

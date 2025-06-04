@@ -2,133 +2,139 @@
   <div class="page-container">
     <NavbarComponent />
     
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-background">
-        <div class="hero-overlay"></div>
-        <div class="hero-particles"></div>
-      </div>
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <span class="title-line">Vedecké</span>
-            <span class="title-line highlight">Publikácie</span>
-          </h1>
-          <p class="hero-subtitle">
-            Preskúmajte našu rozsiahlu zbierku vedeckých článkov a výskumných prác
-          </p>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <div class="stat-number">{{ articles.length }}</div>
-              <div class="stat-label">Publikácií</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ conferenceYears.length }}</div>
-              <div class="stat-label">Ročníkov</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ uniqueAuthors.length }}</div>
-              <div class="stat-label">Autorov</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Filter Section -->
-    <section class="filter-section">
-      <div class="container">
-        <div class="filter-wrapper">
-          <!-- Search -->
-          <div class="search-container">
-            <div class="search-input-wrapper">
-              <span class="search-icon">🔍</span>
-              <input 
-                v-model="searchQuery"
-                type="text" 
-                placeholder="Hľadať v publikáciách..." 
-                class="search-input"
-              />
-              <button 
-                v-if="searchQuery" 
-                @click="searchQuery = ''" 
-                class="clear-button"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-
-          <!-- Filters -->
-          <div class="filter-controls">
-            <div class="filter-group">
-              <label>Ročník:</label>
-              <select v-model="selectedYear" class="filter-select">
-                <option value="">Všetky ročníky</option>
-                <option v-for="year in availableYears" :key="year" :value="year">
-                  {{ year }}
-                </option>
-              </select>
-            </div>
-
-            <div class="filter-group">
-              <label>Semester:</label>
-              <select v-model="selectedSemester" class="filter-select">
-                <option value="">Všetky semestre</option>
-                <option value="Winter">Winter</option>
-                <option value="Summer">Summer</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Active Filters -->
-        <div v-if="hasActiveFilters" class="active-filters">
-          <span class="filter-label">Aktívne filtre:</span>
-          <div class="filter-tags">
-            <span v-if="searchQuery" class="filter-tag">
-              Hľadanie: "{{ searchQuery }}"
-              <button @click="searchQuery = ''" class="remove-filter">×</button>
-            </span>
-            <span v-if="selectedYear" class="filter-tag">
-              Rok: {{ selectedYear }}
-              <button @click="selectedYear = ''" class="remove-filter">×</button>
-            </span>
-            <span v-if="selectedSemester" class="filter-tag">
-              Semester: {{ selectedSemester }}
-              <button @click="selectedSemester = ''" class="remove-filter">×</button>
-            </span>
-          </div>
-          <button @click="clearAllFilters" class="clear-all-filters">
-            Vymazať všetky filtre
-          </button>
-        </div>
-      </div>
-    </section>
-
     <main class="main-content">
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-background">
+          <div class="hero-overlay"></div>
+          <div class="hero-particles"></div>
+        </div>
+        <div class="container">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              <span class="title-line">Vedecké</span>
+              <span class="title-line highlight">Publikácie</span>
+            </h1>
+            <p class="hero-subtitle">
+              Preskúmajte našu zbierku vedeckých článkov a výskumných prác z rôznych konferencií a ročníkov.
+            </p>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <span class="stat-number">{{ totalArticles }}</span>
+                <span class="stat-label">Celkovo článkov</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ conferenceYears.length }}</span>
+                <span class="stat-label">Ročníkov</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ uniqueAuthors }}</span>
+                <span class="stat-label">Autorov</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filter Section -->
+      <section class="filter-section">
+        <div class="container">
+          <div class="filter-wrapper">
+            <!-- Search -->
+            <div class="search-container">
+              <div class="search-input-wrapper">
+                <i class="search-icon">🔍</i>
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Hľadať články, autorov..."
+                  class="search-input"
+                />
+                <button 
+                  v-if="searchQuery" 
+                  @click="clearSearch"
+                  class="clear-button"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-controls">
+              <div class="filter-group">
+                <label for="conferenceYear">Ročník:</label>
+                <select 
+                  id="conferenceYear" 
+                  v-model="selectedConferenceYear"
+                  class="filter-select"
+                >
+                  <option value="">Všetky ročníky</option>
+                  <option 
+                    v-for="year in conferenceYears" 
+                    :key="year.id" 
+                    :value="year.id"
+                  >
+                    {{ year.semester }} {{ year.year }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Filters -->
+          <div v-if="hasActiveFilters" class="active-filters">
+            <span class="filter-label">Aktívne filtre:</span>
+            <div class="filter-tags">
+              <span v-if="searchQuery" class="filter-tag">
+                Hľadanie: "{{ searchQuery }}"
+                <button @click="clearSearch" class="remove-filter">✕</button>
+              </span>
+              <span v-if="selectedConferenceYear" class="filter-tag">
+                Ročník: {{ getConferenceYearName(selectedConferenceYear) }}
+                <button @click="selectedConferenceYear = ''" class="remove-filter">✕</button>
+              </span>
+            </div>
+            <button @click="clearAllFilters" class="clear-all-filters">
+              Vymazať všetky filtre
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Publications Content -->
       <section class="publications-content">
         <div class="container">
-          <!-- Loading stav -->
-          <div v-if="loading" class="loading-state">
-            <div class="loading-spinner"></div>
-            <p>Načítavajú sa publikácie...</p>
+          <div class="results-summary">
+            <h2>
+              {{ filteredArticles.length }} 
+              {{ filteredArticles.length === 1 ? 'článok' : 'článkov' }}
+              <span v-if="hasActiveFilters">vyhovuje kritériám</span>
+            </h2>
           </div>
 
-          <!-- Error stav -->
+          <!-- Loading State -->
+          <div v-if="isLoading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Načítavam publikácie...</p>
+          </div>
+
+          <!-- Error State -->
           <div v-else-if="error" class="error-state">
             <div class="error-icon">⚠️</div>
             <h3>Chyba pri načítavaní</h3>
             <p>{{ error }}</p>
-            <button @click="loadData" class="retry-button">Skúsiť znovu</button>
+            <button @click="loadData" class="retry-button">
+              Skúsiť znovu
+            </button>
           </div>
 
-          <!-- Prázdny stav -->
+          <!-- Empty State -->
           <div v-else-if="filteredArticles.length === 0" class="empty-state">
             <div class="empty-icon">📄</div>
             <h3>Žiadne publikácie</h3>
             <p v-if="hasActiveFilters">
-              Nenašli sa žiadne publikácie pre zadané kritériá.
+              Neboli nájdené žiadne publikácie pre zadané kritériá.
             </p>
             <p v-else>
               Momentálne nie sú k dispozícii žiadne publikácie.
@@ -142,112 +148,93 @@
             </button>
           </div>
 
-          <!-- Publikácie grid -->
-          <div v-else>
-            <div class="results-summary">
-              <h2>
-                {{ filteredArticles.length }} 
-                {{ filteredArticles.length === 1 ? 'publikácia' : 'publikácií' }}
-              </h2>
-            </div>
-
-            <div class="publications-grid">
-              <div 
-                v-for="publication in paginatedPublications" 
-                :key="publication.id" 
-                class="publication-card"
-              >
-                <div class="card-header">
-                  <span class="type-badge">Vedecký článok</span>
-                  <span class="publication-date">
-                    {{ formatDate(publication.created_at) }}
-                  </span>
-                </div>
-                
-                <div class="card-body">
-                  <h3 class="publication-title">{{ publication.title }}</h3>
-                  
-                  <div class="publication-author">
-                    <span class="author-icon">👤</span>
-                    <span>{{ publication.author_name }}</span>
-                  </div>
-                  
-                  <div class="publication-meta">
-                    <div class="conference-info">
-                      <span class="conference-icon">📅</span>
-                      <span>
-                        {{ publication.conference_year?.semester }} 
-                        {{ publication.conference_year?.year }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="publication-abstract">
-                    {{ getExcerpt(publication.content) }}
-                  </div>
-                </div>
-                
-                <div class="card-footer">
-                  <router-link 
-                    :to="`/articles/${publication.id}`" 
-                    class="read-more-btn"
-                  >
-                    Čítať celý článok
-                    <span class="arrow">→</span>
-                  </router-link>
+          <!-- Publications Grid -->
+          <div v-else class="publications-grid">
+            <article 
+              v-for="article in paginatedArticles" 
+              :key="article.id" 
+              class="publication-card"
+            >
+              <div class="card-header">
+                <div class="type-badge">Článok</div>
+                <div class="publication-date">
+                  {{ formatDate(article.created_at) }}
                 </div>
               </div>
-            </div>
-
-            <!-- Paginácia -->
-            <div v-if="totalPages > 1" class="pagination-wrapper">
-              <div class="pagination">
-                <div class="page-numbers">
-                  <button 
-                    @click="currentPage = 1" 
-                    :disabled="currentPage === 1"
-                    class="page-btn"
-                  >
-                    Prvá
-                  </button>
-                  <button 
-                    @click="currentPage--" 
-                    :disabled="currentPage === 1"
-                    class="page-btn"
-                  >
-                    ‹
-                  </button>
-                  
-                  <button 
-                    v-for="page in visiblePages" 
-                    :key="page"
-                    @click="currentPage = page"
-                    :class="{ active: currentPage === page }"
-                    class="page-btn"
-                  >
-                    {{ page }}
-                  </button>
-                  
-                  <button 
-                    @click="currentPage++" 
-                    :disabled="currentPage === totalPages"
-                    class="page-btn"
-                  >
-                    ›
-                  </button>
-                  <button 
-                    @click="currentPage = totalPages" 
-                    :disabled="currentPage === totalPages"
-                    class="page-btn"
-                  >
-                    Posledná
-                  </button>
+              
+              <div class="card-body">
+                <h3 class="publication-title">
+                  {{ article.title }}
+                </h3>
+                
+                <div class="publication-author">
+                  <i class="author-icon">👤</i>
+                  {{ article.author_name }}
                 </div>
                 
-                <div class="pagination-info">
-                  Stránka {{ currentPage }} z {{ totalPages }} 
-                  ({{ filteredArticles.length }} celkom)
+                <div class="publication-meta">
+                  <div class="conference-info">
+                    <i class="conference-icon">📅</i>
+                    {{ article.conference_year?.semester }} {{ article.conference_year?.year }}
+                  </div>
                 </div>
+                
+                <div class="publication-abstract">
+                  {{ getArticlePreview(article) }}
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <router-link 
+                  :to="`/articles/${article.id}`" 
+                  class="read-more-btn"
+                >
+                  Čítať viac
+                  <span class="arrow">→</span>
+                </router-link>
+              </div>
+            </article>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="pagination-wrapper">
+            <div class="pagination">
+              <div class="page-numbers">
+                <button 
+                  :disabled="currentPage === 1"
+                  @click="currentPage = 1"
+                  class="page-btn"
+                >
+                  Prvá
+                </button>
+                
+                <button 
+                  :disabled="currentPage === 1"
+                  @click="currentPage--"
+                  class="page-btn"
+                >
+                  Predchádzajúca
+                </button>
+                
+                <span class="pagination-info">
+                  Stránka {{ currentPage }} z {{ totalPages }}
+                </span>
+                
+                <button 
+                  :disabled="currentPage === totalPages"
+                  @click="currentPage++"
+                  class="page-btn"
+                >
+                  Nasledujúca
+                </button>
+                
+                <button 
+                  :disabled="currentPage === totalPages"
+                  @click="currentPage = totalPages"
+                  class="page-btn"
+                >
+                  Posledná
+                </button>
               </div>
             </div>
           </div>
@@ -260,7 +247,7 @@
 </template>
 
 <script>
-import { articleApi } from '@/services/article'
+import { articleApi, articleHelpers } from '@/services/article'
 import { conferenceYearApi } from '@/services/conferenceYear'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FooterComponent from '@/components/FooterComponent.vue'
@@ -275,113 +262,59 @@ export default {
   
   data() {
     return {
+      // Data
       articles: [],
       conferenceYears: [],
-      loading: true,
+      
+      // Loading states
+      isLoading: false,
       error: null,
       
-      // Filter states
+      // Filters
       searchQuery: '',
-      selectedYear: '',
-      selectedSemester: '',
+      selectedConferenceYear: '',
       
       // Pagination
       currentPage: 1,
-      itemsPerPage: 12
+      articlesPerPage: 12
     }
   },
   
   computed: {
-    // Filtered articles based on search and filters
     filteredArticles() {
-      let filtered = [...this.articles]
-      
-      // Search filter
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(article => 
-          article.title.toLowerCase().includes(query) ||
-          article.author_name.toLowerCase().includes(query) ||
-          (article.content && article.content.toLowerCase().includes(query))
-        )
-      }
-      
-      // Year filter
-      if (this.selectedYear) {
-        filtered = filtered.filter(article => 
-          article.conference_year?.year === this.selectedYear
-        )
-      }
-      
-      // Semester filter
-      if (this.selectedSemester) {
-        filtered = filtered.filter(article => 
-          article.conference_year?.semester === this.selectedSemester
-        )
-      }
-      
-      return filtered
+      return articleHelpers.filterArticles(this.articles, {
+        search: this.searchQuery,
+        conferenceYearId: this.selectedConferenceYear ? parseInt(this.selectedConferenceYear) : undefined
+      })
     },
-
-    // Paginated articles
-    paginatedPublications() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
+    
+    totalArticles() {
+      return this.articles.length
+    },
+    
+    uniqueAuthors() {
+      const authors = new Set(this.articles.map(article => article.author_name))
+      return authors.size
+    },
+    
+    hasActiveFilters() {
+      return this.searchQuery || this.selectedConferenceYear
+    },
+    
+    paginatedArticles() {
+      const start = (this.currentPage - 1) * this.articlesPerPage
+      const end = start + this.articlesPerPage
       return this.filteredArticles.slice(start, end)
     },
-
-    // Pagination info
+    
     totalPages() {
-      return Math.ceil(this.filteredArticles.length / this.itemsPerPage)
-    },
-
-    visiblePages() {
-      const pages = []
-      const start = Math.max(1, this.currentPage - 2)
-      const end = Math.min(this.totalPages, this.currentPage + 2)
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-      return pages
-    },
-
-    // Available filter options
-    availableYears() {
-      const years = new Set()
-      this.articles.forEach(article => {
-        if (article.conference_year?.year) {
-          years.add(article.conference_year.year)
-        }
-      })
-      return Array.from(years).sort().reverse()
-    },
-
-    uniqueAuthors() {
-      const authors = new Set()
-      this.articles.forEach(article => {
-        if (article.author_name) {
-          authors.add(article.author_name)
-        }
-      })
-      return Array.from(authors)
-    },
-
-    // Check if any filters are active
-    hasActiveFilters() {
-      return !!(this.searchQuery || this.selectedYear || this.selectedSemester)
+      return Math.ceil(this.filteredArticles.length / this.articlesPerPage)
     }
   },
 
   watch: {
-    // Reset to first page when filters change
-    searchQuery() {
-      this.currentPage = 1
-    },
-    selectedYear() {
-      this.currentPage = 1
-    },
-    selectedSemester() {
+    filteredArticles() {
+      // Reset to first page when filters change
       this.currentPage = 1
     }
   },
@@ -392,61 +325,54 @@ export default {
   
   methods: {
     async loadData() {
+      this.isLoading = true
+      this.error = null
+      
       try {
-        this.loading = true
-        this.error = null
-        
-        const [articlesData, yearsData] = await Promise.all([
+        // Load articles and conference years in parallel
+        const [articlesData, conferenceYearsData] = await Promise.all([
           articleApi.getArticles(),
           conferenceYearApi.getConferenceYears()
         ])
         
-        this.articles = articlesData || []
-        this.conferenceYears = yearsData || []
+        this.articles = articlesData
+        this.conferenceYears = conferenceYearsData.data?.data || []
         
       } catch (error) {
-        console.error('Error loading data:', error)
-        this.error = 'Nepodarilo sa načítať publikácie. Skúste to znovu.'
+        console.error('Error loading publications data:', error)
+        this.error = 'Nepodarilo sa načítať publikácie. Skúste to prosím neskôr.'
       } finally {
-        this.loading = false
+        this.isLoading = false
       }
     },
-
+    
     formatDate(dateString) {
-      if (!dateString) return 'Neznámy dátum'
-      
-      try {
-        return new Date(dateString).toLocaleDateString('sk-SK', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      } catch {
-        return 'Neznámy dátum'
-      }
+      return articleHelpers.formatDate(dateString)
     },
-
-    getExcerpt(content) {
-      if (!content) return 'Žiadny obsah dostupný...'
-      
-      // Remove HTML tags and limit to 150 characters
-      const plainText = content.replace(/<[^>]*>/g, '')
-      return plainText.length > 150 
-        ? plainText.substring(0, 150) + '...'
-        : plainText
+    
+    getArticlePreview(article) {
+      return articleHelpers.formatArticleSummary(article)
     },
-
+    
+    getConferenceYearName(yearId) {
+      const year = this.conferenceYears.find(y => y.id === parseInt(yearId))
+      return year ? `${year.semester} ${year.year}` : ''
+    },
+    
+    clearSearch() {
+      this.searchQuery = ''
+    },
+    
     clearAllFilters() {
       this.searchQuery = ''
-      this.selectedYear = ''
-      this.selectedSemester = ''
-      this.currentPage = 1
+      this.selectedConferenceYear = ''
     }
   }
 }
 </script>
 
 <style scoped>
+/* Vaše existujúce CSS štýly zostávajú nezmenené */
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
@@ -531,21 +457,16 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle><circle cx="80" cy="40" r="1" fill="white" opacity="0.4"><animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite"/></circle><circle cx="40" cy="80" r="1" fill="white" opacity="0.2"><animate attributeName="opacity" values="0.2;1;0.2" dur="4s" repeatCount="indefinite"/></circle></svg>') repeat;
 }
 
 .hero-content {
   position: relative;
-  z-index: 10;
+  z-index: 2;
   text-align: center;
   color: white;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 2rem;
 }
 
 .hero-title {
-  font-family: 'Poppins', sans-serif;
   font-size: 3.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
@@ -557,7 +478,7 @@ export default {
 }
 
 .title-line.highlight {
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -566,15 +487,17 @@ export default {
 .hero-subtitle {
   font-size: 1.25rem;
   margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
   opacity: 0.9;
-  line-height: 1.6;
 }
 
 .hero-stats {
   display: flex;
   justify-content: center;
   gap: 4rem;
-  margin-top: 2rem;
+  margin-top: 3rem;
 }
 
 .stat-item {
@@ -585,59 +508,56 @@ export default {
   display: block;
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
-  color: #ffd700;
-  margin-bottom: 0.5rem;
+  color: #fbbf24;
 }
 
 .stat-label {
-  font-size: 1rem;
-  opacity: 0.9;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
 }
 
 /* Filter Section */
 .filter-section {
-  padding: 3rem 0;
   background: var(--bg-secondary);
+  padding: 2rem 0;
   border-bottom: 1px solid var(--border-color);
 }
 
 .filter-wrapper {
   display: flex;
-  flex-direction: column;
   gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .search-container {
-  display: flex;
-  justify-content: center;
+  flex: 1;
+  min-width: 300px;
 }
 
 .search-input-wrapper {
   position: relative;
-  max-width: 600px;
-  width: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .search-icon {
   position: absolute;
   left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--text-light);
-  font-size: 1.2rem;
+  z-index: 1;
 }
 
 .filter-section .search-input {
   width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
+  padding: 0.875rem 1rem 0.875rem 3rem;
   border: 2px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: all 0.3s ease;
   background: white;
+  transition: all 0.3s ease;
 }
 
 .filter-section .search-input:focus {
@@ -649,46 +569,47 @@ export default {
 .clear-button {
   position: absolute;
   right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-light);
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: color 0.3s ease;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .clear-button:hover {
   color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .filter-controls {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 200px;
 }
 
 .filter-group label {
   font-weight: 500;
-  color: var(--text-primary);
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .filter-select {
   padding: 0.75rem 1rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
-  font-size: 1rem;
   background: white;
+  font-size: 0.875rem;
+  min-width: 180px;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -703,15 +624,15 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
   margin-top: 1rem;
-  padding-top: 2rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--border-color);
 }
 
 .filter-label {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .filter-tags {
@@ -721,14 +642,15 @@ export default {
 }
 
 .filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   background: var(--primary-color);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-weight: 500;
 }
 
 .remove-filter {
@@ -737,13 +659,15 @@ export default {
   color: white;
   cursor: pointer;
   font-size: 1rem;
+  padding: 0;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  transition: background 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
 .remove-filter:hover {
@@ -751,28 +675,27 @@ export default {
 }
 
 .clear-all-filters {
-  background: var(--text-light);
-  color: white;
-  border: none;
+  background: none;
+  border: 1px solid var(--text-light);
+  color: var(--text-secondary);
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 0.875rem;
-  transition: background 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .clear-all-filters:hover {
-  background: var(--text-secondary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 /* Publications Content */
 .publications-content {
-  padding: 4rem 0;
-  min-height: 50vh;
+  padding: 3rem 0;
 }
 
 .results-summary h2 {
-  font-family: 'Poppins', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -788,10 +711,10 @@ export default {
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
-  border-top-color: var(--primary-color);
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -805,11 +728,10 @@ export default {
 
 .error-state h3,
 .empty-state h3 {
-  font-family: 'Poppins', sans-serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .retry-button,
@@ -819,10 +741,10 @@ export default {
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease;
   margin-top: 1rem;
+  transition: background-color 0.3s ease;
 }
 
 .retry-button:hover,
@@ -835,22 +757,18 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 2rem;
-  margin-top: 2rem;
 }
 
 .publication-card {
   background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
   transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
 }
 
 .publication-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -858,39 +776,38 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .type-badge {
-  background: var(--gradient-primary);
+  background: var(--primary-color);
   color: white;
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
 }
 
 .publication-date {
-  color: var(--text-light);
+  color: var(--text-secondary);
   font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .card-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  padding: 1.5rem;
 }
 
 .publication-title {
-  font-family: 'Poppins', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 1rem;
   line-height: 1.4;
-  margin: 0;
 }
 
 .publication-author {
@@ -898,7 +815,9 @@ export default {
   align-items: center;
   gap: 0.5rem;
   color: var(--text-secondary);
+  font-size: 0.875rem;
   font-weight: 500;
+  margin-bottom: 1rem;
 }
 
 .author-icon {
@@ -906,10 +825,7 @@ export default {
 }
 
 .publication-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: auto;
+  margin-bottom: 1rem;
 }
 
 .conference-info {
@@ -926,34 +842,29 @@ export default {
 
 .publication-abstract {
   color: var(--text-secondary);
-  line-height: 1.6;
   font-size: 0.9rem;
-  margin-top: 0.5rem;
+  line-height: 1.5;
 }
 
 .card-footer {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .read-more-btn {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
   transition: all 0.3s ease;
-  padding: 0;
-  font-size: 0.95rem;
 }
 
 .read-more-btn:hover {
   color: var(--primary-dark);
-  transform: translateX(3px);
 }
 
 .arrow {
@@ -966,23 +877,22 @@ export default {
 
 /* Pagination */
 .pagination-wrapper {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
 }
 
 .pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
 }
 
 .page-numbers {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .page-btn {
@@ -990,25 +900,22 @@ export default {
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 6px;
+  font-size: 0.875rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-  min-width: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .page-btn:hover:not(:disabled) {
   background: var(--bg-secondary);
   border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .page-btn.active {
   background: var(--primary-color);
-  color: white;
   border-color: var(--primary-color);
+  color: white;
 }
 
 .page-btn:disabled {
@@ -1018,6 +925,66 @@ export default {
 
 .pagination-info {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .filter-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-controls {
+    justify-content: stretch;
+  }
+  
+  .filter-group {
+    flex: 1;
+  }
+  
+  .publications-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .active-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filter-tags {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .search-container {
+    min-width: auto;
+  }
+  
+  .page-numbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

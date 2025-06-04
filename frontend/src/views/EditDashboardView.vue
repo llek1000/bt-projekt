@@ -1,13 +1,13 @@
 <template>
   <div class="dashboard-container">
     <NavbarComponent />
-
+    
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
         <div class="hero-overlay"></div>
         <div class="hero-particles">
-          <div class="particle" v-for="i in 20" :key="i"></div>
+          <div class="particle" v-for="n in 20" :key="n"></div>
         </div>
       </div>
       <div class="container">
@@ -17,326 +17,178 @@
             <span class="title-line highlight">Dashboard</span>
           </h1>
           <p class="hero-subtitle">
-            Spravujte články pre svoje priradené ročníky
+            Správa článkov a obsahu konferencie
           </p>
+          
           <div class="hero-stats">
             <div class="stat-item">
-              <span class="stat-number">{{ assignedYears.length }}</span>
-              <span class="stat-label">Priradené ročníky</span>
+              <span class="stat-number">{{ totalAssignedArticles }}</span>
+              <span class="stat-label">Pridelené články</span>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ articles.length }}</span>
-              <span class="stat-label">Články</span>
+              <span class="stat-number">{{ assignments.length }}</span>
+              <span class="stat-label">Pridelené ročníky</span>
             </div>
             <div class="stat-item">
               <span class="stat-number">{{ filteredArticles.length }}</span>
-              <span class="stat-label">Zobrazených</span>
+              <span class="stat-label">Moje články</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Filter Section -->
+    <!-- Article Management Section -->
     <section class="management-section">
       <div class="container">
-        <div class="alert alert-danger">
-          <span>{{ error }}</span>
-          <button @click="clearError" class="close-button">&times;</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Conference Years Selection -->
-    <div class="management-section">
-      <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Výber ročníka konferencie</h2>
-          <p class="section-subtitle">Vyberte ročník pre správu článkov</p>
+          <h2 class="section-title">Správa článkov</h2>
+          <p class="section-subtitle">Vytvárajte a upravujte články pre pridelené ročníky konferencie</p>
         </div>
 
-        <div class="management-content">
-          <div v-if="loadingYears" class="loading-state">
-            <p>Načítavanie ročníkov konferencie...</p>
+        <div class="management-actions">
+          <div class="search-container">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Hľadať články..."
+              class="search-input"
+            />
           </div>
-
-          <div v-else-if="assignedYears.length === 0" class="empty-state">
-            <div class="empty-icon">📅</div>
-            <h3>Žiadne dostupné ročníky</h3>
-            <p>Nemáte priradené žiadne ročníky konferencie.</p>
-          </div>
-
-          <div v-else class="cards-grid">
-            <div
-              v-for="year in assignedYears"
-              :key="year.id"
-              @click="selectYear(year.id)"
-              class="feature-card year-card"
-              :class="{ active: selectedYearId === year.id }"
-            >
-              <div class="card-header">
-                <h3>{{ year.semester }} {{ year.year }}</h3>
-                <span class="status-badge" :class="{ active: year.is_active }">
-                  {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
-                </span>
-              </div>
-              <div class="year-info">
-                <p>Kliknite pre správu článkov tohto ročníka</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Articles Management -->
-    <section class="management-section" v-if="selectedYearId">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Články pre {{ selectedYearName }}</h2>
-          <p class="section-subtitle">Spravujte články pre vybraný ročník</p>
-        </div>
-
-        <div class="management-content">
-          <div class="management-actions">
-            <div class="search-container">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Hľadať články..."
-                class="search-input"
-              />
-            </div>
-            <div class="filter-controls">
-              <select v-model="statusFilter" class="modern-select">
-                <option value="all">Všetky stavy</option>
-                <option value="published">Len publikované</option>
-                <option value="draft">Len koncepty</option>
+          
+          <div class="filter-controls">
+            <div class="form-group">
+              <label>Filtrovať podľa ročníka:</label>
+              <select v-model="selectedConferenceYearId" class="modern-select">
+                <option value="">Všetky ročníky</option>
+                <option 
+                  v-for="cy in assignedConferenceYears" 
+                  :key="cy.id" 
+                  :value="cy.id"
+                >
+                  {{ cy.semester }} {{ cy.year }}
+                </option>
               </select>
             </div>
-            <button @click="showAddSubpageForm" class="hero-btn primary">
-              <span class="icon">+</span>
-              Pridať článok
-            </button>
           </div>
 
-          <!-- Add Article Form -->
-          <div v-if="showAddForm" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Pridať nový článok</h3>
-                <button @click="cancelAdd" class="close-button">&times;</button>
-              </div>
+          <button @click="openArticleModal()" class="hero-btn primary">
+            Vytvoriť nový článok
+          </button>
+        </div>
 
-              <form @submit.prevent="saveSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="title">Názov *</label>
-                  <input
-                    id="title"
-                    v-model="newArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
+        <!-- Articles Grid -->
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Načítavam články...</p>
+        </div>
+
+        <div v-else-if="filteredArticles.length === 0" class="empty-state">
+          <div class="empty-icon">📝</div>
+          <h3>Žiadne články</h3>
+          <p>Zatiaľ nemáte žiadne články. Vytvorte prvý článok.</p>
+        </div>
+
+        <div v-else class="cards-grid">
+          <div v-for="article in filteredArticles" :key="article.id" class="feature-card article-card">
+            <div class="card-header">
+              <h3>{{ article.title }}</h3>
+              <div class="card-meta">
+                <div class="meta-item">
+                  <span class="meta-label">Autor:</span>
+                  <span class="meta-value">{{ article.author_name }}</span>
                 </div>
-
-                <div class="form-group">
-                  <label for="author_name">Meno autora *</label>
-                  <input
-                    id="author_name"
-                    v-model="newArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Ukladanie...</span>
-                    <span v-else>Uložiť článok</span>
-                  </button>
-                  <button type="button" @click="cancelAdd" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Edit Article Form -->
-          <div v-if="showEditForm && editingArticle" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Upraviť článok</h3>
-                <button @click="cancelEdit" class="close-button">&times;</button>
-              </div>
-
-              <form @submit.prevent="updateSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="edit-title">Názov *</label>
-                  <input
-                    id="edit-title"
-                    v-model="editingArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="edit-author_name">Meno autora *</label>
-                  <input
-                    id="edit-author_name"
-                    v-model="editingArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Aktualizovanie...</span>
-                    <span v-else>Aktualizovať článok</span>
-                  </button>
-                  <button type="button" @click="cancelEdit" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Articles List -->
-          <div class="articles-section">
-            <div v-if="loading" class="loading-state">
-              <p>Načítavanie článkov...</p>
-            </div>
-
-            <div v-else-if="filteredArticles.length === 0" class="empty-state">
-              <div class="empty-icon">📄</div>
-              <h3>Žiadne články</h3>
-              <p v-if="searchQuery || statusFilter !== 'all'">
-                Skúste upraviť vyhľadávanie alebo filter.
-              </p>
-              <p v-else>
-                Pre tento ročník konferencie zatiaľ neboli vytvorené žiadne články.
-              </p>
-            </div>
-
-            <div v-else class="cards-grid">
-              <div
-                v-for="article in filteredArticles"
-                :key="article.id"
-                class="feature-card article-card"
-                :class="{ draft: !article.isPublished }"
-              >
-                <div class="card-header">
-                  <h3>{{ article.title }}</h3>
-                  <span class="status-badge" :class="{ active: article.isPublished }">
-                    {{ article.isPublished ? 'Publikovaný' : 'Koncept' }}
+                <div class="meta-item">
+                  <span class="meta-label">Ročník:</span>
+                  <span class="meta-value">
+                    {{ article.conference_year ? `${article.conference_year.semester} ${article.conference_year.year}` : 'N/A' }}
                   </span>
                 </div>
-
-                <div class="card-content">
-                  <p class="content-preview">{{ formatArticleSummary(article.content) }}</p>
-
-                  <div class="card-meta">
-                    <span class="meta-item">Vytvorené: {{ article.createdAt }}</span>
-                    <span class="meta-item">Upravené: {{ article.updatedAt }}</span>
-                  </div>
-                </div>
-
-                <div class="card-actions">
-                  <button @click="editArticle(article)" class="action-btn edit">
-                    Upraviť
-                  </button>
-                  <button @click="confirmDelete(article)" class="action-btn delete">
-                    Zmazať
-                  </button>
+                <div class="meta-item">
+                  <span class="meta-label">Vytvorené:</span>
+                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
                 </div>
               </div>
             </div>
+            
+            <div class="card-content">
+              <div class="content-preview">{{ getContentPreview(article.content) }}</div>
+            </div>
+            
+            <div class="card-actions">
+              <button @click="openArticleModal(article)" class="action-btn edit">
+                Upraviť
+              </button>
+              <button @click="deleteArticle(article.id)" class="action-btn delete">
+                Vymazať
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- No Year Selected State -->
-    <section v-else class="management-section">
-      <div class="container">
-        <div class="empty-state">
-          <div class="empty-icon">📅</div>
-          <h3>Vyberte ročník</h3>
-          <p>Vyberte ročník konferencie zo zoznamu vyššie pre zobrazenie článkov.</p>
         </div>
       </div>
     </section>
 
     <!-- Article Modal -->
-    <div v-if="showArticleForm" class="modal-overlay">
-      <div class="modal-container">
+    <div v-if="showArticleModal" class="modal-overlay" @click="closeArticleModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h3>{{ editArticle ? 'Upraviť článok' : 'Pridať článok' }}</h3>
-          <button @click="closeArticleModal" class="close-button">×</button>
+          <h3>{{ editArticle ? 'Upraviť článok' : 'Vytvoriť nový článok' }}</h3>
+          <button @click="closeArticleModal" class="close-button">&times;</button>
         </div>
-        <div class="modal-form">
-          <p v-if="deletingArticle">
-            Ste si istí, že chcete zmazať "<strong>{{ deletingArticle.title }}</strong>"?
-          </p>
-          <p class="warning-text">Túto akciu nie je možné vrátiť späť.</p>
+        
+        <form @submit.prevent="saveArticle" class="modal-form">
+          <div class="form-group">
+            <label>Názov článku:</label>
+            <input
+              v-model="articleForm.title"
+              type="text"
+              required
+              class="modern-input"
+              placeholder="Zadajte názov článku"
+            />
+          </div>
 
-          <div class="form-actions">
-            <button
-              @click="deleteSubpage"
-              :disabled="deleting"
-              class="hero-btn primary delete-confirm"
-            >
-              <span v-if="deleting">Mazanie...</span>
-              <span v-else>Zmazať článok</span>
-            </button>
-            <button @click="cancelDelete" class="hero-btn secondary">
-              Zrušiť
-            </button>
-          </div>
           <div class="form-group">
-            <label>Autor</label>
-            <input v-model="formArticle.author_name" type="text" required class="modern-input" />
+            <label>Autor:</label>
+            <input
+              v-model="articleForm.author_name"
+              type="text"
+              required
+              class="modern-input"
+              placeholder="Meno autora"
+            />
           </div>
+
           <div class="form-group">
-            <label>Obsah</label>
+            <label>Ročník konferencie:</label>
+            <select v-model="articleForm.conference_year_id" required class="modern-select">
+              <option value="">Vyberte ročník</option>
+              <option 
+                v-for="cy in assignedConferenceYears" 
+                :key="cy.id" 
+                :value="cy.id"
+              >
+                {{ cy.semester }} {{ cy.year }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Obsah článku:</label>
             <Editor
-              v-model="formArticle.content"
+              v-model="articleForm.content"
               :api-key="tinymceKey"
               :init="tinymceConfig"
             />
           </div>
+
           <div class="form-actions">
-            <button type="button" @click="closeArticleModal" class="hero-btn secondary">Zrušiť</button>
-            <button type="submit" class="hero-btn primary">{{ editArticle ? 'Uložiť' : 'Vytvoriť' }}</button>
+            <button type="button" @click="closeArticleModal" class="hero-btn secondary">
+              Zrušiť
+            </button>
+            <button type="submit" class="hero-btn primary">
+              {{ editArticle ? 'Uložiť zmeny' : 'Vytvoriť článok' }}
+            </button>
           </div>
         </form>
       </div>
@@ -347,420 +199,285 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
-import articleAPI from '@/services/article'
-import conferenceAPI from '@/services/conferenceYear'
-import adminPanel from '@/services/adminPanel'
+import editorPanel from '@/services/editorPanel'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import type { Settings } from 'tinymce'
 
 export default defineComponent({
   name: 'EditDashboardView',
   components: {
-    Editor,
-    NavbarComponent
+    NavbarComponent,
+    Editor
   },
 
   data() {
     return {
-      // Editor's assigned academic years - will be loaded from API
-      assignedYears: [] as any[],
-
-      // Articles for the selected year
-      articles: [] as any[],
-
-      // Form states
-      selectedYearId: null as number | null,
-      showAddForm: false,
-      showEditForm: false,
-      showDeleteModal: false,
-      editingArticle: null as any,
-      deletingArticle: null as any,
-
-      // New article form
-      newArticle: {
-        title: '',
-        content: '',
-        author_name: ''
-      },
-
       // Loading states
       loading: false,
-      saving: false,
-      deleting: false,
-      loadingYears: false,
-
-      // Filter and search
+      
+      // Data arrays
+      assignments: [] as any[],
+      articles: [] as any[],
+      conferenceYears: [] as any[],
+      
+      // Form states
+      showArticleModal: false,
+      editArticle: null as any,
+      articleForm: {
+        title: '',
+        content: '',
+        author_name: '',
+        conference_year_id: ''
+      },
+      
+      // Filter states
       searchQuery: '',
-      statusFilter: 'all' as 'all' | 'published' | 'draft',
-
-      // Error handling
-      error: null as string | null,
-
-      // TinyMCE editor
-      content: '' as string,
+      selectedConferenceYearId: '',
+      
+      // TinyMCE configuration
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       tinymceConfig: {
         height: 400,
-        menubar: false,
+        menubar: true,
         plugins: [
           'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
           'insertdatetime', 'media', 'table', 'help', 'wordcount'
         ],
-        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-        images_upload_handler: async (blobInfo: any, progress: any) => {
-          return new Promise(async (resolve, reject) => {
-            try {
-              const formData = new FormData();
-              formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-              const response = await adminPanel.uploadImage(formData);
-              resolve(response.data.location);
-            } catch (error) {
-              console.error('Upload error:', error);
-              reject('Image upload failed');
-            }
-          });
+        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | help',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
+        images_upload_handler: this.handleImageUpload,
+        automatic_uploads: true,
+        file_picker_types: 'image',
+        file_picker_callback: this.handleFilePicker,
+        images_upload_url: 'http://localhost/bt/bt-projekt/public/api/upload-image',
+        images_upload_base_path: '',
+        images_upload_credentials: true,
+        setup: (editor: any) => {
+          editor.on('init', () => {
+            console.log('TinyMCE Editor initialized for EditDashboard')
+          })
         }
       } as Settings
     }
   },
 
   computed: {
-    // Convert API articles to subpage format for display
-    filteredArticles(): any[] {
-      if (!this.selectedYearId) return []
+    // Get conference years that are assigned to current user
+    assignedConferenceYears() {
+      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
+      return this.conferenceYears.filter(cy => assignedYearIds.includes(cy.id))
+    },
 
-      let filtered = [...this.articles]
+    // Filter articles based on assignments, search query and selected conference year
+    filteredArticles() {
+      let filtered = this.articles
+
+      // Only show articles from assigned conference years
+      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
+      filtered = filtered.filter(article => assignedYearIds.includes(article.conference_year_id))
 
       // Apply search filter
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(article =>
+        filtered = filtered.filter(article => 
           article.title.toLowerCase().includes(query) ||
+          article.author_name.toLowerCase().includes(query) ||
           (article.content && article.content.toLowerCase().includes(query))
+        )
+      }
+
+      // Apply conference year filter
+      if (this.selectedConferenceYearId) {
+        filtered = filtered.filter(article => 
+          article.conference_year_id === parseInt(this.selectedConferenceYearId)
         )
       }
 
       return filtered
     },
 
-    selectedYear(): any {
-      return this.assignedYears.find(year => year.id === this.selectedYearId)
-    },
-
-    formattedSelectedYear(): string {
-      return this.selectedYear ? `${this.selectedYear.semester} ${this.selectedYear.year}` : ''
+    // Calculate total articles assigned to user
+    totalAssignedArticles() {
+      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
+      return this.articles.filter(article => assignedYearIds.includes(article.conference_year_id)).length
     }
   },
 
   methods: {
-    // Helper methods
-    getArticleSlug(article: any): string {
-      return article.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-    },
+    // TinyMCE image upload handler
+    async handleImageUpload(blobInfo: any, progress: any): Promise<string> {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const formData = new FormData()
+          formData.append('file', blobInfo.blob(), blobInfo.filename())
 
-    formatDate(dateString: string): string {
-      try {
-        // Získame prihláseneho používateľa
-        const userResponse = await fetch('/api/user', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Accept': 'application/json'
+          const response = await editorPanel.uploadImage(formData)
+          
+          if (response.data && response.data.location) {
+            resolve(response.data.location)
+          } else {
+            reject('Upload failed: No location returned')
           }
-        })
-      } catch (error) {
-        return 'Invalid date'
-      }
-    },
-
-    formatArticleSummary(content: string | null): string {
-      if (!content) {
-        return 'No content available...'
-      }
-
-      const maxLength = 150
-      const cleanContent = content.replace(/<[^>]*>/g, '') // Strip HTML tags
-
-      if (cleanContent.length <= maxLength) {
-        return cleanContent
-      }
-
-      return cleanContent.substring(0, maxLength).trim() + '...'
-    },
-
-    validateArticle(articleData: any): string[] {
-      const errors: string[] = []
-
-      if (!articleData.title || articleData.title.trim().length === 0) {
-        errors.push('Title is required')
-      }
-
-      if (articleData.title && articleData.title.length > 255) {
-        errors.push('Title must be less than 255 characters')
-      }
-
-      if (!articleData.author_name || articleData.author_name.trim().length === 0) {
-        errors.push('Author name is required')
-      }
-
-      if (articleData.author_name && articleData.author_name.length > 255) {
-        errors.push('Author name must be less than 255 characters')
-      }
-
-      if (!articleData.conference_year_id) {
-        errors.push('Conference year is required')
-      }
-
-      return errors
-    },
-
-    // Load conference years from API
-    async loadConferenceYears() {
-      this.loadingYears = true
-      this.error = null
-
-      try {
-        const response = await conferenceAPI.getConferenceYears()
-        this.assignedYears = response.data || []
-
-        // Select first year if available
-        if (this.assignedYears.length > 0) {
-          this.selectedYearId = this.assignedYears[0].id
-          await this.loadArticles()
+        } catch (error) {
+          console.error('Image upload error:', error)
+          reject('Upload failed: ' + (error.response?.data?.error || error.message))
         }
+      })
+    },
 
-        const userData = await userResponse.json()
-        const userId = userData.user.id
+    // TinyMCE file picker callback
+    handleFilePicker(callback: any, value: any, meta: any) {
+      if (meta.filetype === 'image') {
+        const input = document.createElement('input')
+        input.setAttribute('type', 'file')
+        input.setAttribute('accept', 'image/*')
 
-        // Načítame všetky ročníky
-        const yearsResponse = await adminPanel.getConferenceYears()
-        const allYears = yearsResponse.data?.data || []
+        input.onchange = async () => {
+          const file = input.files?.[0]
+          if (file) {
+            try {
+              const formData = new FormData()
+              formData.append('file', file)
 
-        // Pre každý ročník zistíme, či je používateľ priradený
-        const assigned = []
-        for (const year of allYears) {
-          try {
-            const assignmentsResponse = await adminPanel.listYearEditors(year.id)
-            const assignments = assignmentsResponse.data || []
-
-            // Skontrolujeme, či je aktuálny používateľ v zozname editorov
-            const isAssigned = assignments.some((assignment: any) => assignment.user_id === userId)
-
-            if (isAssigned) {
-              assigned.push(year)
+              const response = await editorPanel.uploadImage(formData)
+              
+              if (response.data && response.data.location) {
+                callback(response.data.location, { title: file.name })
+              }
+            } catch (error) {
+              console.error('File picker upload error:', error)
+              alert('Chyba pri nahrávaní obrázka: ' + (error.response?.data?.error || error.message))
             }
-          } catch (error) {
-            console.error(`Error checking assignments for year ${year.id}:`, error)
           }
         }
 
-        this.assignedYears = assigned
-      } catch (error) {
-        console.error('Error loading assigned years:', error)
-        this.assignedYears = []
+        input.click()
       }
     },
 
-    // Year selection
-    async selectYear(yearId: number) {
-      this.selectedYearId = yearId
-      this.showAddForm = false
-      this.showEditForm = false
-      await this.loadArticles()
+    // Load user assignments
+    async loadAssignments() {
+      try {
+        const response = await editorPanel.getMyAssignments()
+        this.assignments = response.data.data || []
+        console.log('Loaded assignments:', this.assignments)
+      } catch (error) {
+        console.error('Error loading assignments:', error)
+      }
     },
 
-    // Load articles for selected year
-    async loadArticles() {
-      if (!this.selectedYearId) return
-
-      this.loading = true
-      this.error = null
-
+    // Load conference years
+    async loadConferenceYears() {
       try {
-        const response = await articleAPI.getArticlesByConferenceYear(this.selectedYearId)
-        this.articles = response.data || []
+        const response = await editorPanel.getConferenceYears()
+        this.conferenceYears = response.data.data || []
+        console.log('Loaded conference years:', this.conferenceYears)
+      } catch (error) {
+        console.error('Error loading conference years:', error)
+      }
+    },
+
+    // Load articles
+    async loadArticles() {
+      try {
+        this.loading = true
+        const response = await editorPanel.listArticles()
+        this.articles = response.data.data || []
+        console.log('Loaded articles:', this.articles)
       } catch (error) {
         console.error('Error loading articles:', error)
-        this.articles = []
       } finally {
         this.loading = false
       }
     },
 
-    // Add new article
-    showAddSubpageForm() {
-      this.showAddForm = true
-      this.showEditForm = false
-      this.newArticle = {
+    // Open article modal for create/edit
+    openArticleModal(article = null) {
+      this.editArticle = article
+      if (article) {
+        this.articleForm = {
+          title: article.title || '',
+          content: article.content || '',
+          author_name: article.author_name || '',
+          conference_year_id: article.conference_year_id?.toString() || ''
+        }
+      } else {
+        this.articleForm = {
+          title: '',
+          content: '',
+          author_name: '',
+          conference_year_id: ''
+        }
+      }
+      this.showArticleModal = true
+    },
+
+    // Close article modal
+    closeArticleModal() {
+      this.showArticleModal = false
+      this.editArticle = null
+      this.articleForm = {
         title: '',
         content: '',
-        author_name: ''
+        author_name: '',
+        conference_year_id: ''
       }
-      this.content = ''
     },
 
-    async saveSubpage() {
-      if (!this.newArticle.title.trim() || !this.selectedYearId) return
-
-      // Validate the article data
-      const createRequest = {
-        title: this.newArticle.title,
-        content: this.content,
-        conference_year_id: this.selectedYearId,
-        author_name: this.newArticle.author_name
-      }
-
-      const validationErrors = this.validateArticle(createRequest)
-      if (validationErrors.length > 0) {
-        this.error = validationErrors.join(', ')
-        return
-      }
-
-      this.saving = true
-      this.error = null
-
+    // Save article (create or update)
+    async saveArticle() {
       try {
-        const response = await articleAPI.createArticle(createRequest)
-
-        if (response.data) {
-          this.articles.push(response.data)
-          this.showAddForm = false
-          this.newArticle = { title: '', content: '', author_name: '' }
-          this.content = ''
-
-          if (response.message) {
-            console.log('Success:', response.message)
-          }
-        }
-      } catch (error) {
-        console.error('Error creating article:', error)
-        this.error = 'Failed to create article'
-      } finally {
-        this.saving = false
-      }
-    },
-
-    // Edit article
-    editArticle(article: any) {
-      this.editingArticle = { ...article }
-      this.content = article.content || ''
-      this.showEditForm = true
-      this.showAddForm = false
-    },
-
-    async updateSubpage() {
-      if (!this.editingArticle || !this.editingArticle.title.trim()) return
-
-      const updateRequest = {
-        title: this.editingArticle.title,
-        content: this.content,
-        conference_year_id: this.editingArticle.conference_year_id,
-        author_name: this.editingArticle.author_name
-      }
-
-      const validationErrors = this.validateArticle(updateRequest)
-      if (validationErrors.length > 0) {
-        this.error = validationErrors.join(', ')
-        return
-      }
-
-      this.saving = true
-      this.error = null
-
-      try {
-        const response = await articleAPI.updateArticle(this.editingArticle.id, updateRequest)
-
-        if (response.data) {
-          // Find and update the article in the array
-          const index = this.articles.findIndex(a => a.id === this.editingArticle!.id)
-          if (index !== -1) {
-            this.articles[index] = response.data
-          }
-
-          this.showEditForm = false
-          this.editingArticle = null
-          this.content = ''
-
-          if (response.message) {
-            console.log('Success:', response.message)
-          }
+        const articleData = {
+          title: this.articleForm.title,
+          content: this.articleForm.content,
+          author_name: this.articleForm.author_name,
+          conference_year_id: parseInt(this.articleForm.conference_year_id)
         }
 
-        await this.loadArticlesForYear()
+        if (this.editArticle) {
+          await editorPanel.updateArticle(this.editArticle.id, articleData)
+        } else {
+          await editorPanel.createArticle(articleData)
+        }
+
+        await this.loadArticles()
         this.closeArticleModal()
       } catch (error) {
         console.error('Error saving article:', error)
-        alert('Chyba pri ukladaní článku')
+        alert('Chyba pri ukladaní článku: ' + (error.response?.data?.message || error.message))
       }
     },
 
     // Delete article
-    confirmDelete(article: any) {
-      this.deletingArticle = article
-      this.showDeleteModal = true
-    },
-
-    async deleteSubpage() {
-      if (!this.deletingArticle) return
-
-      this.deleting = true
-      this.error = null
+    async deleteArticle(id: number) {
+      if (!confirm('Naozaj chcete vymazať tento článok?')) return
 
       try {
-        const response = await articleAPI.deleteArticle(this.deletingArticle.id)
-
-        // Remove from local array
-        const index = this.articles.findIndex(a => a.id === this.deletingArticle!.id)
-        if (index !== -1) {
-          this.articles.splice(index, 1)
-        }
-
-        this.showDeleteModal = false
-        this.deletingArticle = null
-
-        if (response.message) {
-          console.log('Success:', response.message)
-        }
+        await editorPanel.deleteArticle(id)
+        await this.loadArticles()
+      } catch (error) {
+        console.error('Error deleting article:', error)
+        alert('Chyba pri mazaní článku: ' + (error.response?.data?.message || error.message))
       }
     },
 
-    // Cancel forms
-    cancelAdd() {
-      this.showAddForm = false
-      this.newArticle = { title: '', content: '', author_name: '' }
-      this.content = ''
+    // Helper methods
+    formatDate(dateString?: string): string {
+      return editorPanel.helpers.formatDate(dateString)
     },
 
-    cancelEdit() {
-      this.showEditForm = false
-      this.editingArticle = null
-      this.content = ''
-    },
-
-    cancelDelete() {
-      this.showDeleteModal = false
-      this.deletingArticle = null
-    },
-
-    // Clear error
-    clearError() {
-      this.error = null
+    getContentPreview(content: string): string {
+      return editorPanel.helpers.getContentPreview(content, 150)
     }
   },
 
   async mounted() {
-    await this.loadAssignedYears()
-
-    // Ak je len jeden priradený ročník, automaticky ho vyberieme
-    if (this.assignedYears.length === 1) {
-      this.selectedYearId = this.assignedYears[0].id
-      await this.loadArticlesForYear()
-    }
+    await Promise.all([
+      this.loadAssignments(),
+      this.loadConferenceYears(),
+      this.loadArticles()
+    ])
   }
 })
 </script>
@@ -812,13 +529,13 @@ export default defineComponent({
   padding: 0 1rem;
 }
 
-/* Hero Section - adjust top padding to account for navbar */
+/* Hero Section */
 .hero-section {
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 0; /* Reduced top padding since navbar is now at the top */
-  overflow: hidden;
+  padding: 6rem 0 4rem;
   color: white;
+  overflow: hidden;
 }
 
 .hero-background {
@@ -827,7 +544,6 @@ export default defineComponent({
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .hero-overlay {
@@ -836,23 +552,40 @@ export default defineComponent({
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .hero-particles {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image:
-    radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.2), transparent),
-    radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.1), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent);
-  animation: float 20s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.particle:nth-child(odd) {
+  animation-delay: -2s;
+}
+
+.particle:nth-child(even) {
+  animation-delay: -4s;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(180deg); }
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .hero-content {
@@ -864,8 +597,8 @@ export default defineComponent({
 .hero-title {
   font-size: 3.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
 }
 
 .title-line {
@@ -873,7 +606,7 @@ export default defineComponent({
 }
 
 .title-line.highlight {
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -881,18 +614,18 @@ export default defineComponent({
 
 .hero-subtitle {
   font-size: 1.25rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  margin-bottom: 3rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  opacity: 0.9;
 }
 
 .hero-stats {
   display: flex;
   justify-content: center;
-  gap: 3rem;
-  margin-top: 2rem;
+  gap: 4rem;
+  margin-top: 3rem;
 }
 
 .stat-item {
@@ -900,26 +633,23 @@ export default defineComponent({
 }
 
 .stat-number {
+  display: block;
   font-size: 2.5rem;
   font-weight: 700;
-  display: block;
-  color: #ffd700;
+  color: #fbbf24;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  display: block;
+  font-size: 0.875rem;
   opacity: 0.8;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 /* Management Sections */
 .management-section {
   padding: 4rem 0;
-  background-color: var(--white);
-}
-
-.management-section.alt-bg {
-  background-color: var(--light-bg);
+  background: white;
 }
 
 .section-header {
@@ -929,7 +659,7 @@ export default defineComponent({
 
 .section-title {
   font-size: 2.5rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 1rem;
 }
@@ -937,151 +667,108 @@ export default defineComponent({
 .section-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.management-content {
-  max-width: 1000px;
-  margin: 0 auto;
 }
 
 .management-actions {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
   align-items: center;
   margin-bottom: 2rem;
   flex-wrap: wrap;
-  gap: 1rem;
 }
 
 .search-container {
   flex: 1;
-  max-width: 300px;
+  min-width: 250px;
 }
 
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .filter-controls {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .filter-controls .form-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0;
 }
 
 .filter-controls label {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  display: block;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .hero-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .hero-btn.primary {
-  background-color: var(--primary-color);
-  color: black;
-  border: 2px solid #000;
+  background: var(--primary-color);
+  color: white;
 }
 
 .hero-btn.primary:hover {
-  background-color: rgba(6, 218, 255, 0.877);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border: none;
-}
-
-.hero-btn.secondary {
-  background-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.hero-btn.secondary:hover {
-  background-color: #d1d5db;
+  background: #1d4ed8;
   transform: translateY(-1px);
 }
 
-.hero-btn.primary.delete-confirm {
-  background-color: var(--danger-color);
+.hero-btn.secondary {
+  background: var(--text-secondary);
   color: white;
-  border: 2px solid #000;
 }
 
-.hero-btn.primary.delete-confirm:hover {
-  background-color: #dc2626;
-  border: none;
+.hero-btn.secondary:hover {
+  background: #4b5563;
 }
 
 /* Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
 }
 
 .feature-card {
-  background: var(--white);
-  border: 1px solid var(--border-color);
+  background: white;
   border-radius: 12px;
   padding: 1.5rem;
+  box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 
-.feature-card.year-card {
-  cursor: pointer;
-}
-
-.feature-card.year-card.active {
-  border-color: var(--primary-color);
-  background-color: #f0f9ff;
-}
-
-.feature-card.article-card.draft {
-  border-left: 4px solid #ffc107;
-}
-
 .feature-card .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 1rem;
 }
 
@@ -1089,39 +776,7 @@ export default defineComponent({
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.status-badge.active {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.year-info p {
-  color: var(--text-secondary);
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.card-content {
-  margin-bottom: 1rem;
-}
-
-.content-preview {
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
 }
 
 .card-meta {
@@ -1131,149 +786,90 @@ export default defineComponent({
 }
 
 .meta-item {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* Action Buttons */
-.action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
   font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-right: 0.5rem;
+  color: var(--text-secondary);
 }
 
-.action-btn.edit {
-  background-color: var(--info-color);
-  color: black;
-  border: 2px solid #000;
-  border-radius: 8px;
+.card-content {
+  margin-bottom: 1rem;
 }
 
-.action-btn.edit:hover {
-  background-color: rgb(2, 204, 2);
-  border: none;
-}
-
-.action-btn.delete {
-  background-color: var(--danger-color);
-  color: black;
-  border: 2px solid #000;
-  border-radius: 8px;
-}
-
-.action-btn.delete:hover {
-  background-color: #dc2626;
-  border: none;
+.content-preview {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .card-actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.edit {
+  background: var(--info-color);
+  color: black;
+  
+}
+
+.action-btn.edit:hover {
+  background: #2563eb;
+}
+
+.action-btn.delete {
+  background: var(--danger-color);
+  color: black;
+}
+
+.action-btn.delete:hover {
+  background: #dc2626;
 }
 
 /* Select Controls */
 .modern-select {
-  padding: 0.75rem;
-  border: 2px solid #000000;
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: var(--white);
-  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 200px;
+  transition: border-color 0.3s ease;
 }
 
 .modern-select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-/* Form Sections */
-.form-section {
-  margin-bottom: 2rem;
-}
-
-.form-card {
-  background: var(--white);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-.articles-section {
-  margin-top: 2rem;
 }
 
 /* Loading and Empty States */
-.loading-state,
 .empty-state {
   text-align: center;
-  padding: 3rem 1rem;
-  background-color: white;
-  border-radius: 8px;
-  margin: 2rem 0;
-}
-
-.loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  padding: 3rem;
+  color: var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
 }
 
 .empty-state h3 {
-  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
   color: var(--text-primary);
 }
 
 .empty-state p {
-  color: var(--text-secondary);
-}
-
-/* Alert */
-.alert {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.alert-danger {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  color: inherit;
-}
-
-.close-button:hover {
-  opacity: 0.7;
+  font-size: 0.95rem;
 }
 
 /* Modals */
@@ -1288,17 +884,16 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
 }
 
 .modal-container {
-  background: var(--white);
+  background: white;
   border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
+  max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-xl);
+  width: 800px;
 }
 
 .modal-header {
@@ -1307,18 +902,31 @@ export default defineComponent({
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-color);
-  background-color: white;
 }
 
 .modal-header h3 {
-  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--text-primary);
+}
+
+.close-button {
+  background: none;
+  border: none;
   font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.close-button:hover {
+  background: var(--light-bg);
 }
 
 .modal-form {
   padding: 1.5rem;
-  background-color: white;
 }
 
 .form-group {
@@ -1335,18 +943,15 @@ export default defineComponent({
 .modern-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #000000;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background-color: var(--white);
-  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease;
 }
 
 .modern-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-actions {
@@ -1356,72 +961,264 @@ export default defineComponent({
   margin-top: 2rem;
 }
 
-.warning-text {
-  color: var(--danger-color);
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Article Cards */
+.article-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.meta-label {
   font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.meta-value {
+  color: var(--text-primary);
+}
+
+.card-content {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.content-preview {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.edit {
+  background: var(--primary-color);
+  color: white;
+}
+
+.action-btn.edit:hover {
+  background: var(--primary-dark);
+}
+
+.action-btn.delete {
+  background: var(--danger-color);
+  color: white;
+}
+
+.action-btn.delete:hover {
+  background: #dc2626;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: var(--light-bg);
+  color: var(--text-primary);
+}
+
+.modal-form {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.modern-input,
+.modern-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.modern-input:focus,
+.modern-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Debug Info */
+.debug-info {
+  background: #f0f0f0;
+  padding: 1rem;
   margin: 1rem 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.debug-info h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.debug-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.debug-info details {
+  margin-top: 0.5rem;
+}
+
+.debug-info pre {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  overflow-x: auto;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
+  .modal-container {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
   }
 
-  .hero-stats {
-    gap: 2rem;
-  }
-
-  .stat-number {
-    font-size: 2rem;
-  }
-
-  .management-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-container {
-    max-width: none;
-  }
-
-  .filter-controls {
-    justify-content: stretch;
-  }
-
-  .modern-select {
-    width: 100%;
+  .modal-header,
+  .modal-form {
+    padding: 1rem;
   }
 
   .cards-grid {
     grid-template-columns: 1fr;
   }
 
-  .form-actions {
+  .management-actions {
     flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .section-title {
-    font-size: 2rem;
+    gap: 1rem;
   }
 
   .hero-stats {
     flex-direction: column;
     gap: 1rem;
-  }
-
-  .management-content {
-    padding: 1rem;
-  }
-
-  .modal-container {
-    margin: 0.5rem;
   }
 }
 </style>

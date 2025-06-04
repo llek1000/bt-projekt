@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ConferenceYear;
+use App\Models\EditorAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ArticleController extends Controller
 {
@@ -23,10 +25,11 @@ class ArticleController extends Controller
 
         // Search by title or author if provided
         if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author_name', 'like', "%{$search}%");
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('author_name', 'like', "%{$searchTerm}%")
+                  ->orWhere('content', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -50,12 +53,26 @@ class ArticleController extends Controller
             'author_name' => 'required|string|max:255'
         ], [
             'title.required' => 'Názov článku je povinný',
-            'title.max' => 'Názov nemôže presiahnuť 255 znakov',
+            'title.max' => 'Názov článku nemôže presiahnuť 255 znakov',
             'conference_year_id.required' => 'Ročník konferencie je povinný',
             'conference_year_id.exists' => 'Vybraný ročník konferencie neexistuje',
             'author_name.required' => 'Meno autora je povinné',
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
+
+        // Check if user is editor and has permission for this conference year
+        $user = Auth::user();
+        if ($user->hasRole('editor')) {
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $validated['conference_year_id'])
+                ->exists();
+
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie vytvárať články pre tento ročník konferencie'
+                ], 403);
+            }
+        }
 
         $article = Article::create($validated);
         $article->load('conferenceYear');
@@ -87,18 +104,33 @@ class ArticleController extends Controller
         $article = Article::findOrFail($id);
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'sometimes|required|string|max:255',
             'content' => 'nullable|string',
-            'conference_year_id' => 'required|exists:conference_years,id',
-            'author_name' => 'required|string|max:255'
+            'conference_year_id' => 'sometimes|required|exists:conference_years,id',
+            'author_name' => 'sometimes|required|string|max:255'
         ], [
             'title.required' => 'Názov článku je povinný',
-            'title.max' => 'Názov nemôže presiahnuť 255 znakov',
+            'title.max' => 'Názov článku nemôže presiahnuť 255 znakov',
             'conference_year_id.required' => 'Ročník konferencie je povinný',
             'conference_year_id.exists' => 'Vybraný ročník konferencie neexistuje',
             'author_name.required' => 'Meno autora je povinné',
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
+
+        // Check if user is editor and has permission for this conference year
+        $user = Auth::user();
+        if ($user->hasRole('editor')) {
+            $conferenceYearId = $validated['conference_year_id'] ?? $article->conference_year_id;
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $conferenceYearId)
+                ->exists();
+
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie upravovať články pre tento ročník konferencie'
+                ], 403);
+            }
+        }
 
         $article->update($validated);
         $article->load('conferenceYear');
@@ -115,6 +147,21 @@ class ArticleController extends Controller
     public function destroy($id): JsonResponse
     {
         $article = Article::findOrFail($id);
+
+        // Check if user is editor and has permission for this conference year
+        $user = Auth::user();
+        if ($user->hasRole('editor')) {
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $article->conference_year_id)
+                ->exists();
+
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie vymazávať články pre tento ročník konferencie'
+                ], 403);
+            }
+        }
+
         $article->delete();
 
         return response()->json([
@@ -143,13 +190,12 @@ class ArticleController extends Controller
     public function getByAuthor($authorName): JsonResponse
     {
         $articles = Article::with('conferenceYear')
-                          ->where('author_name', 'like', "%{$authorName}%")
-                          ->orderBy('created_at', 'desc')
-                          ->get();
+            ->where('author_name', 'like', "%{$authorName}%")
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'data' => $articles,
-            'author' => $authorName,
             'message' => 'Články od autora boli úspešne načítané'
         ]);
     }
@@ -169,13 +215,13 @@ class ArticleController extends Controller
         $query = $validated['query'];
 
         $articles = Article::with('conferenceYear')
-                          ->where(function ($q) use ($query) {
-                              $q->where('title', 'like', "%{$query}%")
-                                ->orWhere('author_name', 'like', "%{$query}%")
-                                ->orWhere('content', 'like', "%{$query}%");
-                          })
-                          ->orderBy('created_at', 'desc')
-                          ->get();
+            ->where(function($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('author_name', 'like', "%{$query}%")
+                  ->orWhere('content', 'like', "%{$query}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'data' => $articles,
@@ -192,19 +238,20 @@ class ArticleController extends Controller
     {
         $stats = [
             'total_articles' => Article::count(),
-            'articles_by_conference_year' => Article::selectRaw('conference_year_id, COUNT(*) as count')
-                                                   ->with('conferenceYear:id,year,semester')
-                                                   ->groupBy('conference_year_id')
-                                                   ->get(),
-            'top_authors' => Article::selectRaw('author_name, COUNT(*) as article_count')
-                                   ->groupBy('author_name')
-                                   ->orderBy('article_count', 'desc')
-                                   ->limit(10)
-                                   ->get(),
+            'articles_by_year' => Article::join('conference_years', 'articles.conference_year_id', '=', 'conference_years.id')
+                ->selectRaw('conference_years.year, conference_years.semester, COUNT(*) as count')
+                ->groupBy('conference_years.year', 'conference_years.semester')
+                ->orderBy('conference_years.year', 'desc')
+                ->get(),
+            'articles_by_author' => Article::selectRaw('author_name, COUNT(*) as count')
+                ->groupBy('author_name')
+                ->orderBy('count', 'desc')
+                ->limit(10)
+                ->get(),
             'recent_articles' => Article::with('conferenceYear')
-                                       ->orderBy('created_at', 'desc')
-                                       ->limit(5)
-                                       ->get()
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
         ];
 
         return response()->json([
@@ -219,39 +266,47 @@ class ArticleController extends Controller
     public function bulkDelete(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'article_ids' => 'required|array|min:1',
+            'article_ids' => 'required|array',
             'article_ids.*' => 'exists:articles,id'
-        ], [
-            'article_ids.required' => 'Zoznam článkov na vymazanie je povinný',
-            'article_ids.array' => 'Zoznam článkov musí byť pole',
-            'article_ids.min' => 'Musíte vybrať aspoň jeden článok na vymazanie',
-            'article_ids.*.exists' => 'Niektorý z vybraných článkov neexistuje'
         ]);
 
-        $deletedCount = Article::whereIn('id', $validated['article_ids'])->delete();
+        $user = Auth::user();
+        $articleIds = $validated['article_ids'];
+
+        // Check permissions for editors
+        if ($user->hasRole('editor')) {
+            $articles = Article::whereIn('id', $articleIds)->get();
+            $userAssignments = EditorAssignment::where('user_id', $user->id)
+                ->pluck('conference_year_id')
+                ->toArray();
+
+            foreach ($articles as $article) {
+                if (!in_array($article->conference_year_id, $userAssignments)) {
+                    return response()->json([
+                        'message' => 'Nemáte oprávnenie vymazávať niektoré z vybraných článkov'
+                    ], 403);
+                }
+            }
+        }
+
+        $deletedCount = Article::whereIn('id', $articleIds)->delete();
 
         return response()->json([
-            'message' => "{$deletedCount} článkov bolo úspešne vymazaných",
+            'message' => "Úspešne vymazaných {$deletedCount} článkov",
             'deleted_count' => $deletedCount
         ]);
     }
 
     /**
-     * Export articles as JSON
+     * Export articles to JSON
      */
     public function export(Request $request): JsonResponse
     {
-        $query = Article::with('conferenceYear');
-
-        if ($request->has('conference_year_id')) {
-            $query->where('conference_year_id', $request->conference_year_id);
-        }
-
-        $articles = $query->orderBy('created_at', 'desc')->get();
+        $articles = Article::with('conferenceYear')->get();
 
         return response()->json([
             'data' => $articles,
-            'export_date' => now()->toISOString(),
+            'exported_at' => now()->toISOString(),
             'total_count' => $articles->count(),
             'message' => 'Články boli úspešne exportované'
         ]);

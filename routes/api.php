@@ -48,25 +48,30 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+    // Upload endpoint - available for authenticated users
+    Route::post('/upload-image', [UploadController::class, 'upload']);
 
-    // Editor routes (Admin + Editor access)
+    // Editor routes (Editor and Admin access)
     Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {
-        // Article management
+        // Article management for editors
         Route::prefix('articles')->group(function () {
             Route::post('/', [ArticleController::class, 'store']);
             Route::put('/{id}', [ArticleController::class, 'update']);
             Route::delete('/{id}', [ArticleController::class, 'destroy']);
             Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
         });
+
+        // Editor assignments - get current user's assignments
+        Route::get('my-assignments', [EditorAssignmentController::class, 'myAssignments']);
     });
 
     // Admin routes (Admin only)
     Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
-        // Conference Years
+        // Conference Years Management
         Route::apiResource('conference-years', ConferenceYearController::class)
-            ->except(['show', 'index']);
+            ->except(['index', 'show']);
 
-        // Editors & Admins (users + roles)
+        // User Management
         Route::get('users', [AdminController::class, 'getUsers']);
         Route::post('users', [AdminController::class, 'createUser']);
         Route::put('users/{id}', [AdminController::class, 'updateUser']);
@@ -74,14 +79,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('roles', [AdminController::class, 'getRoles']);
         Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
 
-        // Editor assignments to years
+        // Editor Assignment Management
         Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
         Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
         Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
 
-
+        // Subpage Management
+        Route::get('years/{year}/subpages', [SubpageController::class, 'index']);
+        Route::post('years/{year}/subpages', [SubpageController::class, 'store']);
+        Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });
-
-    // Upload endpoint - dostupný pre všetkých prihlásených používateľov
-    Route::post('/upload-image', [UploadController::class, 'upload']);
 });

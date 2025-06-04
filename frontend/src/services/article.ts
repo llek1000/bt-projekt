@@ -1,5 +1,13 @@
 import api from './api'
-import type { ConferenceYear } from './conferenceYear'
+
+export interface ConferenceYear {
+  id: number
+  year: string
+  semester: string
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
 
 export interface Article {
   id: number
@@ -145,7 +153,7 @@ export const articleHelpers = {
       filtered = filtered.filter(article => 
         article.title.toLowerCase().includes(query) ||
         article.author_name.toLowerCase().includes(query) ||
-        (article.content && article.content.toLowerCase().includes(query))
+        article.content?.toLowerCase().includes(query)
       )
     }
     
@@ -156,8 +164,9 @@ export const articleHelpers = {
     }
     
     if (filters?.author) {
+      const authorQuery = filters.author.toLowerCase()
       filtered = filtered.filter(article => 
-        article.author_name.toLowerCase().includes(filters.author.toLowerCase())
+        article.author_name.toLowerCase().includes(authorQuery)
       )
     }
     

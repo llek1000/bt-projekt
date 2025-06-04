@@ -23,7 +23,7 @@
               <span class="stat-label">Článkov</span>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ filteredSubpages.length }}</span>
+              <span class="stat-number">{{ filteredArticles.length }}</span>
               <span class="stat-label">Zobrazených</span>
             </div>
           </div>
@@ -48,18 +48,18 @@
           <h2 class="section-title">Výber ročníka konferencie</h2>
           <p class="section-subtitle">Vyberte ročník pre správu článkov</p>
         </div>
-        
+
         <div class="management-content">
           <div v-if="loadingYears" class="loading-state">
             <p>Načítavanie ročníkov konferencie...</p>
           </div>
-          
+
           <div v-else-if="assignedYears.length === 0" class="empty-state">
             <div class="empty-icon">📅</div>
             <h3>Žiadne dostupné ročníky</h3>
             <p>Nemáte priradené žiadne ročníky konferencie.</p>
           </div>
-          
+
           <div v-else class="cards-grid">
             <div
               v-for="year in assignedYears"
@@ -90,14 +90,14 @@
           <h2 class="section-title">Správa článkov</h2>
           <p class="section-subtitle">{{ formattedSelectedYear }}</p>
         </div>
-        
+
         <div class="management-content">
           <div class="management-actions">
             <div class="search-container">
-              <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Hľadať články..." 
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Hľadať články..."
                 class="search-input"
               />
             </div>
@@ -121,7 +121,7 @@
                 <h3>Pridať nový článok</h3>
                 <button @click="cancelAdd" class="close-button">&times;</button>
               </div>
-              
+
               <form @submit.prevent="saveSubpage" class="modal-form">
                 <div class="form-group">
                   <label for="title">Názov *</label>
@@ -134,7 +134,7 @@
                     required
                   />
                 </div>
-                
+
                 <div class="form-group">
                   <label for="author_name">Meno autora *</label>
                   <input
@@ -146,7 +146,7 @@
                     required
                   />
                 </div>
-                
+
                 <div class="form-group">
                   <label>Obsah</label>
                   <Editor
@@ -155,7 +155,7 @@
                     :init="tinymceConfig"
                   />
                 </div>
-                
+
                 <div class="form-actions">
                   <button type="submit" :disabled="saving" class="hero-btn primary">
                     <span v-if="saving">Ukladanie...</span>
@@ -176,7 +176,7 @@
                 <h3>Upraviť článok</h3>
                 <button @click="cancelEdit" class="close-button">&times;</button>
               </div>
-              
+
               <form @submit.prevent="updateSubpage" class="modal-form">
                 <div class="form-group">
                   <label for="edit-title">Názov *</label>
@@ -189,7 +189,7 @@
                     required
                   />
                 </div>
-                
+
                 <div class="form-group">
                   <label for="edit-author_name">Meno autora *</label>
                   <input
@@ -201,7 +201,7 @@
                     required
                   />
                 </div>
-                
+
                 <div class="form-group">
                   <label>Obsah</label>
                   <Editor
@@ -210,7 +210,7 @@
                     :init="tinymceConfig"
                   />
                 </div>
-                
+
                 <div class="form-actions">
                   <button type="submit" :disabled="saving" class="hero-btn primary">
                     <span v-if="saving">Aktualizovanie...</span>
@@ -229,8 +229,8 @@
             <div v-if="loading" class="loading-state">
               <p>Načítavanie článkov...</p>
             </div>
-            
-            <div v-else-if="filteredSubpages.length === 0" class="empty-state">
+
+            <div v-else-if="filteredArticles.length === 0" class="empty-state">
               <div class="empty-icon">📄</div>
               <h3>Žiadne články</h3>
               <p v-if="searchQuery || statusFilter !== 'all'">
@@ -240,35 +240,35 @@
                 Pre tento ročník konferencie zatiaľ neboli vytvorené žiadne články.
               </p>
             </div>
-            
+
             <div v-else class="cards-grid">
               <div
-                v-for="subpage in filteredSubpages"
-                :key="subpage.id"
+                v-for="article in filteredArticles"
+                :key="article.id"
                 class="feature-card article-card"
-                :class="{ draft: !subpage.isPublished }"
+                :class="{ draft: !article.isPublished }"
               >
                 <div class="card-header">
-                  <h3>{{ subpage.title }}</h3>
-                  <span class="status-badge" :class="{ active: subpage.isPublished }">
-                    {{ subpage.isPublished ? 'Publikovaný' : 'Koncept' }}
+                  <h3>{{ article.title }}</h3>
+                  <span class="status-badge" :class="{ active: article.isPublished }">
+                    {{ article.isPublished ? 'Publikovaný' : 'Koncept' }}
                   </span>
                 </div>
-                
+
                 <div class="card-content">
-                  <p class="content-preview">{{ formatArticleSummary(subpage.content) }}</p>
-                  
+                  <p class="content-preview">{{ formatArticleSummary(article.content) }}</p>
+
                   <div class="card-meta">
-                    <span class="meta-item">Vytvorené: {{ subpage.createdAt }}</span>
-                    <span class="meta-item">Upravené: {{ subpage.updatedAt }}</span>
+                    <span class="meta-item">Vytvorené: {{ article.createdAt }}</span>
+                    <span class="meta-item">Upravené: {{ article.updatedAt }}</span>
                   </div>
                 </div>
-                
+
                 <div class="card-actions">
-                  <button @click="editSubpage(subpage)" class="action-btn edit">
+                  <button @click="editArticle(article)" class="action-btn edit">
                     Upraviť
                   </button>
-                  <button @click="confirmDelete(subpage)" class="action-btn delete">
+                  <button @click="confirmDelete(article)" class="action-btn delete">
                     Zmazať
                   </button>
                 </div>
@@ -291,7 +291,7 @@
             Ste si istí, že chcete zmazať "<strong>{{ deletingArticle.title }}</strong>"?
           </p>
           <p class="warning-text">Túto akciu nie je možné vrátiť späť.</p>
-          
+
           <div class="form-actions">
             <button
               @click="deleteSubpage"
@@ -314,56 +314,55 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
-import axios from 'axios'
-import { articleApi, type Article, type UpdateArticleRequest } from '@/services/article'
-import { conferenceYearApi, conferenceYearHelpers, type ConferenceYear } from '@/services/conferenceYear'
+import articleAPI from '@/services/article'
+import conferenceAPI from '@/services/conferenceYear'
 import adminPanel from '@/services/adminPanel'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import type { Settings } from 'tinymce'
 
 export default defineComponent({
   name: 'EditDashboardView',
-  components: { 
+  components: {
     Editor,
     NavbarComponent
   },
-  
+
   data() {
     return {
       // Editor's assigned academic years - will be loaded from API
-      assignedYears: [] as ConferenceYear[],
-      
+      assignedYears: [] as any[],
+
       // Articles for the selected year
-      articles: [] as Article[],
-      
+      articles: [] as any[],
+
       // Form states
       selectedYearId: null as number | null,
       showAddForm: false,
       showEditForm: false,
       showDeleteModal: false,
-      editingArticle: null as Article | null,
-      deletingArticle: null as Article | null,
-      
+      editingArticle: null as any,
+      deletingArticle: null as any,
+
       // New article form
       newArticle: {
         title: '',
         content: '',
         author_name: ''
       },
-      
+
       // Loading states
       loading: false,
       saving: false,
       deleting: false,
       loadingYears: false,
-      
+
       // Filter and search
       searchQuery: '',
       statusFilter: 'all' as 'all' | 'published' | 'draft',
-      
+
       // Error handling
       error: null as string | null,
-      
+
       // TinyMCE editor
       content: '' as string,
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
@@ -402,54 +401,38 @@ export default defineComponent({
       } as Settings
     }
   },
-  
+
   computed: {
     // Convert API articles to subpage format for display
-    filteredSubpages(): Subpage[] {
+    filteredArticles(): any[] {
       if (!this.selectedYearId) return []
-      
-      let filtered = this.articles.map(article => ({
-        id: article.id,
-        title: article.title,
-        slug: this.getArticleSlug(article),
-        content: article.content,
-        yearId: article.conference_year_id,
-        createdAt: this.formatDate(article.created_at || ''),
-        updatedAt: this.formatDate(article.updated_at || ''),
-        isPublished: true // API doesn't have publish status, assume published
-      }))
-      
+
+      let filtered = [...this.articles]
+
       // Apply search filter
       if (this.searchQuery) {
-        filtered = filtered.filter(subpage => {
-          const query = this.searchQuery.toLowerCase()
-          return subpage.title.toLowerCase().includes(query) ||
-                 (subpage.content && subpage.content.toLowerCase().includes(query))
-        })
+        const query = this.searchQuery.toLowerCase()
+        filtered = filtered.filter(article =>
+          article.title.toLowerCase().includes(query) ||
+          (article.content && article.content.toLowerCase().includes(query))
+        )
       }
-      
-      // Status filter (keeping for UI compatibility)
-      if (this.statusFilter === 'published') {
-        filtered = filtered.filter(subpage => subpage.isPublished)
-      } else if (this.statusFilter === 'draft') {
-        filtered = filtered.filter(subpage => !subpage.isPublished)
-      }
-      
+
       return filtered
     },
-    
-    selectedYear(): ConferenceYear | undefined {
+
+    selectedYear(): any {
       return this.assignedYears.find(year => year.id === this.selectedYearId)
     },
-    
+
     formattedSelectedYear(): string {
-      return this.selectedYear ? conferenceYearHelpers.formatConferenceYear(this.selectedYear) : ''
+      return this.selectedYear ? `${this.selectedYear.semester} ${this.selectedYear.year}` : ''
     }
   },
-  
+
   methods: {
-    // Helper methods (replacing articleHelpers)
-    getArticleSlug(article: Article): string {
+    // Helper methods
+    getArticleSlug(article: any): string {
       return article.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -473,40 +456,40 @@ export default defineComponent({
       if (!content) {
         return 'No content available...'
       }
-      
+
       const maxLength = 150
       const cleanContent = content.replace(/<[^>]*>/g, '') // Strip HTML tags
-      
+
       if (cleanContent.length <= maxLength) {
         return cleanContent
       }
-      
+
       return cleanContent.substring(0, maxLength).trim() + '...'
     },
 
-    validateArticle(articleData: CreateArticleRequest | UpdateArticleRequest): string[] {
+    validateArticle(articleData: any): string[] {
       const errors: string[] = []
-      
+
       if (!articleData.title || articleData.title.trim().length === 0) {
         errors.push('Title is required')
       }
-      
+
       if (articleData.title && articleData.title.length > 255) {
         errors.push('Title must be less than 255 characters')
       }
-      
+
       if (!articleData.author_name || articleData.author_name.trim().length === 0) {
         errors.push('Author name is required')
       }
-      
+
       if (articleData.author_name && articleData.author_name.length > 255) {
         errors.push('Author name must be less than 255 characters')
       }
-      
+
       if (!articleData.conference_year_id) {
         errors.push('Conference year is required')
       }
-      
+
       return errors
     },
 
@@ -514,13 +497,11 @@ export default defineComponent({
     async loadConferenceYears() {
       this.loadingYears = true
       this.error = null
-      
+
       try {
-        this.assignedYears = await conferenceYearApi.getConferenceYears()
-        
-        // Sort conference years
-        this.assignedYears = conferenceYearHelpers.sortConferenceYears(this.assignedYears)
-        
+        const response = await conferenceAPI.getConferenceYears()
+        this.assignedYears = response.data || []
+
         // Select first year if available
         if (this.assignedYears.length > 0) {
           this.selectedYearId = this.assignedYears[0].id
@@ -533,7 +514,7 @@ export default defineComponent({
         this.loadingYears = false
       }
     },
-    
+
     // Year selection
     async selectYear(yearId: number) {
       this.selectedYearId = yearId
@@ -541,17 +522,17 @@ export default defineComponent({
       this.showEditForm = false
       await this.loadArticles()
     },
-    
+
     // Load articles for selected year
     async loadArticles() {
       if (!this.selectedYearId) return
-      
+
       this.loading = true
       this.error = null
-      
+
       try {
-        const result = await articleApi.getArticlesByConferenceYear(this.selectedYearId)
-        this.articles = result.articles || []
+        const response = await articleAPI.getArticlesByConferenceYear(this.selectedYearId)
+        this.articles = response.data || []
       } catch (error) {
         console.error('Error loading articles:', error)
         this.error = 'Failed to load articles'
@@ -560,7 +541,7 @@ export default defineComponent({
         this.loading = false
       }
     },
-    
+
     // Add new article
     showAddSubpageForm() {
       this.showAddForm = true
@@ -570,38 +551,40 @@ export default defineComponent({
         content: '',
         author_name: ''
       }
+      this.content = ''
     },
-    
+
     async saveSubpage() {
       if (!this.newArticle.title.trim() || !this.selectedYearId) return
-      
+
       // Validate the article data
-      const createRequest: CreateArticleRequest = {
+      const createRequest = {
         title: this.newArticle.title,
-        content: this.newArticle.content,
+        content: this.content,
         conference_year_id: this.selectedYearId,
         author_name: this.newArticle.author_name
       }
-      
+
       const validationErrors = this.validateArticle(createRequest)
       if (validationErrors.length > 0) {
         this.error = validationErrors.join(', ')
         return
       }
-      
+
       this.saving = true
       this.error = null
-      
+
       try {
-        const result = await articleApi.createArticle(createRequest)
-        
-        if (result.article) {
-          this.articles.push(result.article)
+        const response = await articleAPI.createArticle(createRequest)
+
+        if (response.data) {
+          this.articles.push(response.data)
           this.showAddForm = false
           this.newArticle = { title: '', content: '', author_name: '' }
-          
-          if (result.message) {
-            console.log('Success:', result.message)
+          this.content = ''
+
+          if (response.message) {
+            console.log('Success:', response.message)
           }
         }
       } catch (error) {
@@ -611,53 +594,50 @@ export default defineComponent({
         this.saving = false
       }
     },
-    
+
     // Edit article
-    editSubpage(subpage: Subpage) {
-      // Find the actual article by ID
-      const article = this.articles.find(a => a.id === subpage.id)
-      if (article) {
-        this.editingArticle = { ...article }
-        this.content = article.content   // <-- load backend HTML into editor
-        this.showEditForm = true
-        this.showAddForm = false
-      }
+    editArticle(article: any) {
+      this.editingArticle = { ...article }
+      this.content = article.content || ''
+      this.showEditForm = true
+      this.showAddForm = false
     },
-    
+
     async updateSubpage() {
       if (!this.editingArticle || !this.editingArticle.title.trim()) return
-      
-      const updateRequest: UpdateArticleRequest = {
+
+      const updateRequest = {
         title: this.editingArticle.title,
-        content: this.content,        // <-- send edited HTML back
+        content: this.content,
         conference_year_id: this.editingArticle.conference_year_id,
         author_name: this.editingArticle.author_name
       }
-      
+
       const validationErrors = this.validateArticle(updateRequest)
       if (validationErrors.length > 0) {
         this.error = validationErrors.join(', ')
         return
       }
-      
+
       this.saving = true
       this.error = null
-      
+
       try {
-        const result = await articleApi.updateArticle(this.editingArticle.id, updateRequest)
-        
-        if (result.article) {
+        const response = await articleAPI.updateArticle(this.editingArticle.id, updateRequest)
+
+        if (response.data) {
           // Find and update the article in the array
           const index = this.articles.findIndex(a => a.id === this.editingArticle!.id)
           if (index !== -1) {
-            this.articles[index] = result.article
+            this.articles[index] = response.data
           }
-          
+
           this.showEditForm = false
           this.editingArticle = null
-          
-          if (result.message) {
-            console.log('Success:', result.message)
+          this.content = ''
+
+          if (response.message) {
+            console.log('Success:', response.message)
           }
         }
       } catch (error) {
@@ -667,38 +647,33 @@ export default defineComponent({
         this.saving = false
       }
     },
-    
+
     // Delete article
-    confirmDelete(subpage: Subpage) {
-      const article = this.articles.find(a => a.id === subpage.id)
-      if (article) {
-        this.deletingArticle = article
-        this.showDeleteModal = true
-      }
+    confirmDelete(article: any) {
+      this.deletingArticle = article
+      this.showDeleteModal = true
     },
-    
+
     async deleteSubpage() {
       if (!this.deletingArticle) return
-      
+
       this.deleting = true
       this.error = null
-      
+
       try {
-        const result = await articleApi.deleteArticle(this.deletingArticle.id)
-        
-        if (result.success) {
-          // Remove from local array
-          const index = this.articles.findIndex(a => a.id === this.deletingArticle!.id)
-          if (index !== -1) {
-            this.articles.splice(index, 1)
-          }
-          
-          this.showDeleteModal = false
-          this.deletingArticle = null
-          
-          if (result.message) {
-            console.log('Success:', result.message)
-          }
+        const response = await articleAPI.deleteArticle(this.deletingArticle.id)
+
+        // Remove from local array
+        const index = this.articles.findIndex(a => a.id === this.deletingArticle!.id)
+        if (index !== -1) {
+          this.articles.splice(index, 1)
+        }
+
+        this.showDeleteModal = false
+        this.deletingArticle = null
+
+        if (response.message) {
+          console.log('Success:', response.message)
         }
       } catch (error) {
         console.error('Error deleting article:', error)
@@ -707,40 +682,31 @@ export default defineComponent({
         this.deleting = false
       }
     },
-    
-    // Toggle publish status (keeping for UI compatibility)
-    async togglePublishStatus(subpage: Subpage) {
-      try {
-        // API doesn't support publish status, so this is just UI feedback
-        console.log(`Article ${subpage.isPublished ? 'unpublished' : 'published'}`)
-      } catch (error) {
-        console.error('Error toggling publish status:', error)
-        this.error = 'Failed to toggle publish status'
-      }
-    },
-    
+
     // Cancel forms
     cancelAdd() {
       this.showAddForm = false
       this.newArticle = { title: '', content: '', author_name: '' }
+      this.content = ''
     },
-    
+
     cancelEdit() {
       this.showEditForm = false
       this.editingArticle = null
+      this.content = ''
     },
-    
+
     cancelDelete() {
       this.showDeleteModal = false
       this.deletingArticle = null
     },
-    
+
     // Clear error
     clearError() {
       this.error = null
     }
   },
-  
+
   async mounted() {
     await this.loadConferenceYears()
   }
@@ -825,7 +791,7 @@ export default defineComponent({
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.2), transparent),
     radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.1), transparent),
     radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent);
@@ -1328,36 +1294,36 @@ export default defineComponent({
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-stats {
     gap: 2rem;
   }
-  
+
   .stat-number {
     font-size: 2rem;
   }
-  
+
   .management-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-container {
     max-width: none;
   }
-  
+
   .filter-controls {
     justify-content: stretch;
   }
-  
+
   .modern-select {
     width: 100%;
   }
-  
+
   .cards-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
@@ -1367,20 +1333,20 @@ export default defineComponent({
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .hero-stats {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .management-content {
     padding: 1rem;
   }
-  
+
   .modal-container {
     margin: 0.5rem;
   }

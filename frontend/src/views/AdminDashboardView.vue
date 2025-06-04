@@ -347,34 +347,35 @@
 
     <!-- Modals -->
     <!-- Year Modal -->
-    <div v-if="showYearForm" class="modal-overlay" @click="closeYearModal">
-      <div class="modal-container" @click.stop>
+    <div v-if="showYearForm" class="modal-overlay" @click.self="closeYearModal">
+      <div class="modal-container">
         <div class="modal-header">
-          <h3>{{ editYear ? 'Upraviť ročník' : 'Nový ročník' }}</h3>
+          <h3>{{ editYear ? 'Edit Conference Year' : 'Create Conference Year' }}</h3>
           <button @click="closeYearModal" class="close-button">&times;</button>
         </div>
-        
         <form @submit.prevent="saveYear" class="modal-form">
           <div class="form-group">
-            <label for="yearValue">Rok</label>
+            <label for="year">Year:</label>
             <input
-              id="yearValue"
-              type="text"
+              type="number"
+              id="year"
               v-model="formYear.year"
               required
+              min="2020"
+              max="2030"
               class="modern-input"
             />
           </div>
           
           <div class="form-group">
-            <label for="semester">Semester</label>
-            <select
+            <label for="semester">Semester:</label>
+            <select 
               id="semester"
               v-model="formYear.semester"
               required
               class="modern-select"
             >
-              <option value="">Vyberte semester</option>
+              <option value="">Select Semester</option>
               <option value="Winter">Winter</option>
               <option value="Summer">Summer</option>
             </select>
@@ -386,16 +387,17 @@
                 type="checkbox"
                 v-model="formYear.is_active"
               />
-              Aktívny ročník
+              <span class="checkmark"></span>
+              Active Conference Year
             </label>
           </div>
           
           <div class="form-actions">
             <button type="button" @click="closeYearModal" class="btn secondary">
-              Zrušiť
+              Cancel
             </button>
             <button type="submit" class="btn primary">
-              {{ editYear ? 'Aktualizovať' : 'Vytvoriť' }}
+              {{ editYear ? 'Update' : 'Create' }}
             </button>
           </div>
         </form>
@@ -1224,7 +1226,7 @@ onMounted(async () => {
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 25px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1236,17 +1238,19 @@ onMounted(async () => {
 
 .btn.primary {
   background: var(--primary-color);
-  color: white;
+  color: bl;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .btn.primary:hover {
   background: #1d4ed8;
-  transform: translateY(-1px);
+  border: none;
 }
 
 .btn.secondary {
   background: var(--text-secondary);
-  color: white;
+  color: black;
 }
 
 .btn.secondary:hover {
@@ -1264,11 +1268,11 @@ onMounted(async () => {
 
 .feature-card {
   background: var(--white);
-  border-radius: 12px;
+  border-radius: 25px;
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
-  border: 1px solid var(--border-color);
+  border: 1px solid black;
 }
 
 .feature-card:hover {
@@ -1343,25 +1347,33 @@ onMounted(async () => {
 
 .action-btn.edit {
   background: var(--primary-color);
-  color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .action-btn.edit:hover {
   background: #1d4ed8;
+  border: none;
 }
 
 .action-btn.delete {
   background: var(--danger-color);
-  color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .action-btn.delete:hover {
   background: #dc2626;
+  border: none;
 }
 
 .action-btn.download {
   background: var(--success-color);
-  color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .action-btn.download:hover {
@@ -1370,7 +1382,9 @@ onMounted(async () => {
 
 .action-btn.copy {
   background: var(--accent-color);
-  color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .action-btn.copy:hover {
@@ -1379,11 +1393,14 @@ onMounted(async () => {
 
 .action-btn.secondary {
   background: var(--text-secondary);
-  color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .action-btn.secondary:hover {
   background: #4b5563;
+  border: none ;
 }
 
 /* File Upload Area */
@@ -1489,6 +1506,7 @@ onMounted(async () => {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-md);
+  overflow-x: auto;
 }
 
 .data-table {
@@ -1681,13 +1699,13 @@ onMounted(async () => {
 }
 
 .modal-container {
-  background: var(--white);
   border-radius: 12px;
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-xl);
+  background-color: white;
 }
 
 .modal-header {
@@ -1730,45 +1748,207 @@ onMounted(async () => {
   border-top: 1px solid var(--border-color);
 }
 
-/* Responsive Design */
+/* Year Modal Styles */
+.year-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  
+
+}
+
+.year-modal-content {
+  background-color: black;
+  border-radius: 16px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.year-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid black;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: black;
+  border-radius: 16px 16px 0 0;
+}
+
+.year-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: black;
+}
+
+.year-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: black;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.year-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.year-modal-body {
+  padding: 25px;
+}
+
+.year-form-group {
+  margin-bottom: 20px;
+}
+
+.year-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.year-form-input,
+.year-form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid black;
+  border-radius: 25px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: black;
+}
+
+.year-form-input:focus,
+.year-form-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.year-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.year-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.year-checkbox-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.year-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.year-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.year-btn-save {
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  color: black;
+}
+
+.year-btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.year-btn-cancel {
+  background: black;
+  color: var(--text-secondary);
+  border: 1px solid #000000;
+}
+
+.year-btn-cancel:hover {
+  background: black;
+  color: var(--text-primary);
+}
+
+/* Dark overlay animation */
+.year-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
+  .year-modal-content {
+    width: 95%;
+    margin: 1rem;
   }
   
-  .hero-stats {
-    flex-direction: column;
-    gap: 2rem;
+  .year-modal-header {
+    padding: 15px 20px;
   }
   
-  .management-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .year-modal-body {
+    padding: 20px;
   }
   
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .files-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .file-actions {
+  .year-form-actions {
     flex-direction: column;
   }
   
-  .assignments-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .data-table {
-    font-size: 0.875rem;
-  }
-  
-  .data-table th,
-  .data-table td {
-    padding: 0.75rem 0.5rem;
+  .year-btn {
+    width: 100%;
   }
 }
 </style>

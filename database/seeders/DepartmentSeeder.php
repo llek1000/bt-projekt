@@ -10,11 +10,10 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         DB::table('departments')->insert([
-            ['name' => 'Computer Science',  'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Mathematics',       'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Physics',           'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Biotechnology',     'created_at' => now(), 'updated_at' => now()],
-            
+            ['name' => 'Informatika',           'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Matematika',            'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Fyzika',                'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Biotechnológia',        'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }

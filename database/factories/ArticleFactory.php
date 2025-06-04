@@ -26,8 +26,8 @@ class ArticleFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence(6, true),
-            'content' => $this->faker->paragraphs(5, true),
+            'title' => $this->faker->sentence(12, true),
+            'content' => $this->faker->paragraphs(25, true),
             'conference_year_id' => function() {
                 return ConferenceYear::inRandomOrder()->first()?->id ?? ConferenceYear::factory()->create()->id;
             },

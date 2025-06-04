@@ -1,5 +1,5 @@
-import apiClient from './api'
-import type { ConferenceYear } from './conferenceYear' // Import from conferenceYear service
+import api from './api'
+import type { ConferenceYear } from './conferenceYear'
 
 export interface Article {
   id: number
@@ -45,157 +45,122 @@ export interface SearchResponse extends BaseApiResponse {
   count?: number
 }
 
-export interface StatisticsResponse extends BaseApiResponse {
-  data?: {
-    total_articles?: number
-    articles_by_conference_year?: Array<{
-      conference_year_id?: number
-      count?: number
-      conference_year?: ConferenceYear
-    }>
-    top_authors?: Array<{
-      author_name?: string
-      article_count?: number
-    }>
-    recent_articles?: Article[]
-  }
-}
-
 export interface ArticlesByConferenceYearResponse extends BaseApiResponse {
   data?: Article[]
   conference_year?: ConferenceYear
 }
 
-export interface ArticlesByAuthorResponse extends BaseApiResponse {
-  data?: Article[]
-  author?: string
-}
-
-export interface ExportResponse extends BaseApiResponse {
-  data?: Article[]
-  export_date?: string
-  total_count?: number
-}
-
-export interface BulkDeleteResponse extends BaseApiResponse {
-  deleted_count?: number
-}
-
-export default {
+export const articleApi = {
   // GET /articles
-  getArticles(params?: { conference_year_id?: number; search?: string }): Promise<ArticleListResponse> {
-    return apiClient.get('/articles', { params })
+  getArticles: async (params?: { conference_year_id?: number; search?: string }): Promise<Article[]> => {
+    try {
+      const response = await api.get<ArticleListResponse>('/articles', { params })
+      return response.data?.data || []
+    } catch (error) {
+      console.error('Error fetching articles:', error)
+      return []
+    }
   },
 
   // GET /articles/{id}
-  getArticle(id: string | number): Promise<ArticleResponse> {
-    return apiClient.get(`/articles/${id}`)
-  },
-
-  // POST /articles
-  createArticle(data: CreateArticleRequest): Promise<ArticleResponse> {
-    return apiClient.post('/articles', data)
-  },
-
-  // PUT /articles/{id}
-  updateArticle(id: string | number, data: UpdateArticleRequest): Promise<ArticleResponse> {
-    return apiClient.put(`/articles/${id}`, data)
-  },
-
-  // DELETE /articles/{id}
-  deleteArticle(id: string | number): Promise<BaseApiResponse> {
-    return apiClient.delete(`/articles/${id}`)
+  getArticle: async (id: string | number): Promise<Article | null> => {
+    try {
+      const response = await api.get<ArticleResponse>(`/articles/${id}`)
+      return response.data?.data || null
+    } catch (error) {
+      console.error('Error fetching article:', error)
+      if (error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
   },
 
   // GET /articles/conference-year/{conferenceYearId}
-  getArticlesByConferenceYear(conferenceYearId: number): Promise<ArticlesByConferenceYearResponse> {
-    return apiClient.get(`/articles/conference-year/${conferenceYearId}`)
-  },
-
-  // GET /articles/author/{authorName}
-  getArticlesByAuthor(authorName: string): Promise<ArticlesByAuthorResponse> {
-    return apiClient.get(`/articles/author/${encodeURIComponent(authorName)}`)
+  getArticlesByConferenceYear: async (conferenceYearId: number): Promise<{ articles?: Article[]; conferenceYear?: ConferenceYear }> => {
+    try {
+      const response = await api.get<ArticlesByConferenceYearResponse>(`/articles/conference-year/${conferenceYearId}`)
+      return {
+        articles: response.data?.data || [],
+        conferenceYear: response.data?.conference_year
+      }
+    } catch (error) {
+      console.error('Error fetching articles by conference year:', error)
+      return { articles: [] }
+    }
   },
 
   // POST /articles/search
-  searchArticles(query: string): Promise<SearchResponse> {
-    return apiClient.post('/articles/search', { query })
-  },
-
-  // GET /articles/stats/overview
-  getStatistics(): Promise<StatisticsResponse> {
-    return apiClient.get('/articles/stats/overview')
-  },
-
-  // POST /articles/bulk-delete
-  bulkDeleteArticles(articleIds: number[]): Promise<BulkDeleteResponse> {
-    return apiClient.post('/articles/bulk-delete', { article_ids: articleIds })
-  },
-
-  // GET /articles/export/json
-  exportArticles(params?: { conference_year_id?: number }): Promise<ExportResponse> {
-    return apiClient.get('/articles/export/json', { params })
-  },
-
-  // Helper functions
-  validateArticle(article?: CreateArticleRequest | UpdateArticleRequest): string[] {
-    const errors: string[] = []
-
-    if (!article) {
-      errors.push('Article data is required')
-      return errors
+  searchArticles: async (query: string): Promise<{ articles?: Article[]; count?: number; query?: string }> => {
+    try {
+      const response = await api.post<SearchResponse>('/articles/search', { query })
+      return {
+        articles: response.data?.data || [],
+        count: response.data?.count,
+        query: response.data?.query
+      }
+    } catch (error) {
+      console.error('Error searching articles:', error)
+      return { articles: [] }
     }
+  }
+}
 
-    if (!article.title?.trim()) {
-      errors.push('Title is required')
+// Helper functions
+export const articleHelpers = {
+  formatDate: (dateString?: string): string => {
+    if (!dateString) return 'Neznámy dátum'
+    
+    try {
+      return new Date(dateString).toLocaleDateString('sk-SK', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } catch {
+      return 'Neznámy dátum'
     }
-
-    if (article.title && article.title.length > 255) {
-      errors.push('Title cannot exceed 255 characters')
-    }
-
-    if (!article.author_name?.trim()) {
-      errors.push('Author name is required')
-    }
-
-    if (article.author_name && article.author_name.length > 255) {
-      errors.push('Author name cannot exceed 255 characters')
-    }
-
-    if (!article.conference_year_id) {
-      errors.push('Conference year is required')
-    }
-
-    return errors
   },
 
-  formatDate(dateString?: string): string {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+  formatArticleSummary: (article?: Article): string => {
+    if (!article?.content) return 'Žiadny obsah...'
+    
+    const cleanContent = article.content.replace(/<[^>]*>/g, '')
+    return cleanContent.length > 150 
+      ? cleanContent.substring(0, 150) + '...' 
+      : cleanContent
   },
 
-  formatArticleSummary(article?: Article): string {
-    if (!article?.content) return 'No content available'
-
-    const maxLength = 150
-    const stripped = article.content.replace(/<[^>]*>/g, '') // Remove HTML tags
-    return stripped.length > maxLength
-      ? stripped.substring(0, maxLength) + '...'
-      : stripped
-  },
-
-  getArticleSlug(article?: Article): string {
-    if (!article?.title) return 'untitled'
-
-    return article.title
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
+  filterArticles: (articles?: Article[], filters?: {
+    search?: string
+    conferenceYearId?: number
+    author?: string
+  }): Article[] => {
+    if (!articles) return []
+    
+    let filtered = [...articles]
+    
+    if (filters?.search) {
+      const query = filters.search.toLowerCase()
+      filtered = filtered.filter(article => 
+        article.title.toLowerCase().includes(query) ||
+        article.author_name.toLowerCase().includes(query) ||
+        (article.content && article.content.toLowerCase().includes(query))
+      )
+    }
+    
+    if (filters?.conferenceYearId) {
+      filtered = filtered.filter(article => 
+        article.conference_year_id === filters.conferenceYearId
+      )
+    }
+    
+    if (filters?.author) {
+      filtered = filtered.filter(article => 
+        article.author_name.toLowerCase().includes(filters.author.toLowerCase())
+      )
+    }
+    
+    return filtered
   }
 }

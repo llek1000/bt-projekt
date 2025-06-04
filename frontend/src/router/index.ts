@@ -1,11 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-//import ArticleView from '../views/ArticleView.vue'
 import LoginView from '../views/LoginView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
 import DepartmentView from '../views/DepartmentView.vue'
 import EditDashboardView from '../views/EditDashboardView.vue'
-//import ConferenceView from '@/views/ConferenceView.vue'
+import ArticleView from '../views/ArticleView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,9 +17,6 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
     {
@@ -51,23 +47,19 @@ const router = createRouter({
       name: 'publications',
       component: () => import('../views/PublicationsView.vue'),
     },
+    // Article detail route
+    {
+      path: '/articles/:id',
+      name: 'article',
+      component: ArticleView,
+      props: true
+    },
     {
       path: '/edit/dashboard',
       name: 'editDashboard',
       component: EditDashboardView,
       props: true
     },
-  /*
-    {
-      path: '/article',
-      name: 'article',
-      component: ArticleView,
-    },
-    {
-      path: '/conference',
-      name: 'conference',
-      component: ConferenceView,
-    }*/
   ],
 })
 

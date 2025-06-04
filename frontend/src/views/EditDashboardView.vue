@@ -1,26 +1,32 @@
 <template>
   <div class="dashboard-container">
     <NavbarComponent />
+
     <!-- Hero Section -->
     <section class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-overlay"></div>
-      <div class="hero-particles"></div>
+      <div class="hero-background">
+        <div class="hero-overlay"></div>
+        <div class="hero-particles">
+          <div class="particle" v-for="i in 20" :key="i"></div>
+        </div>
+      </div>
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">
             <span class="title-line">Editor</span>
             <span class="title-line highlight">Dashboard</span>
           </h1>
-          <p class="hero-subtitle">Správa článkov pre vaše priradené ročníky konferencie</p>
+          <p class="hero-subtitle">
+            Spravujte články pre svoje priradené ročníky
+          </p>
           <div class="hero-stats">
             <div class="stat-item">
               <span class="stat-number">{{ assignedYears.length }}</span>
-              <span class="stat-label">Ročníkov</span>
+              <span class="stat-label">Priradené ročníky</span>
             </div>
             <div class="stat-item">
               <span class="stat-number">{{ articles.length }}</span>
-              <span class="stat-label">Článkov</span>
+              <span class="stat-label">Články</span>
             </div>
             <div class="stat-item">
               <span class="stat-number">{{ filteredArticles.length }}</span>
@@ -31,8 +37,8 @@
       </div>
     </section>
 
-    <!-- Error Alert -->
-    <div v-if="error" class="management-section alt-bg">
+    <!-- Filter Section -->
+    <section class="management-section">
       <div class="container">
         <div class="alert alert-danger">
           <span>{{ error }}</span>
@@ -81,14 +87,14 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Article Management -->
-    <div v-if="selectedYearId" class="management-section alt-bg">
+    <!-- Articles Management -->
+    <section class="management-section" v-if="selectedYearId">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Správa článkov</h2>
-          <p class="section-subtitle">{{ formattedSelectedYear }}</p>
+          <h2 class="section-title">Články pre {{ selectedYearName }}</h2>
+          <p class="section-subtitle">Spravujte články pre vybraný ročník</p>
         </div>
 
         <div class="management-content">
@@ -277,14 +283,25 @@
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-container" @click.stop>
+    <!-- No Year Selected State -->
+    <section v-else class="management-section">
+      <div class="container">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <h3>Vyberte ročník</h3>
+          <p>Vyberte ročník konferencie zo zoznamu vyššie pre zobrazenie článkov.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Article Modal -->
+    <div v-if="showArticleForm" class="modal-overlay">
+      <div class="modal-container">
         <div class="modal-header">
-          <h3>Potvrdiť zmazanie</h3>
-          <button @click="cancelDelete" class="close-button">&times;</button>
+          <h3>{{ editArticle ? 'Upraviť článok' : 'Pridať článok' }}</h3>
+          <button @click="closeArticleModal" class="close-button">×</button>
         </div>
         <div class="modal-form">
           <p v-if="deletingArticle">
@@ -305,7 +322,23 @@
               Zrušiť
             </button>
           </div>
-        </div>
+          <div class="form-group">
+            <label>Autor</label>
+            <input v-model="formArticle.author_name" type="text" required class="modern-input" />
+          </div>
+          <div class="form-group">
+            <label>Obsah</label>
+            <Editor
+              v-model="formArticle.content"
+              :api-key="tinymceKey"
+              :init="tinymceConfig"
+            />
+          </div>
+          <div class="form-actions">
+            <button type="button" @click="closeArticleModal" class="hero-btn secondary">Zrušiť</button>
+            <button type="submit" class="hero-btn primary">{{ editArticle ? 'Uložiť' : 'Vytvoriť' }}</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -367,36 +400,28 @@ export default defineComponent({
       content: '' as string,
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       tinymceConfig: {
-        menubar: true,
-        plugins: 'lists link image code',
-        toolbar:
-          'undo redo | bold italic underline | alignleft aligncenter | ' +
-          'bullist numlist | image | code',
-        height: 350,
-        // API kľúč priamo v konfigurácii
-        api_key: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
-        automatic_uploads: true,
-        images_upload_handler: function(
-          blobInfo: any,
-          success: (url: string) => void,
-          failure: (errMsg: string) => void
-        ) {
-          const fd = new FormData()
-          fd.append('file', blobInfo.blob(), blobInfo.filename())
+        height: 400,
+        menubar: false,
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        images_upload_handler: async (blobInfo: any, progress: any) => {
+          return new Promise(async (resolve, reject) => {
+            try {
+              const formData = new FormData();
+              formData.append('file', blobInfo.blob(), blobInfo.filename());
 
-          adminPanel.uploadImage(fd)
-            .then(res => {
-              success(res.data.location)
-            })
-            .catch(err => {
-              console.error('Image upload error:', err)
-              if (typeof failure === 'function') {
-                failure(
-                  'Image upload failed: ' +
-                  (err.response?.data?.message || err.message || 'Unknown error')
-                )
-              }
-            })
+              const response = await adminPanel.uploadImage(formData);
+              resolve(response.data.location);
+            } catch (error) {
+              console.error('Upload error:', error);
+              reject('Image upload failed');
+            }
+          });
         }
       } as Settings
     }
@@ -441,11 +466,12 @@ export default defineComponent({
 
     formatDate(dateString: string): string {
       try {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+        // Získame prihláseneho používateľa
+        const userResponse = await fetch('/api/user', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Accept': 'application/json'
+          }
         })
       } catch (error) {
         return 'Invalid date'
@@ -507,11 +533,36 @@ export default defineComponent({
           this.selectedYearId = this.assignedYears[0].id
           await this.loadArticles()
         }
+
+        const userData = await userResponse.json()
+        const userId = userData.user.id
+
+        // Načítame všetky ročníky
+        const yearsResponse = await adminPanel.getConferenceYears()
+        const allYears = yearsResponse.data?.data || []
+
+        // Pre každý ročník zistíme, či je používateľ priradený
+        const assigned = []
+        for (const year of allYears) {
+          try {
+            const assignmentsResponse = await adminPanel.listYearEditors(year.id)
+            const assignments = assignmentsResponse.data || []
+
+            // Skontrolujeme, či je aktuálny používateľ v zozname editorov
+            const isAssigned = assignments.some((assignment: any) => assignment.user_id === userId)
+
+            if (isAssigned) {
+              assigned.push(year)
+            }
+          } catch (error) {
+            console.error(`Error checking assignments for year ${year.id}:`, error)
+          }
+        }
+
+        this.assignedYears = assigned
       } catch (error) {
-        console.error('Error loading conference years:', error)
-        this.error = 'Failed to load conference years'
-      } finally {
-        this.loadingYears = false
+        console.error('Error loading assigned years:', error)
+        this.assignedYears = []
       }
     },
 
@@ -535,7 +586,6 @@ export default defineComponent({
         this.articles = response.data || []
       } catch (error) {
         console.error('Error loading articles:', error)
-        this.error = 'Failed to load articles'
         this.articles = []
       } finally {
         this.loading = false
@@ -640,11 +690,12 @@ export default defineComponent({
             console.log('Success:', response.message)
           }
         }
+
+        await this.loadArticlesForYear()
+        this.closeArticleModal()
       } catch (error) {
-        console.error('Error updating article:', error)
-        this.error = 'Failed to update article'
-      } finally {
-        this.saving = false
+        console.error('Error saving article:', error)
+        alert('Chyba pri ukladaní článku')
       }
     },
 
@@ -675,11 +726,6 @@ export default defineComponent({
         if (response.message) {
           console.log('Success:', response.message)
         }
-      } catch (error) {
-        console.error('Error deleting article:', error)
-        this.error = 'Failed to delete article'
-      } finally {
-        this.deleting = false
       }
     },
 
@@ -708,7 +754,13 @@ export default defineComponent({
   },
 
   async mounted() {
-    await this.loadConferenceYears()
+    await this.loadAssignedYears()
+
+    // Ak je len jeden priradený ročník, automaticky ho vyberieme
+    if (this.assignedYears.length === 1) {
+      this.selectedYearId = this.assignedYears[0].id
+      await this.loadArticlesForYear()
+    }
   }
 })
 </script>
@@ -924,11 +976,23 @@ export default defineComponent({
 }
 
 .filter-controls {
-  display: flex;
-  gap: 1rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
 }
 
-/* Buttons */
+.filter-controls .form-group {
+  margin-bottom: 0;
+}
+
+.filter-controls label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
 .hero-btn {
   display: inline-flex;
   align-items: center;
@@ -1159,19 +1223,28 @@ export default defineComponent({
   margin: 2rem 0;
 }
 
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
 .empty-icon {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
 }
 
 .empty-state h3 {
+  margin-bottom: 1rem;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
 }
 
 .empty-state p {
   color: var(--text-secondary);
-  margin: 0;
 }
 
 /* Alert */

@@ -121,7 +121,7 @@ class AuthController extends Controller
     private function getRedirectUrl($user)
     {
         if ($this->hasRole($user, 'Admin')) return '/admin/dashboard';
-        if ($this->hasRole($user, 'Editor')) return '/editor/dashboard';
+        if ($this->hasRole($user, 'Editor')) return '/edit/dashboard';
         return '/';
     }
 }

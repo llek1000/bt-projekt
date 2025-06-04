@@ -28,7 +28,6 @@ class UserFactory extends Factory
         return [
             'username' => fake()->userName(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
 
@@ -45,13 +44,5 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Set a specific role for the user.
-     */
-    public function withRole(Role $role): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'role_id' => $role->id,
-        ]);
-    }
+
 }

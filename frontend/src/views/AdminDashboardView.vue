@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-container">
+    <NavbarComponent />
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
@@ -382,6 +383,7 @@
 import { ref, onMounted, computed, provide } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import adminPanel from '@/services/adminPanel'
+import NavbarComponent from '@/components/NavbarComponent.vue'
 
 const years = ref<any[]>([])
 const users = ref<any[]>([])
@@ -745,11 +747,11 @@ onMounted(async () => {
   padding: 0 1rem;
 }
 
-/* Hero Section */
+/* Hero Section - adjust top padding to account for navbar */
 .hero-section {
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 0;
+  padding: 2rem 0; /* Reduced top padding since navbar is now at the top */
   overflow: hidden;
   color: white;
 }

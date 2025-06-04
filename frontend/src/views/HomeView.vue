@@ -1,113 +1,9 @@
 <template>
   <div class="page-container">
-    <!-- Horná lišta -->
-    <div class="topbar">
-      <div class="topbar-container">
-        <div class="topbar-right">
-          <button @click="toggleSearch" class="topbar-button">
-            <span class="icon-search">🔍</span>
-            <span class="button-text">Vyhľadať</span>
-          </button>
-          
-          <button @click="toggleQuicklinks" class="topbar-button">
-            <span class="icon-quicklinks">≡</span>
-            <span class="button-text">Rýchle odkazy</span>
-          </button>
-          
-          <a href="/login" class="topbar-button">
-            <span class="icon-login">👤</span>
-            <span class="button-text">Prihlásenie</span>
-          </a>
-        </div>
-      </div>
-      
-      <!-- Dropdown vyhľadávania -->
-      <transition name="slide-down">
-        <div class="search-dropdown" v-if="searchOpen">
-          <form class="search-form">
-            <input type="text" placeholder="Vyhľadajte zamestnancov a obsah" class="search-input">
-            <button type="submit" class="search-submit">
-              <span>Hľadať</span>
-              <i class="search-icon">→</i>
-            </button>
-          </form>
-        </div>
-      </transition>
-      
-      <!-- Dropdown rýchlych odkazov -->
-      <transition name="slide-down">
-        <div class="quicklinks-dropdown" v-if="quicklinksOpen">
-          <div class="quicklinks-grid">
-            <div class="quicklinks-column">
-              <h3>Odkazy</h3>
-              <ul>
-                <li><a href="#">Výskumné projekty</a></li>
-                <li><a href="#">Materiály fakulty</a></li>
-                <li><a href="#">Portál študentov</a></li>
-              </ul>
-            </div>
-            <div class="quicklinks-column">
-              <h3>Zdroje</h3>
-              <ul>
-                <li><a href="#">Knižnica</a></li>
-                <li><a href="#">Online výučba</a></li>
-                <li><a href="#">Databázy</a></li>
-                <li><a href="#">Nástroje pre výskum</a></li>
-              </ul>
-            </div>
-            <div class="quicklinks-column">
-              <h3>Kontakt</h3>
-              <ul>
-                <li><a href="#">Adresár fakulty</a></li>
-                <li><a href="#">Kancelária oddelenia</a></li>
-                <li><a href="#">Mapa areálu</a></li>
-                <li><a href="#">Podpora</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="social-media">
-            <a href="#" class="social-icon facebook">📘</a>
-            <a href="#" class="social-icon twitter">🐦</a>
-            <a href="#" class="social-icon instagram">📷</a>
-            <a href="#" class="social-icon linkedin">💼</a>
-          </div>
-        </div>
-      </transition>
-    </div>
+    <!-- Použitie spoločného navbar komponentu -->
+    <NavbarComponent />
     
-    <!-- Hlavné menu -->
-    <nav class="main-navbar">
-      <div class="navbar-container">
-        <div class="logo-container">
-          <a href="/" class="logo-link">
-            <div class="logo-wrapper">
-              <img src="/src/assets/logo.png" alt="Logo výskumného inštitútu" class="logo">
-              <div class="logo-text">
-                <span class="institute-name">Výskumný inštitút</span>
-                <span class="institute-subtitle">Excelencia vo vede</span>
-              </div>
-            </div>
-          </a>
-        </div>
-        
-        <div class="main-nav-links">
-          <a href="/publications" class="main-nav-link">
-            <span>Publikácie</span>
-            <div class="nav-underline"></div>
-          </a>
-          <a href="/departments" class="main-nav-link">
-            <span>Oddelenia</span>
-            <div class="nav-underline"></div>
-          </a>
-          <a href="/about" class="main-nav-link">
-            <span>O nás</span>
-            <div class="nav-underline"></div>
-          </a>
-        </div>
-      </div>
-    </nav>
-    
-    <!-- Hlavný obsah -->
+    <!-- Zvyšok obsahu HomeView zostáva rovnaký -->
     <main class="main-content">
       <!-- Hero sekcia -->
       <section class="hero-section">
@@ -362,94 +258,20 @@
     </main>
     
     <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-content">
-        <div class="container">
-          <div class="footer-grid">
-            <div class="footer-column main">
-              <div class="footer-logo">
-                <h3>Výskumný inštitút</h3>
-                <p class="footer-tagline">Excelencia vo vede & inováciách</p>
-              </div>
-              <div class="contact-info">
-                <div class="contact-item">
-                  <span class="contact-icon">📍</span>
-                  <span>Univerzitný kampus, 1180 Viedeň, Rakúsko</span>
-                </div>
-                <div class="contact-item">
-                  <span class="contact-icon">📞</span>
-                  <span>+43 1 47654 0</span>
-                </div>
-                <div class="contact-item">
-                  <span class="contact-icon">✉️</span>
-                  <span>research@institute.ac.at</span>
-                </div>
-              </div>
-            </div>
-            <div class="footer-column">
-              <h4>Rýchle odkazy</h4>
-              <ul>
-                <li><a href="/research">Výskum</a></li>
-                <li><a href="/publications">Publikácie</a></li>
-                <li><a href="/departments">Oddelenia</a></li>
-                <li><a href="/about">O nás</a></li>
-                <li><a href="/contact">Kontakt</a></li>
-              </ul>
-            </div>
-            <div class="footer-column">
-              <h4>Kontaktujte nás</h4>
-              <div class="social-links">
-                <a href="#" class="social-link facebook">📘 Facebook</a>
-                <a href="#" class="social-link twitter">🐦 Twitter</a>
-                <a href="#" class="social-link linkedin">💼 LinkedIn</a>
-                <a href="#" class="social-link youtube">📺 YouTube</a>
-              </div>
-              <div class="newsletter">
-                <h5>Newsletter</h5>
-                <p>Buďte informovaní o našich najnovších výskumoch</p>
-                <div class="newsletter-form">
-                  <input type="email" placeholder="Váš email">
-                  <button>Prihlásiť sa</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div class="container">
-          <p>© 2025 Výskumný inštitút. Všetky práva vyhradené.</p>
-          <div class="footer-links">
-            <a href="/privacy">Zásady ochrany osobných údajov</a>
-            <a href="/terms">Podmienky používania</a>
-            <a href="/sitemap">Mapa stránok</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    <FooterComponent />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import NavbarComponent from '@/components/NavbarComponent.vue'
+import FooterComponent from '@/components/FooterComponent.vue'
 
 export default defineComponent({
   name: 'HomeView',
-  data() {
-    return {
-      searchOpen: false,
-      quicklinksOpen: false
-    }
-  },
-  methods: {
-    toggleSearch() {
-      this.searchOpen = !this.searchOpen
-      if (this.searchOpen) this.quicklinksOpen = false
-    },
-    toggleQuicklinks() {
-      this.quicklinksOpen = !this.quicklinksOpen
-      if (this.quicklinksOpen) this.searchOpen = false
-    }
+  components: {
+    NavbarComponent,
+    FooterComponent
   }
 })
 </script>
@@ -1596,116 +1418,198 @@ export default defineComponent({
   color: gray;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .welcome-content {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-  
-  .section-grid {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-  
-  .news-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .departments-grid {
-    grid-template-columns: 1fr;
-  }
+/* Auth Section Styles */
+.auth-section {
+  display: flex;
+  align-items: center;
 }
 
+.user-menu {
+  position: relative;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+}
+
+.icon-user {
+  font-size: 1rem;
+}
+
+.user-name {
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* User Dropdown Menu */
+.user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-info {
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.user-details {
+  text-align: left;
+}
+
+.user-name-full {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.user-email {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #3498db;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.menu-actions {
+  padding: 0.5rem 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+.menu-icon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.admin-link:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.editor-link:hover {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.logout-button {
+  border-top: 1px solid #e0e0e0;
+  color: #dc3545;
+}
+
+.logout-button:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #c82333;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .topbar-right {
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  
-  .topbar-button .button-text {
+  .user-name {
     display: none;
   }
   
-  .navbar-container {
-    flex-direction: column;
-    gap: 1rem;
+  .user-dropdown-menu {
+    min-width: 250px;
+    right: -10px;
   }
   
-  .main-nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-  }
-  
-  .logo-wrapper {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-  }
-  
-  .hero-content {
-    padding: 0 1rem;
-  }
-  
-  .hero-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .hero-stats {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .quicklinks-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .research-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .event-card {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .footer-bottom .container {
-    flex-direction: column;
-    text-align: center;
+  .user-info {
+    padding: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: 0 1rem;
+  .button-text {
+    display: none;
   }
   
-  .hero-section {
-    height: 80vh;
-  }
-  
-  .section-header {
-    margin-bottom: 2rem;
-  }
-  
-  .welcome-section,
-  .research-areas,
-  .latest-news,
-  .events-departments {
-    padding: 3rem 0;
-  }
-  
-  .events-section,
-  .departments-section {
-    padding: 1.5rem;
+  .user-dropdown-menu {
+    min-width: 220px;
+    right: -20px;
   }
 }
+
+/* Slide down animation for user menu */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+  transform-origin: top center;
+}
+
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scaleY(0.8);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scaleY(0.8);
+}
+
+/* Existing styles continued... */
 </style>

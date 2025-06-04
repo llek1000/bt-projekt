@@ -1,3 +1,316 @@
+<template>
+  <div class="dashboard-container">
+    <NavbarComponent />
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-background"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-particles"></div>
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            <span class="title-line">Editor</span>
+            <span class="title-line highlight">Dashboard</span>
+          </h1>
+          <p class="hero-subtitle">Správa článkov pre vaše priradené ročníky konferencie</p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ assignedYears.length }}</span>
+              <span class="stat-label">Ročníkov</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ articles.length }}</span>
+              <span class="stat-label">Článkov</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ filteredSubpages.length }}</span>
+              <span class="stat-label">Zobrazených</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Error Alert -->
+    <div v-if="error" class="management-section alt-bg">
+      <div class="container">
+        <div class="alert alert-danger">
+          <span>{{ error }}</span>
+          <button @click="clearError" class="close-button">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conference Years Selection -->
+    <div class="management-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Výber ročníka konferencie</h2>
+          <p class="section-subtitle">Vyberte ročník pre správu článkov</p>
+        </div>
+        
+        <div class="management-content">
+          <div v-if="loadingYears" class="loading-state">
+            <p>Načítavanie ročníkov konferencie...</p>
+          </div>
+          
+          <div v-else-if="assignedYears.length === 0" class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h3>Žiadne dostupné ročníky</h3>
+            <p>Nemáte priradené žiadne ročníky konferencie.</p>
+          </div>
+          
+          <div v-else class="cards-grid">
+            <div
+              v-for="year in assignedYears"
+              :key="year.id"
+              @click="selectYear(year.id)"
+              class="feature-card year-card"
+              :class="{ active: selectedYearId === year.id }"
+            >
+              <div class="card-header">
+                <h3>{{ year.semester }} {{ year.year }}</h3>
+                <span class="status-badge" :class="{ active: year.is_active }">
+                  {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
+                </span>
+              </div>
+              <div class="year-info">
+                <p>Kliknite pre správu článkov tohto ročníka</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Management -->
+    <div v-if="selectedYearId" class="management-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Správa článkov</h2>
+          <p class="section-subtitle">{{ formattedSelectedYear }}</p>
+        </div>
+        
+        <div class="management-content">
+          <div class="management-actions">
+            <div class="search-container">
+              <input 
+                v-model="searchQuery" 
+                type="text" 
+                placeholder="Hľadať články..." 
+                class="search-input"
+              />
+            </div>
+            <div class="filter-controls">
+              <select v-model="statusFilter" class="modern-select">
+                <option value="all">Všetky stavy</option>
+                <option value="published">Len publikované</option>
+                <option value="draft">Len koncepty</option>
+              </select>
+            </div>
+            <button @click="showAddSubpageForm" class="hero-btn primary">
+              <span class="icon">+</span>
+              Pridať článok
+            </button>
+          </div>
+
+          <!-- Add Article Form -->
+          <div v-if="showAddForm" class="form-section">
+            <div class="form-card">
+              <div class="modal-header">
+                <h3>Pridať nový článok</h3>
+                <button @click="cancelAdd" class="close-button">&times;</button>
+              </div>
+              
+              <form @submit.prevent="saveSubpage" class="modal-form">
+                <div class="form-group">
+                  <label for="title">Názov *</label>
+                  <input
+                    id="title"
+                    v-model="newArticle.title"
+                    type="text"
+                    placeholder="Zadajte názov článku"
+                    class="modern-input"
+                    required
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="author_name">Meno autora *</label>
+                  <input
+                    id="author_name"
+                    v-model="newArticle.author_name"
+                    type="text"
+                    placeholder="Zadajte meno autora"
+                    class="modern-input"
+                    required
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label>Obsah</label>
+                  <Editor
+                    v-model="content"
+                    :api-key="tinymceKey"
+                    :init="tinymceConfig"
+                  />
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" :disabled="saving" class="hero-btn primary">
+                    <span v-if="saving">Ukladanie...</span>
+                    <span v-else>Uložiť článok</span>
+                  </button>
+                  <button type="button" @click="cancelAdd" class="hero-btn secondary">
+                    Zrušiť
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Edit Article Form -->
+          <div v-if="showEditForm && editingArticle" class="form-section">
+            <div class="form-card">
+              <div class="modal-header">
+                <h3>Upraviť článok</h3>
+                <button @click="cancelEdit" class="close-button">&times;</button>
+              </div>
+              
+              <form @submit.prevent="updateSubpage" class="modal-form">
+                <div class="form-group">
+                  <label for="edit-title">Názov *</label>
+                  <input
+                    id="edit-title"
+                    v-model="editingArticle.title"
+                    type="text"
+                    placeholder="Zadajte názov článku"
+                    class="modern-input"
+                    required
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="edit-author_name">Meno autora *</label>
+                  <input
+                    id="edit-author_name"
+                    v-model="editingArticle.author_name"
+                    type="text"
+                    placeholder="Zadajte meno autora"
+                    class="modern-input"
+                    required
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label>Obsah</label>
+                  <Editor
+                    v-model="content"
+                    :api-key="tinymceKey"
+                    :init="tinymceConfig"
+                  />
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" :disabled="saving" class="hero-btn primary">
+                    <span v-if="saving">Aktualizovanie...</span>
+                    <span v-else>Aktualizovať článok</span>
+                  </button>
+                  <button type="button" @click="cancelEdit" class="hero-btn secondary">
+                    Zrušiť
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Articles List -->
+          <div class="articles-section">
+            <div v-if="loading" class="loading-state">
+              <p>Načítavanie článkov...</p>
+            </div>
+            
+            <div v-else-if="filteredSubpages.length === 0" class="empty-state">
+              <div class="empty-icon">📄</div>
+              <h3>Žiadne články</h3>
+              <p v-if="searchQuery || statusFilter !== 'all'">
+                Skúste upraviť vyhľadávanie alebo filter.
+              </p>
+              <p v-else>
+                Pre tento ročník konferencie zatiaľ neboli vytvorené žiadne články.
+              </p>
+            </div>
+            
+            <div v-else class="cards-grid">
+              <div
+                v-for="subpage in filteredSubpages"
+                :key="subpage.id"
+                class="feature-card article-card"
+                :class="{ draft: !subpage.isPublished }"
+              >
+                <div class="card-header">
+                  <h3>{{ subpage.title }}</h3>
+                  <span class="status-badge" :class="{ active: subpage.isPublished }">
+                    {{ subpage.isPublished ? 'Publikovaný' : 'Koncept' }}
+                  </span>
+                </div>
+                
+                <div class="card-content">
+                  <p class="content-preview">{{ formatArticleSummary(subpage.content) }}</p>
+                  
+                  <div class="card-meta">
+                    <span class="meta-item">Vytvorené: {{ subpage.createdAt }}</span>
+                    <span class="meta-item">Upravené: {{ subpage.updatedAt }}</span>
+                  </div>
+                </div>
+                
+                <div class="card-actions">
+                  <button @click="editSubpage(subpage)" class="action-btn edit">
+                    Upraviť
+                  </button>
+                  <button @click="confirmDelete(subpage)" class="action-btn delete">
+                    Zmazať
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h3>Potvrdiť zmazanie</h3>
+          <button @click="cancelDelete" class="close-button">&times;</button>
+        </div>
+        <div class="modal-form">
+          <p v-if="deletingArticle">
+            Ste si istí, že chcete zmazať "<strong>{{ deletingArticle.title }}</strong>"?
+          </p>
+          <p class="warning-text">Túto akciu nie je možné vrátiť späť.</p>
+          
+          <div class="form-actions">
+            <button
+              @click="deleteSubpage"
+              :disabled="deleting"
+              class="hero-btn primary delete-confirm"
+            >
+              <span v-if="deleting">Mazanie...</span>
+              <span v-else>Zmazať článok</span>
+            </button>
+            <button @click="cancelDelete" class="hero-btn secondary">
+              Zrušiť
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
@@ -5,11 +318,15 @@ import axios from 'axios'
 import { articleApi, type Article, type UpdateArticleRequest } from '@/services/article'
 import { conferenceYearApi, conferenceYearHelpers, type ConferenceYear } from '@/services/conferenceYear'
 import adminPanel from '@/services/adminPanel'
+import NavbarComponent from '@/components/NavbarComponent.vue'
 import type { Settings } from 'tinymce'
 
 export default defineComponent({
   name: 'EditDashboardView',
-  components: { Editor },
+  components: { 
+    Editor,
+    NavbarComponent
+  },
   
   data() {
     return {
@@ -430,318 +747,6 @@ export default defineComponent({
 })
 </script>
 
-<template>
-  <div class="dashboard-container">
-    <!-- Hero Section -->
-    <div class="hero-section">
-      <div class="hero-background"></div>
-      <div class="hero-overlay"></div>
-      <div class="hero-particles"></div>
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <span class="title-line">Editor</span>
-            <span class="title-line highlight">Dashboard</span>
-          </h1>
-          <p class="hero-subtitle">Správa článkov pre vaše priradené ročníky konferencie</p>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <span class="stat-number">{{ assignedYears.length }}</span>
-              <span class="stat-label">Ročníkov</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ articles.length }}</span>
-              <span class="stat-label">Článkov</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">{{ filteredSubpages.length }}</span>
-              <span class="stat-label">Zobrazených</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Error Alert -->
-    <div v-if="error" class="management-section alt-bg">
-      <div class="container">
-        <div class="alert alert-danger">
-          <span>{{ error }}</span>
-          <button @click="clearError" class="close-button">&times;</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Conference Years Selection -->
-    <div class="management-section">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Výber ročníka konferencie</h2>
-          <p class="section-subtitle">Vyberte ročník pre správu článkov</p>
-        </div>
-        
-        <div class="management-content">
-          <div v-if="loadingYears" class="loading-state">
-            <p>Načítavanie ročníkov konferencie...</p>
-          </div>
-          
-          <div v-else-if="assignedYears.length === 0" class="empty-state">
-            <div class="empty-icon">📅</div>
-            <h3>Žiadne dostupné ročníky</h3>
-            <p>Nemáte priradené žiadne ročníky konferencie.</p>
-          </div>
-          
-          <div v-else class="cards-grid">
-            <div
-              v-for="year in assignedYears"
-              :key="year.id"
-              @click="selectYear(year.id)"
-              class="feature-card year-card"
-              :class="{ active: selectedYearId === year.id }"
-            >
-              <div class="card-header">
-                <h3>{{ year.semester }} {{ year.year }}</h3>
-                <span class="status-badge" :class="{ active: year.is_active }">
-                  {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
-                </span>
-              </div>
-              <div class="year-info">
-                <p>Kliknite pre správu článkov tohto ročníka</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Article Management -->
-    <div v-if="selectedYearId" class="management-section alt-bg">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title">Správa článkov</h2>
-          <p class="section-subtitle">{{ formattedSelectedYear }}</p>
-        </div>
-        
-        <div class="management-content">
-          <div class="management-actions">
-            <div class="search-container">
-              <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Hľadať články..." 
-                class="search-input"
-              />
-            </div>
-            <div class="filter-controls">
-              <select v-model="statusFilter" class="modern-select">
-                <option value="all">Všetky stavy</option>
-                <option value="published">Len publikované</option>
-                <option value="draft">Len koncepty</option>
-              </select>
-            </div>
-            <button @click="showAddSubpageForm" class="hero-btn primary">
-              <span class="icon">+</span>
-              Pridať článok
-            </button>
-          </div>
-
-          <!-- Add Article Form -->
-          <div v-if="showAddForm" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Pridať nový článok</h3>
-                <button @click="cancelAdd" class="close-button">&times;</button>
-              </div>
-              
-              <form @submit.prevent="saveSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="title">Názov *</label>
-                  <input
-                    id="title"
-                    v-model="newArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label for="author_name">Meno autora *</label>
-                  <input
-                    id="author_name"
-                    v-model="newArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-                
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Ukladanie...</span>
-                    <span v-else>Uložiť článok</span>
-                  </button>
-                  <button type="button" @click="cancelAdd" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Edit Article Form -->
-          <div v-if="showEditForm && editingArticle" class="form-section">
-            <div class="form-card">
-              <div class="modal-header">
-                <h3>Upraviť článok</h3>
-                <button @click="cancelEdit" class="close-button">&times;</button>
-              </div>
-              
-              <form @submit.prevent="updateSubpage" class="modal-form">
-                <div class="form-group">
-                  <label for="edit-title">Názov *</label>
-                  <input
-                    id="edit-title"
-                    v-model="editingArticle.title"
-                    type="text"
-                    placeholder="Zadajte názov článku"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label for="edit-author_name">Meno autora *</label>
-                  <input
-                    id="edit-author_name"
-                    v-model="editingArticle.author_name"
-                    type="text"
-                    placeholder="Zadajte meno autora"
-                    class="modern-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>Obsah</label>
-                  <Editor
-                    v-model="content"
-                    :api-key="tinymceKey"
-                    :init="tinymceConfig"
-                  />
-                </div>
-                
-                <div class="form-actions">
-                  <button type="submit" :disabled="saving" class="hero-btn primary">
-                    <span v-if="saving">Aktualizovanie...</span>
-                    <span v-else>Aktualizovať článok</span>
-                  </button>
-                  <button type="button" @click="cancelEdit" class="hero-btn secondary">
-                    Zrušiť
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Articles List -->
-          <div class="articles-section">
-            <div v-if="loading" class="loading-state">
-              <p>Načítavanie článkov...</p>
-            </div>
-            
-            <div v-else-if="filteredSubpages.length === 0" class="empty-state">
-              <div class="empty-icon">📄</div>
-              <h3>Žiadne články</h3>
-              <p v-if="searchQuery || statusFilter !== 'all'">
-                Skúste upraviť vyhľadávanie alebo filter.
-              </p>
-              <p v-else>
-                Pre tento ročník konferencie zatiaľ neboli vytvorené žiadne články.
-              </p>
-            </div>
-            
-            <div v-else class="cards-grid">
-              <div
-                v-for="subpage in filteredSubpages"
-                :key="subpage.id"
-                class="feature-card article-card"
-                :class="{ draft: !subpage.isPublished }"
-              >
-                <div class="card-header">
-                  <h3>{{ subpage.title }}</h3>
-                  <span class="status-badge" :class="{ active: subpage.isPublished }">
-                    {{ subpage.isPublished ? 'Publikovaný' : 'Koncept' }}
-                  </span>
-                </div>
-                
-                <div class="card-content">
-                  <p class="content-preview">{{ formatArticleSummary(subpage.content) }}</p>
-                  
-                  <div class="card-meta">
-                    <span class="meta-item">Vytvorené: {{ subpage.createdAt }}</span>
-                    <span class="meta-item">Upravené: {{ subpage.updatedAt }}</span>
-                  </div>
-                </div>
-                
-                <div class="card-actions">
-                  <button @click="editSubpage(subpage)" class="action-btn edit">
-                    Upraviť
-                  </button>
-                  <button @click="confirmDelete(subpage)" class="action-btn delete">
-                    Zmazať
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-container" @click.stop>
-        <div class="modal-header">
-          <h3>Potvrdiť zmazanie</h3>
-          <button @click="cancelDelete" class="close-button">&times;</button>
-        </div>
-        <div class="modal-form">
-          <p v-if="deletingArticle">
-            Ste si istí, že chcete zmazať "<strong>{{ deletingArticle.title }}</strong>"?
-          </p>
-          <p class="warning-text">Túto akciu nie je možné vrátiť späť.</p>
-          
-          <div class="form-actions">
-            <button
-              @click="deleteSubpage"
-              :disabled="deleting"
-              class="hero-btn primary delete-confirm"
-            >
-              <span v-if="deleting">Mazanie...</span>
-              <span v-else>Zmazať článok</span>
-            </button>
-            <button @click="cancelDelete" class="hero-btn secondary">
-              Zrušiť
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
@@ -789,11 +794,11 @@ export default defineComponent({
   padding: 0 1rem;
 }
 
-/* Hero Section */
+/* Hero Section - adjust top padding to account for navbar */
 .hero-section {
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 4rem 0;
+  padding: 2rem 0; /* Reduced top padding since navbar is now at the top */
   overflow: hidden;
   color: white;
 }

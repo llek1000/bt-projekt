@@ -415,22 +415,69 @@ const selEditor = ref<number|null>(null)
 // TinyMCE configuration
 const tinymceKey = 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen'
 const tinymceConfig = {
-  menubar: true,
-  plugins: 'lists link image code',
-  toolbar: 'undo redo | bold italic underline | alignleft aligncenter | bullist numlist | image | code',
-  height: 350,
-  api_key: tinymceKey,
+  height: 500,
+  menubar: false,
+  plugins: [
+    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+  ],
+  toolbar: 'undo redo | blocks | ' +
+    'bold italic backcolor | alignleft aligncenter ' +
+    'alignright alignjustify | bullist numlist outdent indent | ' +
+    'removeformat | image | help',
+  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+  
+  // Konfigurácia pre upload obrázkov
+  images_upload_url: 'http://localhost/bt/bt-projekt/public/api/upload-image',
+  images_upload_credentials: true,
+  images_upload_handler: async (blobInfo, progress) => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+      // Pridanie autorizačného tokenu
+      const token = localStorage.getItem('token');
+      
+      fetch('http://localhost/bt/bt-projekt/public/api/upload-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.location) {
+          resolve(result.location);
+        } else {
+          reject('No location returned from server');
+        }
+      })
+      .catch(error => {
+        console.error('Upload error:', error);
+        reject('Upload failed: ' + error.message);
+      });
+    });
+  },
+  
+  // Automatické konvertovanie base64 obrázkov na upload
   automatic_uploads: true,
-  images_upload_handler: async (blobInfo, success, failure) => {
-    const fd = new FormData()
-    fd.append('file', blobInfo.blob(), blobInfo.filename())
-    try {
-      const res = await adminPanel.uploadImage(fd)
-      success(res.data.location)
-    } catch (err: any) {
-      failure('Image upload failed: ' + (err.response?.data?.message || err.message))
-    }
-  }
+  
+  // Povolenie vkladania obrázkov cez drag&drop
+  paste_data_images: true,
+  
+  // Ďalšie nastavenia pre obrázky
+  image_advtab: true,
+  image_caption: true,
+  image_description: false,
+  image_dimensions: false,
+  image_title: true
 }
 
 const filteredUsers = computed(() => {

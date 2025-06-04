@@ -3,82 +3,86 @@
     <div class="footer-content">
       <div class="container">
         <div class="footer-grid">
-          <!-- Informácie o inštitúte -->
+          <!-- Informácie o univerzite -->
           <div class="footer-column">
             <div class="footer-logo">
               <div class="logo-wrapper">
-                <div class="logo">🧬</div>
+                <div class="logo">🎓</div>
                 <div class="logo-text">
-                  <div class="institute-name">Research Institute</div>
-                  <div class="institute-subtitle">Excellence in Science</div>
+                  <div class="institute-name">Univerzita Konštantína Filozofa</div>
+                  <div class="institute-subtitle">Nitra</div>
                 </div>
               </div>
             </div>
             <p class="footer-description">
-              Leading research institute dedicated to advancing scientific knowledge 
-              and fostering innovation across multiple disciplines.
+              Univerzita Konštantína Filozofa v Nitre je moderná univerzita 
+              s dlhoročnou tradíciou, ktorá poskytuje kvalitné vysokoškolské 
+              vzdelávanie a vedecký výskum.
             </p>
             <div class="contact-info">
               <div class="contact-item">
                 <span class="contact-icon">📍</span>
-                <span>University Campus, 1180 Vienna, Austria</span>
+                <span>Tr. A. Hlinku 1, 949 01 Nitra, Slovenská republika</span>
               </div>
               <div class="contact-item">
                 <span class="contact-icon">📞</span>
-                <span>+43 1 47654 0</span>
+                <span>+421 37 641 4111</span>
               </div>
               <div class="contact-item">
                 <span class="contact-icon">✉️</span>
-                <span>research@institute.ac.at</span>
+                <span>info@ukf.sk</span>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">🌐</span>
+                <span>www.ukf.sk</span>
               </div>
             </div>
           </div>
 
           <!-- Navigácia -->
           <div class="footer-column">
-            <h3>Navigation</h3>
+            <h3>Navigácia</h3>
             <ul class="footer-links">
-              <li><router-link to="/">Home</router-link></li>
-              <li><router-link to="/about">About Us</router-link></li>
-              <li><router-link to="/departments">Departments</router-link></li>
-              <li><router-link to="/publications">Publications</router-link></li>
+              <li><router-link to="/">Domov</router-link></li>
+              <li><router-link to="/about">O nás</router-link></li>
+              <li><router-link to="/departments">Fakulty</router-link></li>
+              <li><router-link to="/publications">Publikácie</router-link></li>
             </ul>
           </div>
 
-
           <!-- Kontakt a sociálne siete -->
           <div class="footer-column">
-            <h3>Connect With Us</h3>
+            <h3>Spojte sa s nami</h3>
             <div class="social-media">
-              <a href="#" class="social-icon facebook" aria-label="Facebook">
+              <a href="https://www.facebook.com/UKFNitra" class="social-icon facebook" aria-label="Facebook">
                 <span>📘</span>
               </a>
-              <a href="#" class="social-icon twitter" aria-label="Twitter">
+              <a href="https://twitter.com/UKFNitra" class="social-icon twitter" aria-label="Twitter">
                 <span>🐦</span>
               </a>
-              <a href="#" class="social-icon linkedin" aria-label="LinkedIn">
+              <a href="https://www.linkedin.com/school/ukf-nitra" class="social-icon linkedin" aria-label="LinkedIn">
                 <span>💼</span>
               </a>
-              <a href="#" class="social-icon youtube" aria-label="YouTube">
+              <a href="https://www.youtube.com/user/UKFNitra" class="social-icon youtube" aria-label="YouTube">
                 <span>📺</span>
               </a>
-              <a href="#" class="social-icon instagram" aria-label="Instagram">
+              <a href="https://www.instagram.com/ukf_nitra" class="social-icon instagram" aria-label="Instagram">
                 <span>📷</span>
               </a>
             </div>
             
             <div class="newsletter">
               <h4>Newsletter</h4>
-              <p>Stay updated with our latest research and news</p>
+              <p>Zostaňte informovaní o najnovších správach a udalostiach univerzity</p>
               <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
                 <input 
                   type="email" 
                   v-model="newsletterEmail"
-                  placeholder="Enter your email"
+                  placeholder="Zadajte váš email"
                   class="newsletter-input"
                   required
                 />
-                <button type="submit" class="newsletter-btn">Subscribe</button>
+                <button type="submit" class="newsletter-btn">Prihlásiť</button>
               </form>
             </div>
           </div>
@@ -90,13 +94,13 @@
       <div class="container">
         <div class="footer-bottom-content">
           <div class="copyright">
-            <p>&copy; {{ currentYear }} Research Institute. All rights reserved.</p>
+            <p>&copy; {{ currentYear }} Univerzita Konštantína Filozofa v Nitre. Všetky práva vyhradené.</p>
           </div>
           <div class="footer-bottom-links">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Use</a>
-            <a href="/cookies">Cookie Policy</a>
-            <a href="/sitemap">Sitemap</a>
+            <a href="/privacy">Ochrana osobných údajov</a>
+            <a href="/terms">Podmienky používania</a>
+            <a href="/cookies">Politika cookies</a>
+            <a href="/sitemap">Mapa stránky</a>
           </div>
         </div>
       </div>
@@ -119,8 +123,8 @@ export default defineComponent({
     subscribeNewsletter() {
       if (this.newsletterEmail) {
         // Implementovať newsletter subscription
-        console.log('Newsletter subscription:', this.newsletterEmail)
-        alert('Thank you for subscribing to our newsletter!')
+        console.log('Prihlásenie k newsletteru:', this.newsletterEmail)
+        alert('Ďakujeme za prihlásenie k našemu newsletteru!')
         this.newsletterEmail = ''
       }
     }

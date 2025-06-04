@@ -111,7 +111,7 @@ class AdminController extends Controller
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
-            // Single admin protection check for any modification of other admin
+
             if ($this->isAdmin($user) && $user->id !== $currentUser->id) {
                 return response()->json([
                     'message' => 'Nemôžete upraviť účet iného administrátora',
@@ -271,7 +271,7 @@ class AdminController extends Controller
 
             $user->roles()->sync([$role->id]);
 
-            // Use qualified column name to avoid ambiguity
+
             $roleExists = $user->roles()->where('roles.id', $role->id)->exists();
             if (!$roleExists) {
                 throw new \Exception('Nepodarilo sa priradiť rolu');
@@ -313,7 +313,7 @@ class AdminController extends Controller
                     $query->where('name', 'editor');
                 })
                 ->get();
-                
+
             return response()->json(['editors' => $editors]);
         } catch (\Exception $e) {
             return response()->json([
@@ -323,7 +323,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Get conference years with their assigned editors
+     * Get conference years with their editors
      */
     public function getYearsWithEditors()
     {
@@ -363,9 +363,7 @@ class AdminController extends Controller
         }
     }
 
-    /**
-     * Get system info
-     */
+
     public function getSystemInfo()
     {
         try {
@@ -385,16 +383,14 @@ class AdminController extends Controller
         }
     }
 
-    /**
-     * Get all files in system (Admin only)
-     */
+
     public function getAllFiles()
     {
         try {
             $files = \App\Models\File::with('uploader')
                 ->orderBy('created_at', 'desc')
                 ->get();
-                
+
             return response()->json(['data' => $files]);
         } catch (\Exception $e) {
             return response()->json([

@@ -17,7 +17,7 @@ class FileController extends Controller
     public function uploadForEditor(Request $request)
     {
         try {
-            // Validate file for TinyMCE using base controller method
+
             $errors = $this->validateRequest($request, [
                 'file' => 'required|file|max:10240', // 10MB max
                 'category' => 'nullable|string|max:255'
@@ -31,10 +31,10 @@ class FileController extends Controller
 
             $uploadedFile = $request->file('file');
 
-            // Generate unique filename
+
             $fileName = time() . '_' . Str::slug(pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $uploadedFile->getClientOriginalExtension();
 
-            // Store in editor_files directory
+
             $filePath = $uploadedFile->storeAs('editor_files', $fileName, 'public');
 
             $file = File::create([
@@ -47,7 +47,7 @@ class FileController extends Controller
                 'uploaded_by' => Auth::id()
             ]);
 
-            // Return TinyMCE compatible response
+
             return response()->json([
                 'location' => asset('storage/' . $filePath),
                 'filename' => $file->original_name,
@@ -128,7 +128,7 @@ class FileController extends Controller
     public function destroy(File $file)
     {
         try {
-            // Check if user has permission to delete this file using base controller method
+
             if (Auth::id() !== $file->uploaded_by && !$this->hasRole(Auth::user(), 'admin')) {
                 return response()->json(['message' => 'Nemáte oprávnenie vymazať tento súbor'], 403);
             }
@@ -150,9 +150,7 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * List files for user's editor
-     */
+
     public function listForEditor(Request $request)
     {
         try {

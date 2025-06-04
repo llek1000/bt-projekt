@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Role; // Ensure you import the Role model
+use App\Models\Role;
 
 class User extends Authenticatable
 {
@@ -57,7 +57,7 @@ class User extends Authenticatable
     public function hasRole($role)
     {
         if (is_string($role)) {
-            // Fix: Check against 'name' column (not 'username') and make case-insensitive
+
             return $this->roles->contains(function($value) use ($role) {
                 return strtolower($value->name) === strtolower($role);
             });
@@ -76,7 +76,7 @@ class User extends Authenticatable
         $this->roles()->sync($role, false);
         return $this;
     }
-    
+
     // Add this method to fix the error
     public function getRoleNames()
     {

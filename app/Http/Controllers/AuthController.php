@@ -49,9 +49,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            // Check if user is authenticated
+
             if ($request->user()) {
-                // If authenticated, delete the current token
+
                 $request->user()->currentAccessToken()->delete();
 
                 Log::info('Úspešné odhlásenie', [
@@ -60,16 +60,16 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Always return success - even for unauthenticated requests
+
             return $this->success([], 'Odhlásenie úspešné');
         } catch (\Exception $e) {
-            // Log the error but still return success
+
             Log::warning('Chyba pri odhlasovaní', [
                 'error' => $e->getMessage(),
                 'ip' => $request->ip()
             ]);
-            
-            // Still return success to allow client-side cleanup
+
+
             return $this->success([], 'Odhlásenie úspešné');
         }
     }

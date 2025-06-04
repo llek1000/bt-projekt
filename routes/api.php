@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // File upload for TinyMCE - available for authenticated users
     Route::post('/upload-file', [FileController::class, 'uploadForEditor'])->name('files.upload');
     Route::get('/files/my-files', [FileController::class, 'listForEditor']);
-    
+
     // Legacy image upload endpoint
     Route::post('/upload-image', [UploadController::class, 'upload']);
 
@@ -82,22 +82,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
         // Conference Years Management
         Route::apiResource('conference-years', ConferenceYearController::class);
-        
-        // Editor assignments for conference years
-        Route::prefix('conference-years/{yearId}')->group(function () {
-            Route::get('/editors', [EditorAssignmentController::class, 'index']);
-            Route::post('/editors', [EditorAssignmentController::class, 'store']);
-            Route::delete('/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
-        });
-        
-        // Get all assignments
-        Route::get('assignments', [EditorAssignmentController::class, 'all']);
 
         // User Management
         Route::get('users', [AdminController::class, 'getUsers']);
         Route::post('users', [AdminController::class, 'createUser']);
         Route::put('users/{id}', [AdminController::class, 'updateUser']);
         Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
+        Route::get('roles', [AdminController::class, 'getRoles']);
+        Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
+
+        // Editor assignments
+        Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
+        Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
+        Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
+        Route::get('assignments', [EditorAssignmentController::class, 'getAllAssignments']);
+
+        // File management for admin
+        Route::get('files', [FileController::class, 'getAllFiles']);
+        Route::delete('files/{file}', [FileController::class, 'destroy']);
+        Route::post('files/bulk-delete', [FileController::class, 'bulkDeleteFiles']);
+        Route::get('files/statistics', [FileController::class, 'getFileStatistics']);
+
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });
 });

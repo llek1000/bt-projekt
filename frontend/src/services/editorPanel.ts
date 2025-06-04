@@ -35,8 +35,8 @@ export default {
   },
 
   // Conference years (read-only for editors)
-  getConferenceYears() { 
-    return api.get<{ data: any[] }>('/conference-years') 
+  getConferenceYears() {
+    return api.get<{ data: any[] }>('/conference-years')
   },
 
   // Articles management
@@ -63,7 +63,7 @@ export default {
   // Image upload for TinyMCE
   uploadImage(formData: FormData) {
     return api.post<{ location: string; filename: string; path: string }>('/upload-image', formData, {
-      headers: { 
+      headers: {
         'Content-Type': 'multipart/form-data',
         'Accept': 'application/json'
       }
@@ -73,7 +73,7 @@ export default {
   // File upload for TinyMCE
   uploadFile(formData: FormData) {
     return api.post<{ location: string; filename: string; file_id: number; download_url: string }>('/upload-file', formData, {
-      headers: { 
+      headers: {
         'Content-Type': 'multipart/form-data',
         'Accept': 'application/json'
       }
@@ -115,22 +115,17 @@ export default {
     // Format date for display
     formatDate(dateString?: string): string {
       if (!dateString) return 'Neznámy dátum'
-      
-      try {
-        return new Date(dateString).toLocaleDateString('sk-SK', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      } catch {
-        return 'Neznámy dátum'
-      }
+      return new Date(dateString).toLocaleDateString('sk-SK', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
     },
 
     // Get content preview
     getContentPreview(content: string, maxLength: number = 150): string {
       if (!content) return 'Žiadny obsah...'
-      
+
       // Remove HTML tags and truncate
       const plainText = content.replace(/<[^>]*>/g, '')
       return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText
@@ -156,25 +151,6 @@ export default {
     filterArticlesByAssignments(articles: any[], assignments: Assignment[]): any[] {
       const assignedYearIds = this.getAssignedYearIds(assignments)
       return articles.filter(article => assignedYearIds.includes(article.conference_year_id))
-    },
-
-    // Validate article data
-    validateArticle(article: CreateArticleRequest | UpdateArticleRequest): string[] {
-      const errors: string[] = []
-
-      if ('title' in article && !article.title?.trim()) {
-        errors.push('Názov článku je povinný')
-      }
-
-      if ('author_name' in article && !article.author_name?.trim()) {
-        errors.push('Meno autora je povinné')
-      }
-
-      if ('conference_year_id' in article && !article.conference_year_id) {
-        errors.push('Ročník konferencie je povinný')
-      }
-
-      return errors
     }
   }
 }

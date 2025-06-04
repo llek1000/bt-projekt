@@ -19,7 +19,7 @@ class AdminController extends Controller
      */
     private function isAdmin($user)
     {
-        return $user->roles()->where('name', 'Admin')->exists();
+        return $user->roles()->where('roles.name', 'Admin')->exists();
     }
 
     /**
@@ -110,6 +110,7 @@ class AdminController extends Controller
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
+            // Single admin protection check for any modification of other admin
             if ($this->isAdmin($user) && $user->id !== $currentUser->id) {
                 return response()->json([
                     'message' => 'Nemôžete upraviť účet iného administrátora',
@@ -160,17 +161,6 @@ class AdminController extends Controller
             }
 
             if (isset($validated['roles'])) {
-                if ($this->isAdmin($user) && $user->id !== $currentUser->id) {
-                    $hasAdminRole = in_array('Admin', $validated['roles']);
-                    if (!$hasAdminRole) {
-                        DB::rollBack();
-                        return response()->json([
-                            'message' => 'Nemôžete odobrať rolu administrátora inému administrátorovi',
-                            'error' => 'admin_protection'
-                        ], 403);
-                    }
-                }
-
                 $roles = Role::whereIn('name', $validated['roles'])->get();
                 if ($roles->isEmpty()) {
                     throw new \Exception('Vybrané role neboli nájdené');
@@ -276,21 +266,13 @@ class AdminController extends Controller
                 ], 403);
             }
 
-            $isAdmin = $this->isAdmin($user);
-            $isNewRoleAdmin = $role->name === 'Admin';
-
-            if ($isAdmin && !$isNewRoleAdmin) {
-                return response()->json([
-                    'message' => 'Nemôžete degradovať účet administrátora',
-                    'error' => 'admin_protection'
-                ], 403);
-            }
-
             DB::beginTransaction();
 
             $user->roles()->sync([$role->id]);
 
-            if (!$user->roles()->where('id', $role->id)->exists()) {
+            // Use qualified column name to avoid ambiguity
+            $roleExists = $user->roles()->where('roles.id', $role->id)->exists();
+            if (!$roleExists) {
                 throw new \Exception('Nepodarilo sa priradiť rolu');
             }
 

@@ -118,15 +118,16 @@ class ArticleController extends Controller
 
         // Check if user has permission for this conference year
         $user = Auth::user();
-        $conferenceYearId = $validated['conference_year_id'] ?? $article->conference_year_id;
-        $hasAssignment = EditorAssignment::where('user_id', $user->id)
-            ->where('conference_year_id', $conferenceYearId)
-            ->exists();
+        if (!$this->hasRole($user, 'admin')) {
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $validated['conference_year_id'])
+                ->exists();
 
-        if (!$hasAssignment) {
-            return response()->json([
-                'message' => 'Nemáte oprávnenie upravovať články pre tento ročník konferencie'
-            ], 403);
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie vytvárať články pre tento ročník konferencie'
+                ], 403);
+            }
         }
 
         $article->update($validated);

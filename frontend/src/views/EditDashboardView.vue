@@ -7,7 +7,7 @@
       <div class="hero-background">
         <div class="hero-overlay"></div>
         <div class="hero-particles">
-          <div class="particle" v-for="i in 20" :key="i" 
+          <div class="particle" v-for="i in 20" :key="i"
                :style="{ left: Math.random() * 100 + '%', animationDelay: Math.random() * 6 + 's' }"></div>
         </div>
       </div>
@@ -55,7 +55,7 @@
               class="search-input"
             />
           </div>
-          
+
           <div class="filter-controls">
             <div class="form-group">
               <label>Filter podľa ročníka:</label>
@@ -104,11 +104,11 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="card-content">
               <div class="content-preview" v-html="getContentPreview(article.content)"></div>
             </div>
-            
+
             <div class="card-actions">
               <button @click="openArticleModal(article)" class="action-btn edit">
                 Upraviť
@@ -131,16 +131,16 @@
         </div>
 
         <div class="management-actions">
-          <div class="file-upload-area" 
-               @drop="handleFileDrop" 
-               @dragover.prevent 
+          <div class="file-upload-area"
+               @drop="handleFileDrop"
+               @dragover.prevent
                @dragenter.prevent
                :class="{ 'drag-over': isDragOver }">
-            <input 
-              type="file" 
-              ref="fileInput" 
-              @change="handleFileSelect" 
-              multiple 
+            <input
+              type="file"
+              ref="fileInput"
+              @change="handleFileSelect"
+              multiple
               accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
               style="display: none;"
             />
@@ -148,7 +148,7 @@
               <div class="upload-icon">📁</div>
               <h3>Nahrať súbory</h3>
               <p>Pretiahnite súbory sem alebo kliknite pre výber</p>
-              <button @click="$refs.fileInput.click()" class="btn secondary">
+              <button @click="triggerFileInput" class="btn secondary">
                 Vybrať súbory
               </button>
             </div>
@@ -174,15 +174,15 @@
               <span v-else-if="isPdfFile(file)">📄</span>
               <span v-else>📎</span>
             </div>
-            
+
             <div class="file-info">
               <h4>{{ file.original_name }}</h4>
               <div class="file-meta">
                 <span class="file-size">{{ file.file_size_human }}</span>
-                <span class="file-date">{{ formatDate(file.created_at) }}</span>
+                <span class="file-date">{{ formatDate(file.created_at || '') }}</span>
               </div>
             </div>
-            
+
             <div class="file-actions">
               <a :href="file.download_url" target="_blank" class="action-btn download">
                 Stiahnuť
@@ -206,7 +206,7 @@
           <h3>{{ editingArticle ? 'Upraviť článok' : 'Nový článok' }}</h3>
           <button @click="closeArticleModal" class="close-button">&times;</button>
         </div>
-        
+
         <form @submit.prevent="saveArticle" class="modal-form">
           <div class="form-group">
             <label for="articleTitle">Názov článku</label>
@@ -218,7 +218,7 @@
               class="modern-input"
             />
           </div>
-          
+
           <div class="form-group">
             <label for="articleAuthor">Autor</label>
             <input
@@ -229,7 +229,7 @@
               class="modern-input"
             />
           </div>
-          
+
           <div class="form-group">
             <label for="articleConferenceYear">Konferenčný ročník</label>
             <select
@@ -244,7 +244,7 @@
               </option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label for="articleContent">Obsah</label>
             <Editor
@@ -253,7 +253,7 @@
               :init="tinymceConfig"
             />
           </div>
-          
+
           <div class="form-actions">
             <button type="button" @click="closeArticleModal" class="btn secondary">
               Zrušiť
@@ -269,11 +269,73 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import editorPanel from '@/services/editorPanel'
 import NavbarComponent from '@/components/NavbarComponent.vue'
-import type { Settings } from 'tinymce'
+
+interface Article {
+  id: number
+  title: string
+  content?: string
+  author_name: string
+  conference_year_id: number
+  conference_year?: {
+    id: number
+    year: string
+    semester: string
+    is_active: boolean
+  }
+  created_at?: string
+  updated_at?: string
+}
+
+interface Assignment {
+  id: number
+  user_id: number
+  conference_year_id: number
+  conference_year?: {
+    id: number
+    year: string
+    semester: string
+    is_active: boolean
+  }
+  created_at?: string
+  updated_at?: string
+}
+
+interface FileData {
+  id: number
+  name: string
+  original_name: string
+  file_path: string
+  mime_type: string
+  file_size: number
+  file_size_human?: string
+  category?: string
+  download_url: string
+  created_at?: string
+}
+
+interface ArticleForm {
+  title: string
+  content: string
+  author_name: string
+  conference_year_id: string | number
+}
+
+// Define TinyMCE config interface locally
+interface TinyMCEConfig {
+  height?: number
+  menubar?: boolean | string
+  plugins?: string[]
+  toolbar?: string
+  content_style?: string
+  automatic_uploads?: boolean
+  file_picker_types?: string
+  images_upload_handler?: (blobInfo: any) => Promise<string>
+  file_picker_callback?: (callback: any, value: any, meta: any) => void
+}
 
 export default defineComponent({
   name: 'EditDashboardView',
@@ -282,31 +344,40 @@ export default defineComponent({
     Editor
   },
 
+  setup() {
+    // Define template refs
+    const fileInput = ref<HTMLInputElement | null>(null)
+
+    return {
+      fileInput
+    }
+  },
+
   data() {
     return {
       // Articles
-      articles: [] as any[],
-      assignments: [] as any[],
-      filteredArticles: [] as any[],
+      articles: [] as Article[],
+      assignments: [] as Assignment[],
+      filteredArticles: [] as Article[],
       searchQuery: '',
-      selectedConferenceYear: '',
+      selectedConferenceYear: '' as string | number,
       isLoading: false,
-      
+
       // Files
-      files: [] as any[],
+      files: [] as FileData[],
       isLoadingFiles: false,
       isDragOver: false,
-      
+
       // Article Modal
       showArticleModal: false,
-      editingArticle: null as any,
+      editingArticle: null as Article | null,
       articleForm: {
         title: '',
         content: '',
         author_name: '',
         conference_year_id: ''
-      },
-      
+      } as ArticleForm,
+
       // TinyMCE configuration with file upload support
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       tinymceConfig: {
@@ -319,16 +390,16 @@ export default defineComponent({
         ],
         toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | image media link',
         content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-        
+
         // File upload configuration
         automatic_uploads: true,
         file_picker_types: 'file image media',
-        
+
         // Image upload
         images_upload_handler: async (blobInfo: any) => {
           const formData = new FormData()
           formData.append('file', blobInfo.blob(), blobInfo.filename())
-          
+
           try {
             const response = await editorPanel.uploadImage(formData)
             return response.data.location
@@ -337,20 +408,20 @@ export default defineComponent({
             throw error
           }
         },
-        
+
         // File upload handler
         file_picker_callback: async (callback: any, value: any, meta: any) => {
           if (meta.filetype === 'file') {
             const input = document.createElement('input')
             input.setAttribute('type', 'file')
             input.setAttribute('accept', '.pdf,.doc,.docx,.txt,.zip,.rar')
-            
+
             input.onchange = async () => {
               const file = input.files?.[0]
               if (file) {
                 const formData = new FormData()
                 formData.append('file', file)
-                
+
                 try {
                   const response = await editorPanel.uploadFile(formData)
                   callback(response.data.location, { text: file.name, title: file.name })
@@ -361,19 +432,19 @@ export default defineComponent({
                 }
               }
             }
-            
+
             input.click()
           } else if (meta.filetype === 'image') {
             const input = document.createElement('input')
             input.setAttribute('type', 'file')
             input.setAttribute('accept', 'image/*')
-            
+
             input.onchange = async () => {
               const file = input.files?.[0]
               if (file) {
                 const formData = new FormData()
                 formData.append('file', file)
-                
+
                 try {
                   const response = await editorPanel.uploadImage(formData)
                   callback(response.data.location, { alt: file.name, title: file.name })
@@ -383,16 +454,16 @@ export default defineComponent({
                 }
               }
             }
-            
+
             input.click()
           }
         }
-      } as Settings
+      } as TinyMCEConfig
     }
   },
 
   computed: {
-    totalArticles() {
+    totalArticles(): number {
       return this.articles.length
     }
   },
@@ -408,7 +479,7 @@ export default defineComponent({
 
   methods: {
     // Articles methods
-    async loadAssignments() {
+    async loadAssignments(): Promise<void> {
       try {
         const response = await editorPanel.getMyAssignments()
         this.assignments = response.data.data || []
@@ -417,7 +488,7 @@ export default defineComponent({
       }
     },
 
-    async loadArticles() {
+    async loadArticles(): Promise<void> {
       this.isLoading = true
       try {
         const response = await editorPanel.listArticles()
@@ -430,7 +501,7 @@ export default defineComponent({
       }
     },
 
-    async loadFiles() {
+    async loadFiles(): Promise<void> {
       this.isLoadingFiles = true
       try {
         const response = await editorPanel.getMyFiles()
@@ -442,33 +513,34 @@ export default defineComponent({
       }
     },
 
-    filterArticles() {
+    filterArticles(): void {
       let filtered = [...this.articles]
 
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(article => 
+        filtered = filtered.filter(article =>
           article.title.toLowerCase().includes(query) ||
           article.author_name.toLowerCase().includes(query)
         )
       }
 
       if (this.selectedConferenceYear) {
-        filtered = filtered.filter(article => 
-          article.conference_year_id == this.selectedConferenceYear
+        const selectedYearId = Number(this.selectedConferenceYear)
+        filtered = filtered.filter(article =>
+          article.conference_year_id === selectedYearId
         )
       }
 
       // Filter by user's assignments
       const assignedYearIds = this.assignments.map(a => a.conference_year_id)
-      filtered = filtered.filter(article => 
+      filtered = filtered.filter(article =>
         assignedYearIds.includes(article.conference_year_id)
       )
 
       this.filteredArticles = filtered
     },
 
-    openArticleModal(article = null) {
+    openArticleModal(article: Article | null = null): void {
       this.editingArticle = article
       if (article) {
         this.articleForm = {
@@ -488,19 +560,27 @@ export default defineComponent({
       this.showArticleModal = true
     },
 
-    closeArticleModal() {
+    closeArticleModal(): void {
       this.showArticleModal = false
       this.editingArticle = null
     },
 
-    async saveArticle() {
+    async saveArticle(): Promise<void> {
       try {
-        if (this.editingArticle) {
-          await editorPanel.updateArticle(this.editingArticle.id, this.articleForm)
-        } else {
-          await editorPanel.createArticle(this.articleForm)
+        // Create proper request object with type conversion
+        const requestData = {
+          title: this.articleForm.title,
+          content: this.articleForm.content,
+          author_name: this.articleForm.author_name,
+          conference_year_id: Number(this.articleForm.conference_year_id)
         }
-        
+
+        if (this.editingArticle) {
+          await editorPanel.updateArticle(this.editingArticle.id, requestData)
+        } else {
+          await editorPanel.createArticle(requestData)
+        }
+
         this.closeArticleModal()
         await this.loadArticles()
       } catch (error) {
@@ -509,7 +589,7 @@ export default defineComponent({
       }
     },
 
-    async deleteArticle(id: number) {
+    async deleteArticle(id: number): Promise<void> {
       if (confirm('Naozaj chcete vymazať tento článok?')) {
         try {
           await editorPanel.deleteArticle(id)
@@ -522,17 +602,22 @@ export default defineComponent({
     },
 
     // File methods
-    handleFileDrop(event: DragEvent) {
+    triggerFileInput(): void {
+      // Now this will work correctly
+      this.fileInput?.click()
+    },
+
+    handleFileDrop(event: DragEvent): void {
       event.preventDefault()
       this.isDragOver = false
-      
+
       const files = event.dataTransfer?.files
       if (files) {
         this.uploadFiles(Array.from(files))
       }
     },
 
-    handleFileSelect(event: Event) {
+    handleFileSelect(event: Event): void {
       const target = event.target as HTMLInputElement
       const files = target.files
       if (files) {
@@ -540,17 +625,17 @@ export default defineComponent({
       }
     },
 
-    async uploadFiles(files: File[]) {
+    async uploadFiles(files: File[]): Promise<void> {
       for (const file of files) {
         await this.uploadSingleFile(file)
       }
       await this.loadFiles()
     },
 
-    async uploadSingleFile(file: File) {
+    async uploadSingleFile(file: File): Promise<void> {
       const formData = new FormData()
       formData.append('file', file)
-      
+
       try {
         await editorPanel.uploadFile(formData)
       } catch (error) {
@@ -559,7 +644,7 @@ export default defineComponent({
       }
     },
 
-    async deleteFile(fileId: number) {
+    async deleteFile(fileId: number): Promise<void> {
       if (confirm('Naozaj chcete vymazať tento súbor?')) {
         try {
           await editorPanel.deleteFile(fileId)
@@ -571,31 +656,35 @@ export default defineComponent({
       }
     },
 
-    copyFileUrl(file: any) {
+    copyFileUrl(file: FileData): void {
       navigator.clipboard.writeText(file.download_url).then(() => {
         alert('URL súboru bola skopírovaná do schránky')
       })
     },
 
-    isImageFile(file: any) {
-      return file.mime_type?.startsWith('image/')
+    isImageFile(file: FileData): boolean {
+      return file.mime_type?.startsWith('image/') || false
     },
 
-    isPdfFile(file: any) {
+    isPdfFile(file: FileData): boolean {
       return file.mime_type === 'application/pdf'
     },
 
     // Utility methods
-    formatConferenceYear(conferenceYear: any) {
+    formatConferenceYear(conferenceYear: any): string {
       if (!conferenceYear) return 'Neznámy ročník'
       return `${conferenceYear.semester} ${conferenceYear.year}`
     },
 
-    formatDate(dateString: string) {
+    formatDate(dateString?: string): string {
+      // Handle undefined/null values
+      if (!dateString) return 'Neznámy dátum'
       return editorPanel.helpers.formatDate(dateString)
     },
 
-    getContentPreview(content: string) {
+    getContentPreview(content?: string): string {
+      // Handle undefined content
+      if (!content) return 'Žiadny obsah...'
       return editorPanel.helpers.getContentPreview(content, 100)
     }
   },
@@ -1236,29 +1325,29 @@ export default defineComponent({
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-stats {
     flex-direction: column;
     gap: 2rem;
   }
-  
+
   .management-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-controls {
     flex-direction: column;
   }
-  
+
   .cards-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .files-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .file-actions {
     flex-direction: column;
   }

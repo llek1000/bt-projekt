@@ -55,8 +55,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-
-
     Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {
         // Article management for editors
         Route::prefix('articles')->group(function () {
@@ -92,7 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Editor related routes
         Route::get('editors', [AdminController::class, 'getEditors']);
-        Route::get('years-with-editors', [AdminController::class, 'getYearsWithEditors']); // Nová route
+        Route::get('years-with-editors', [AdminController::class, 'getYearsWithEditors']);
         Route::get('assignments', [EditorAssignmentController::class, 'all']);
         Route::get('assignments/user/{userId}', [EditorAssignmentController::class, 'byUser']);
 

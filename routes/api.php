@@ -13,7 +13,7 @@ use App\Http\Controllers\UploadController;
 // Auth routes (Guest only)
 Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:50,1')
+        ->middleware('throttle:5,1')
         ->name('login');
     Route::post('/register', [AuthController::class, 'register']);
 });
@@ -48,9 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    // Article management - pridané pre všetkých autentifikovaných používateľov
-    Route::put('/articles/{id}', [ArticleController::class, 'update']);
-    Route::delete('/articles/{id}', [ArticleController::class, 'destroy']);
 
     // Editor routes (Admin + Editor access)
     Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {

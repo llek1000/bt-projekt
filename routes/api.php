@@ -86,5 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('subpages/{subpage}', [SubpageController::class, 'destroy']);
     });
 
+    // Upload endpoint - dostupný pre všetkých prihlásených používateľov
     Route::post('/upload-image', [UploadController::class, 'upload']);
 });

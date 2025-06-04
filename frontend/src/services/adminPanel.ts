@@ -87,8 +87,11 @@ export default {
   },
 
   uploadImage(formData: FormData) {
-    return api.post<{ location: string }>('/upload-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    return api.post<{ location: string; filename: string; path: string }>('/upload-image', formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json'
+      }
     });
   },
 }

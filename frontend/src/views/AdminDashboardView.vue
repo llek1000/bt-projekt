@@ -1,12 +1,14 @@
 <template>
   <div class="dashboard-container">
     <NavbarComponent />
+
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
         <div class="hero-overlay"></div>
         <div class="hero-particles">
-          <div class="particle" v-for="i in 50" :key="i"></div>
+          <div class="particle" v-for="i in 20" :key="i" 
+               :style="{ left: Math.random() * 100 + '%', animationDelay: Math.random() * 6 + 's' }"></div>
         </div>
       </div>
       <div class="container">
@@ -16,51 +18,181 @@
             <span class="title-line highlight">Dashboard</span>
           </h1>
           <p class="hero-subtitle">
-            Kompletná správa systému a obsahu
+            Kompletná správa systému konferenčných ročníkov a používateľov
           </p>
           <div class="hero-stats">
             <div class="stat-item">
-              <div class="stat-number">{{ users.length }}</div>
-              <div class="stat-label">Používateľov</div>
+              <span class="stat-number">{{ totalArticles }}</span>
+              <span class="stat-label">Články</span>
             </div>
             <div class="stat-item">
-              <div class="stat-number">{{ years.length }}</div>
-              <div class="stat-label">Ročníkov</div>
+              <span class="stat-number">{{ users.length }}</span>
+              <span class="stat-label">Používatelia</span>
             </div>
             <div class="stat-item">
-              <div class="stat-number">{{ totalArticles }}</div>
-              <div class="stat-label">Článkov</div>
+              <span class="stat-number">{{ years.length }}</span>
+              <span class="stat-label">Ročníky</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ adminFiles.length }}</span>
+              <span class="stat-label">Súbory</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Users Management -->
+    <!-- Existing sections... -->
+    <!-- Year Management Section -->
+    <section class="management-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Správa ročníkov konferencie</h2>
+          <p class="section-subtitle">Vytvárajte a spravujte konferenčné ročníky</p>
+        </div>
+
+        <div class="management-content">
+          <div class="management-actions">
+            <button @click="openYearModal()" class="btn primary">
+              Nový ročník
+            </button>
+          </div>
+
+          <div class="cards-grid">
+            <div v-for="year in years" :key="year.id" class="feature-card">
+              <div class="card-header">
+                <h3>{{ formatConferenceYear(year) }}</h3>
+                <div class="card-meta">
+                  <div class="meta-item">
+                    <span class="meta-label">Status:</span>
+                    <span class="meta-value" :class="{ 'active': year.is_active }">
+                      {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
+                    </span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Vytvorené:</span>
+                    <span class="meta-value">{{ formatDate(year.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-actions">
+                <button @click="openYearModal(year)" class="action-btn edit">
+                  Upraviť
+                </button>
+                <button @click="deleteYear(year.id)" class="action-btn delete">
+                  Vymazať
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- File Management Section -->
+    <section class="management-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Správa Súborov</h2>
+          <p class="section-subtitle">Nahrávajte a spravujte súbory pre systém</p>
+        </div>
+
+        <div class="management-actions">
+          <div class="file-upload-area" 
+               @drop="handleFileDrop" 
+               @dragover.prevent 
+               @dragenter.prevent
+               :class="{ 'drag-over': isDragOver }">
+            <input 
+              type="file" 
+              ref="fileInput" 
+              @change="handleFileSelect" 
+              multiple 
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+              style="display: none;"
+            />
+            <div class="upload-content">
+              <div class="upload-icon">📁</div>
+              <h3>Nahrať súbory</h3>
+              <p>Pretiahnite súbory sem alebo kliknite pre výber</p>
+              <button @click="$refs.fileInput.click()" class="btn secondary">
+                Vybrať súbory
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files Grid -->
+        <div v-if="isLoadingFiles" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Načítavam súbory...</p>
+        </div>
+
+        <div v-else-if="adminFiles.length === 0" class="empty-state">
+          <div class="empty-icon">📂</div>
+          <h3>Žiadne súbory</h3>
+          <p>Zatiaľ nemáte nahrané žiadne súbory.</p>
+        </div>
+
+        <div v-else class="files-grid">
+          <div v-for="file in adminFiles" :key="file.id" class="file-card">
+            <div class="file-icon">
+              <span v-if="isImageFile(file)">🖼️</span>
+              <span v-else-if="isPdfFile(file)">📄</span>
+              <span v-else>📎</span>
+            </div>
+            
+            <div class="file-info">
+              <h4>{{ file.original_name }}</h4>
+              <div class="file-meta">
+                <span class="file-size">{{ file.file_size_human }}</span>
+                <span class="file-date">{{ formatDate(file.created_at) }}</span>
+              </div>
+            </div>
+            
+            <div class="file-actions">
+              <a :href="file.download_url" target="_blank" class="action-btn download">
+                Stiahnuť
+              </a>
+              <button @click="copyFileUrl(file)" class="action-btn copy">
+                Kopírovať URL
+              </button>
+              <button @click="deleteAdminFile(file.id)" class="action-btn delete">
+                Vymazať
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- User Management Section -->
     <section class="management-section">
       <div class="container">
         <div class="section-header">
           <h2 class="section-title">Správa používateľov</h2>
-          <p class="section-subtitle">Spravujte používateľov a ich role</p>
+          <p class="section-subtitle">Spravujte používateľov a ich oprávnenia</p>
         </div>
+
         <div class="management-content">
           <div class="management-actions">
-            <button @click="showCreateUserModal = true" class="hero-btn primary">
-              <i class="icon-plus">+</i>
-              Vytvoriť používateľa
-            </button>
             <div class="search-container">
-              <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Hľadať používateľov..." 
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Hľadať používateľov..."
                 class="search-input"
               />
             </div>
+            
+            <button @click="showCreateUserModal = true" class="btn primary">
+              Nový používateľ
+            </button>
           </div>
-          
+
           <div class="table-container">
-            <table class="modern-table">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -77,15 +209,15 @@
                   <td>{{ user.email }}</td>
                   <td>
                     <span class="role-badge" :class="getRoleBadgeClass(user.roles?.[0]?.name || 'user')">
-                      {{ user.roles?.[0]?.name || 'Žiadna rola' }}
+                      {{ user.roles?.[0]?.name || 'No Role' }}
                     </span>
                   </td>
-                  <td class="actions">
+                  <td class="actions-cell">
                     <button @click="openEditUserModal(user)" class="action-btn edit">
                       Upraviť
                     </button>
                     <button @click="selectedUser = user; showPasswordChangeModal = true" class="action-btn secondary">
-                      Zmeniť heslo
+                      Heslo
                     </button>
                     <button @click="selectedUser = user; showDeleteConfirmModal = true" class="action-btn delete">
                       Vymazať
@@ -99,280 +231,266 @@
       </div>
     </section>
 
-    <!-- Conference Years Management -->
+    <!-- Articles Management Section -->
     <section class="management-section alt-bg">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Správa ročníkov konferencie</h2>
-          <p class="section-subtitle">Spravujte ročníky a semestre konferencie</p>
-        </div>
-        <div class="management-content">
-          <div class="management-actions">
-            <button @click="openYearModal()" class="hero-btn primary">
-              <i class="icon-plus">+</i>
-              Pridať ročník
-            </button>
-          </div>
-          
-          <div class="cards-grid">
-            <div v-for="year in years" :key="year.id" 
-                 class="feature-card year-card" 
-                 :class="{ active: year.is_active }">
-              <div class="card-header">
-                <div class="year-info">
-                  <h3>{{ year.semester }} {{ year.year }}</h3>
-                  <span class="status-badge" :class="{ active: year.is_active }">
-                    {{ year.is_active ? 'Aktívny' : 'Neaktívny' }}
-                  </span>
-                </div>
-              </div>
-              <div class="card-content">
-                <div class="year-meta">
-                  <div class="meta-item">
-                    <span class="meta-label">Vytvorený:</span>
-                    <span class="meta-value">{{ formatDate(year.created_at) }}</span>
-                  </div>
-                  <div class="meta-item">
-                    <span class="meta-label">Stav:</span>
-                    <span class="meta-value">{{ year.is_active ? 'Aktívny' : 'Neaktívny' }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="card-actions">
-                <button @click="openYearModal(year)" class="action-btn edit">
-                  <i class="icon-edit">✏️</i>
-                  Upraviť
-                </button>
-                <button @click="deleteYear(year.id)" class="action-btn delete">
-                  <i class="icon-delete">🗑️</i>
-                  Vymazať
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Articles Management -->
-    <section class="management-section">
-      <div class="container">
-        <div class="section-header">
           <h2 class="section-title">Správa článkov</h2>
-          <p class="section-subtitle">Spravujte články pre jednotlivé ročníky</p>
+          <p class="section-subtitle">Vytvárajte a spravujte články pre konferenčné ročníky</p>
         </div>
+
         <div class="management-content">
           <div class="management-actions">
-            <select v-model="selYearForArticles" @change="refreshArticles" class="modern-select">
-              <option :value="null">Vyberte ročník</option>
-              <option v-for="year in years" :key="year.id" :value="year.id">
-                {{ year.semester }} {{ year.year }}
-              </option>
-            </select>
-            <button @click="openArticleModal()" class="hero-btn primary" :disabled="!selYearForArticles">
-              <i class="icon-plus">+</i>
-              Pridať článok
+            <div class="form-group">
+              <label>Filter podľa ročníka:</label>
+              <select v-model="selYearForArticles" class="modern-select">
+                <option :value="null">Všetky ročníky</option>
+                <option v-for="year in years" :key="year.id" :value="year.id">
+                  {{ formatConferenceYear(year) }}
+                </option>
+              </select>
+            </div>
+            
+            <button @click="openArticleModal()" class="btn primary">
+              Nový článok
             </button>
           </div>
-          
-          <div v-if="selYearForArticles" class="cards-grid">
-            <div v-for="article in articles" :key="article.id" class="feature-card article-card">
+
+          <div class="cards-grid">
+            <div v-for="article in filteredArticles" :key="article.id" class="feature-card">
               <div class="card-header">
                 <h3>{{ article.title }}</h3>
-              </div>
-              <div class="card-content">
-                <div class="article-meta">
+                <div class="card-meta">
                   <div class="meta-item">
                     <span class="meta-label">Autor:</span>
                     <span class="meta-value">{{ article.author_name }}</span>
                   </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Ročník:</span>
+                    <span class="meta-value">{{ formatConferenceYear(article.conference_year) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Vytvorené:</span>
+                    <span class="meta-value">{{ formatDate(article.created_at) }}</span>
+                  </div>
                 </div>
+              </div>
+              
+              <div class="card-content">
                 <div class="content-preview" v-html="formatArticleSummary(article.content)"></div>
               </div>
-              <div class="card-meta">
-                <div class="meta-item">
-                  <span class="meta-label">Vytvorený:</span>
-                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
-                </div>
-                <div class="meta-item">
-                  <span class="meta-label">Upravený:</span>
-                  <span class="meta-value">{{ formatDate(article.updated_at) }}</span>
-                </div>
-              </div>
+              
               <div class="card-actions">
                 <button @click="openArticleModal(article)" class="action-btn edit">
-                  <i class="icon-edit">✏️</i>
                   Upraviť
                 </button>
                 <button @click="deleteArticle(article.id)" class="action-btn delete">
-                  <i class="icon-delete">🗑️</i>
                   Vymazať
                 </button>
               </div>
             </div>
           </div>
-          
-          <div v-else class="empty-state">
-            <div class="empty-icon">📄</div>
-            <h3>Vyberte ročník</h3>
-            <p>Vyberte ročník konferencie pre zobrazenie článkov</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editor Assignments Section -->
+    <section class="management-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Priradenie editorov</h2>
+          <p class="section-subtitle">Priraďte editorov k ročníkom konferencie</p>
+        </div>
+
+        <div class="management-content">
+          <div class="management-actions">
+            <div class="form-group">
+              <label>Vybrať editora:</label>
+              <select v-model="selEditor" class="modern-select">
+                <option :value="null">Vyberte editora</option>
+                <option v-for="editor in editors" :key="editor.id" :value="editor.id">
+                  {{ editor.username }} ({{ editor.email }})
+                </option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Vybrať ročník:</label>
+              <select v-model="selectedYearForAssignment" class="modern-select">
+                <option :value="null">Vyberte ročník</option>
+                <option v-for="year in years" :key="year.id" :value="year.id">
+                  {{ formatConferenceYear(year) }}
+                </option>
+              </select>
+            </div>
+            
+            <button @click="assignEditor" :disabled="!selEditor || !selectedYearForAssignment" class="btn primary">
+              Priradiť editora
+            </button>
+          </div>
+
+          <div class="assignments-list">
+            <div v-for="assignment in assignments" :key="assignment.id" class="assignment-card">
+              <div class="assignment-info">
+                <h4>{{ assignment.user.username }}</h4>
+                <p>{{ assignment.user.email }}</p>
+                <span class="assignment-year">{{ formatConferenceYear(assignment.conference_year) }}</span>
+              </div>
+              <button @click="removeEditor(assignment.id)" class="action-btn delete">
+                Odstrániť
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Modals -->
     <!-- Year Modal -->
-    <div v-if="showYearForm" class="modal-overlay" @click.self="closeYearModal">
-      <div class="modal-container large">
+    <div v-if="showYearForm" class="modal-overlay" @click="closeYearModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h3>{{ editYear ? 'Upraviť ročník' : 'Pridať ročník' }}</h3>
-          <button @click="closeYearModal" class="hero-btn secondary">×</button>
+          <h3>{{ editYear ? 'Upraviť ročník' : 'Nový ročník' }}</h3>
+          <button @click="closeYearModal" class="close-button">&times;</button>
         </div>
+        
         <form @submit.prevent="saveYear" class="modal-form">
-          <!-- Základné údaje ročníka -->
-          <div class="form-section">
-            <h4 class="section-title">Základné údaje</h4>
-            <div class="form-group">
-              <label>Rok:</label>
-              <input v-model="formYear.year" type="text" required class="modern-input" placeholder="napr. 2024" />
-            </div>
-            <div class="form-group">
-              <label>Semester:</label>
-              <select v-model="formYear.semester" required class="modern-input">
-                <option value="">Vyberte semester</option>
-                <option value="Winter">Winter</option>
-                <option value="Summer">Summer</option>
-              </select>
-            </div>
-            <div class="form-group checkbox-group">
-              <label class="checkbox-label">
-                <input v-model="formYear.is_active" type="checkbox" />
-                <span class="checkmark"></span>
-                Aktívny ročník
-              </label>
-            </div>
+          <div class="form-group">
+            <label for="yearValue">Rok</label>
+            <input
+              id="yearValue"
+              type="text"
+              v-model="formYear.year"
+              required
+              class="modern-input"
+            />
           </div>
-
-          <!-- Sekcia pre editorov (len pri úprave existujúceho ročníka) -->
-          <div v-if="editYear" class="form-section">
-            <h4 class="section-title">Priradení editori</h4>
-            
-            <!-- Pridanie nového editora -->
-            <div class="editor-assignment-controls">
-              <div class="select-group">
-                <label>Vybrať editora:</label>
-                <select v-model="selEditor" class="modern-input">
-                  <option :value="null">Vyberte editora</option>
-                  <option v-for="editor in editors" :key="editor.id" :value="editor.id">
-                    {{ editor.username }}
-                  </option>
-                </select>
-              </div>
-              <button 
-                type="button" 
-                @click="assignEditor" 
-                class="hero-btn primary" 
-                :disabled="!selEditor"
-              >
-                <i class="icon-plus">+</i>
-                Priradiť editora
-              </button>
-            </div>
-
-            <!-- Zoznam priradených editorov -->
-            <div class="assignments-list">
-              <div v-if="assignments.length === 0" class="empty-assignments">
-                <p>Žiadni editori nie sú priradení k tomuto ročníku.</p>
-              </div>
-              <div v-else>
-                <div v-for="assignment in assignments" :key="assignment.id" class="assignment-item">
-                  <div class="assignment-info">
-                    <div class="editor-name">
-                      <i class="icon-user">👤</i>
-                      {{ assignment.user?.username }}
-                    </div>
-                    <div class="assignment-meta">
-                      <span class="assignment-date">
-                        Priradený: {{ formatDate(assignment.created_at) }}
-                      </span>
-                    </div>
-                  </div>
-                  <button 
-                    type="button" 
-                    @click="removeEditor(assignment.id)" 
-                    class="action-btn delete small"
-                    title="Odstrániť editora"
-                  >
-                    <i class="icon-delete">🗑️</i>
-                    Odstrániť
-                  </button>
-                </div>
-              </div>
-            </div>
+          
+          <div class="form-group">
+            <label for="semester">Semester</label>
+            <select
+              id="semester"
+              v-model="formYear.semester"
+              required
+              class="modern-select"
+            >
+              <option value="">Vyberte semester</option>
+              <option value="Winter">Winter</option>
+              <option value="Summer">Summer</option>
+            </select>
           </div>
-
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                v-model="formYear.is_active"
+              />
+              Aktívny ročník
+            </label>
+          </div>
+          
           <div class="form-actions">
-            <button type="button" @click="closeYearModal" class="hero-btn secondary">Zrušiť</button>
-            <button type="submit" class="hero-btn primary">{{ editYear ? 'Uložiť' : 'Vytvoriť' }}</button>
+            <button type="button" @click="closeYearModal" class="btn secondary">
+              Zrušiť
+            </button>
+            <button type="submit" class="btn primary">
+              {{ editYear ? 'Aktualizovať' : 'Vytvoriť' }}
+            </button>
           </div>
         </form>
       </div>
     </div>
 
     <!-- Article Modal -->
-    <div v-if="showArticleForm" class="modal-overlay" @click.self="closeArticleModal">
-      <div class="modal-container large">
+    <div v-if="showArticleForm" class="modal-overlay" @click="closeArticleModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h3>{{ editArticle ? 'Upraviť článok' : 'Pridať článok' }}</h3>
-          <button @click="closeArticleModal" class="hero-btn secondary">×</button>
+          <h3>{{ editArticle ? 'Upraviť článok' : 'Nový článok' }}</h3>
+          <button @click="closeArticleModal" class="close-button">&times;</button>
         </div>
+        
         <form @submit.prevent="saveArticle" class="modal-form">
           <div class="form-group">
-            <label>Názov:</label>
-            <input v-model="formArticle.title" type="text" required class="modern-input" placeholder="Názov článku" />
+            <label for="articleTitle">Názov článku</label>
+            <input
+              id="articleTitle"
+              type="text"
+              v-model="formArticle.title"
+              required
+              class="modern-input"
+            />
           </div>
+          
           <div class="form-group">
-            <label>Autor:</label>
-            <input v-model="formArticle.author_name" type="text" required class="modern-input" placeholder="Meno autora" />
+            <label for="articleAuthor">Autor</label>
+            <input
+              id="articleAuthor"
+              type="text"
+              v-model="formArticle.author_name"
+              required
+              class="modern-input"
+            />
           </div>
+          
           <div class="form-group">
-            <label>Obsah:</label>
+            <label for="articleConferenceYear">Konferenčný ročník</label>
+            <select
+              id="articleConferenceYear"
+              v-model="formArticle.conference_year_id"
+              required
+              class="modern-select"
+            >
+              <option value="">Vyberte ročník</option>
+              <option v-for="year in years" :key="year.id" :value="year.id">
+                {{ formatConferenceYear(year) }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="articleContent">Obsah</label>
             <Editor
               v-model="formArticle.content"
               :api-key="tinymceKey"
               :init="tinymceConfig"
             />
           </div>
+          
           <div class="form-actions">
-            <button type="button" @click="closeArticleModal" class="hero-btn secondary">Zrušiť</button>
-            <button type="submit" class="hero-btn primary">{{ editArticle ? 'Uložiť' : 'Vytvoriť' }}</button>
+            <button type="button" @click="closeArticleModal" class="btn secondary">
+              Zrušiť
+            </button>
+            <button type="submit" class="btn primary">
+              {{ editArticle ? 'Aktualizovať' : 'Vytvoriť' }}
+            </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Modals -->
-    <CreateUserModal 
+    <!-- User Modals -->
+    <CreateUserModal
       v-if="showCreateUserModal"
       @close="showCreateUserModal = false"
       @user-created="handleUserCreated"
     />
 
-    <EditUserModal 
+    <EditUserModal
       v-if="showEditUserModal"
       @close="showEditUserModal = false"
       @user-updated="handleUserUpdated"
-      @change-password="showPasswordChangeModal = true"
-      @delete="showDeleteConfirmModal = true"
+      @change-password="showPasswordChangeModal = true; showEditUserModal = false"
+      @delete="showDeleteConfirmModal = true; showEditUserModal = false"
     />
 
-    <PasswordChangeModal 
+    <PasswordChangeModal
       v-if="showPasswordChangeModal"
       @close="showPasswordChangeModal = false"
       @password-updated="handlePasswordUpdated"
     />
 
-    <DeleteConfirmationModal 
+    <DeleteConfirmationModal
       v-if="showDeleteConfirmModal"
       @close="showDeleteConfirmModal = false"
       @confirm="handleUserDeleted"
@@ -395,6 +513,11 @@ const users = ref<any[]>([])
 const roles = ref<any[]>([])
 const articles = ref<any[]>([])
 
+// File management
+const adminFiles = ref<any[]>([])
+const isLoadingFiles = ref(false)
+const isDragOver = ref(false)
+
 const selYearForArticles = ref<number|null>(null)
 
 const showYearForm = ref(false)
@@ -403,7 +526,7 @@ const formYear = ref({ semester: '', year: '', is_active: false })
 
 const showArticleForm = ref(false)
 const editArticle = ref<any>(null)
-const formArticle = ref({ title: '', content: '', author_name: '' })
+const formArticle = ref({ title: '', content: '', author_name: '', conference_year_id: '' })
 
 const searchQuery = ref('')
 const showCreateUserModal = ref(false)
@@ -412,92 +535,189 @@ const showDeleteConfirmModal = ref(false)
 const showPasswordChangeModal = ref(false)
 const selectedUser = ref<any>(null)
 
-// Pridané refs pre editor assignments
+// Editor assignments
 const editors = ref<any[]>([])
 const assignments = ref<any[]>([])
 const selEditor = ref<number|null>(null)
+const selectedYearForAssignment = ref<number|null>(null)
 
-// TinyMCE configuration
+// TinyMCE configuration with file upload support
 const tinymceKey = 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen'
 const tinymceConfig = {
-  height: 500,
-  menubar: false,
+  height: 400,
+  menubar: true,
   plugins: [
     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
     'insertdatetime', 'media', 'table', 'help', 'wordcount'
   ],
-  toolbar: 'undo redo | blocks | ' +
-    'bold italic backcolor | alignleft aligncenter ' +
-    'alignright alignjustify | bullist numlist outdent indent | ' +
-    'removeformat | image | help',
+  toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | image media link',
   content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
   
-  // Konfigurácia pre upload obrázkov
-  images_upload_url: 'http://localhost/bt/bt-projekt/public/api/upload-image',
-  images_upload_credentials: true,
-  images_upload_handler: async (blobInfo, progress) => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-      // Pridanie autorizačného tokenu
-      const token = localStorage.getItem('token');
-      
-      fetch('http://localhost/bt/bt-projekt/public/api/upload-image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        if (result.location) {
-          resolve(result.location);
-        } else {
-          reject('No location returned from server');
-        }
-      })
-      .catch(error => {
-        console.error('Upload error:', error);
-        reject('Upload failed: ' + error.message);
-      });
-    });
+  // File upload configuration
+  automatic_uploads: true,
+  file_picker_types: 'file image media',
+  
+  // Image upload
+  images_upload_handler: async (blobInfo: any) => {
+    const formData = new FormData()
+    formData.append('file', blobInfo.blob(), blobInfo.filename())
+    
+    try {
+      const response = await adminPanel.uploadImage(formData)
+      return response.data.location
+    } catch (error) {
+      console.error('Image upload failed:', error)
+      throw error
+    }
   },
   
-  // Automatické konvertovanie base64 obrázkov na upload
-  automatic_uploads: true,
-  
-  // Povolenie vkladania obrázkov cez drag&drop
-  paste_data_images: true,
-  
-  // Ďalšie nastavenia pre obrázky
-  image_advtab: true,
-  image_caption: true,
-  image_description: false,
-  image_dimensions: false,
-  image_title: true
+  // File upload handler
+  file_picker_callback: async (callback: any, value: any, meta: any) => {
+    if (meta.filetype === 'file') {
+      const input = document.createElement('input')
+      input.setAttribute('type', 'file')
+      input.setAttribute('accept', '.pdf,.doc,.docx,.txt,.zip,.rar')
+      
+      input.onchange = async () => {
+        const file = input.files?.[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          
+          try {
+            const response = await adminPanel.uploadFile(formData)
+            callback(response.data.location, { text: file.name, title: file.name })
+            await loadAdminFiles() // Refresh files list
+          } catch (error) {
+            console.error('File upload failed:', error)
+            alert('Nahrávanie súboru zlyhalo')
+          }
+        }
+      }
+      
+      input.click()
+    } else if (meta.filetype === 'image') {
+      const input = document.createElement('input')
+      input.setAttribute('type', 'file')
+      input.setAttribute('accept', 'image/*')
+      
+      input.onchange = async () => {
+        const file = input.files?.[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          
+          try {
+            const response = await adminPanel.uploadImage(formData)
+            callback(response.data.location, { alt: file.name, title: file.name })
+          } catch (error) {
+            console.error('Image upload failed:', error)
+            alert('Nahrávanie obrázka zlyhalo')
+          }
+        }
+      }
+      
+      input.click()
+    }
+  }
 }
 
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) {
-    return users.value
-  }
+  if (!searchQuery.value) return users.value
+  const query = searchQuery.value.toLowerCase()
   return users.value.filter(user => 
-    user.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
+    user.username.toLowerCase().includes(query) ||
+    user.email.toLowerCase().includes(query)
+  )
+})
+
+const filteredArticles = computed(() => {
+  if (!selYearForArticles.value) return articles.value
+  return articles.value.filter(article => 
+    article.conference_year_id === selYearForArticles.value
   )
 })
 
 const totalArticles = computed(() => {
   return articles.value.length
 })
+
+// File management methods
+async function loadAdminFiles() {
+  isLoadingFiles.value = true
+  try {
+    const response = await adminPanel.getMyFiles()
+    adminFiles.value = response.data.data || []
+  } catch (error) {
+    console.error('Error loading admin files:', error)
+  } finally {
+    isLoadingFiles.value = false
+  }
+}
+
+function handleFileDrop(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = false
+  
+  const files = event.dataTransfer?.files
+  if (files) {
+    uploadFiles(Array.from(files))
+  }
+}
+
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (files) {
+    uploadFiles(Array.from(files))
+  }
+}
+
+async function uploadFiles(files: File[]) {
+  for (const file of files) {
+    await uploadSingleFile(file)
+  }
+  await loadAdminFiles()
+}
+
+async function uploadSingleFile(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  try {
+    await adminPanel.uploadFile(formData)
+  } catch (error) {
+    console.error('Error uploading file:', error)
+    alert(`Chyba pri nahrávaní súboru ${file.name}`)
+  }
+}
+
+async function deleteAdminFile(fileId: number) {
+  if (confirm('Naozaj chcete vymazať tento súbor?')) {
+    try {
+      await adminPanel.deleteFile(fileId)
+      await loadAdminFiles()
+    } catch (error) {
+      console.error('Error deleting file:', error)
+      alert('Chyba pri mazaní súboru')
+    }
+  }
+}
+
+function copyFileUrl(file: any) {
+  navigator.clipboard.writeText(file.download_url).then(() => {
+    alert('URL súboru bola skopírovaná do schránky')
+  })
+}
+
+function isImageFile(file: any) {
+  return file.mime_type?.startsWith('image/')
+}
+
+function isPdfFile(file: any) {
+  return file.mime_type === 'application/pdf'
+}
 
 // Helper functions
 function getRoleBadgeClass(role: string) {
@@ -509,24 +729,27 @@ function getRoleBadgeClass(role: string) {
 }
 
 function formatDate(dateString?: string): string {
-  if (!dateString) return 'N/A'
-  try {
-    return new Date(dateString).toLocaleDateString('sk-SK')
-  } catch {
-    return 'N/A'
-  }
+  if (!dateString) return 'Neznámy dátum'
+  return new Date(dateString).toLocaleDateString('sk-SK')
 }
 
 function formatArticleSummary(content: string | null): string {
-  if (!content) return 'Žiadny obsah...'
+  if (!content) return 'Žiadny obsah'
   const cleanContent = content.replace(/<[^>]*>/g, '')
-  return cleanContent.length > 150 ? cleanContent.substring(0, 150) + '...' : cleanContent
+  return cleanContent.length > 100 
+    ? cleanContent.substring(0, 100) + '...' 
+    : cleanContent
+}
+
+function formatConferenceYear(year: any): string {
+  if (!year) return 'Neznámy ročník'
+  return `${year.semester} ${year.year}`
 }
 
 async function refreshUsers() {
   try {
     const response = await adminPanel.getUsers()
-    users.value = response.data?.users || []
+    users.value = response.data.users || []
   } catch (error) {
     console.error('Error fetching users:', error)
   }
@@ -535,7 +758,7 @@ async function refreshUsers() {
 async function fetchRoles() {
   try {
     const response = await adminPanel.getRoles()
-    roles.value = response.data?.roles || []
+    roles.value = response.data.roles || []
   } catch (error) {
     console.error('Error fetching roles:', error)
   }
@@ -544,17 +767,16 @@ async function fetchRoles() {
 async function refreshYears() {
   try {
     const response = await adminPanel.getConferenceYears()
-    years.value = response.data?.data || []
+    years.value = response.data.data || []
   } catch (error) {
     console.error('Error loading years:', error)
   }
 }
 
 async function refreshArticles() {
-  if (!selYearForArticles.value) return
   try {
-    const response = await adminPanel.listArticles({ conference_year_id: selYearForArticles.value })
-    articles.value = response.data?.data || []
+    const response = await adminPanel.listArticles()
+    articles.value = response.data.data || []
   } catch (error) {
     console.error('Error loading articles:', error)
   }
@@ -563,7 +785,8 @@ async function refreshArticles() {
 async function refreshEditors() {
   try {
     const response = await adminPanel.getUsers()
-    editors.value = (response.data?.users || []).filter((user: any) => 
+    const allUsers = response.data.users || []
+    editors.value = allUsers.filter(user => 
       user.roles?.some((role: any) => role.name.toLowerCase() === 'editor')
     )
   } catch (error) {
@@ -572,10 +795,17 @@ async function refreshEditors() {
 }
 
 async function refreshAssignments() {
-  if (!editYear.value?.id) return
   try {
-    const response = await adminPanel.listYearEditors(editYear.value.id)
-    assignments.value = response.data || []
+    assignments.value = []
+    for (const year of years.value) {
+      try {
+        const response = await adminPanel.listYearEditors(year.id)
+        const yearAssignments = response.data.data || []
+        assignments.value.push(...yearAssignments)
+      } catch (error) {
+        console.error(`Error loading assignments for year ${year.id}:`, error)
+      }
+    }
   } catch (error) {
     console.error('Error loading assignments:', error)
   }
@@ -585,14 +815,14 @@ async function refreshAssignments() {
 function openYearModal(y = null) {
   editYear.value = y
   if (y) {
-    formYear.value = { ...y }
-    // Načítaj priradenia editorov pre tento ročník
-    refreshAssignments()
+    formYear.value = {
+      semester: y.semester,
+      year: y.year,
+      is_active: y.is_active
+    }
   } else {
     formYear.value = { semester: '', year: '', is_active: false }
-    assignments.value = []
   }
-  selEditor.value = null
   showYearForm.value = true
 }
 
@@ -608,11 +838,12 @@ async function saveYear() {
     } else {
       await adminPanel.createYear(formYear.value)
     }
+    
     closeYearModal()
-    refreshYears()
+    await refreshYears()
   } catch (error) {
     console.error('Error saving year:', error)
-    alert('Chyba pri ukladaní ročníka: ' + (error.response?.data?.message || error.message))
+    alert('Chyba pri ukladaní ročníka')
   }
 }
 
@@ -620,22 +851,22 @@ async function deleteYear(id: number) {
   if (confirm('Naozaj chcete vymazať tento ročník?')) {
     try {
       await adminPanel.deleteYear(id)
-      refreshYears()
+      await refreshYears()
     } catch (error) {
       console.error('Error deleting year:', error)
-      alert('Chyba pri mazaní ročníka: ' + (error.response?.data?.message || error.message))
+      alert('Chyba pri mazaní ročníka')
     }
   }
 }
 
 async function deleteUser(id: number) {
-  if (confirm('Naozaj chcete vymazať tohoto používateľa?')) {
+  if (confirm('Naozaj chcete vymazať tohto používateľa?')) {
     try {
       await adminPanel.deleteUser(id)
-      refreshUsers()
+      await refreshUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
-      alert('Chyba pri mazaní používateľa: ' + (error.response?.data?.message || error.message))
+      alert('Chyba pri mazaní používateľa')
     }
   }
 }
@@ -644,9 +875,19 @@ async function deleteUser(id: number) {
 function openArticleModal(article = null) {
   editArticle.value = article
   if (article) {
-    formArticle.value = { ...article }
+    formArticle.value = {
+      title: article.title,
+      content: article.content || '',
+      author_name: article.author_name,
+      conference_year_id: article.conference_year_id
+    }
   } else {
-    formArticle.value = { title: '', content: '', author_name: '' }
+    formArticle.value = {
+      title: '',
+      content: '',
+      author_name: '',
+      conference_year_id: ''
+    }
   }
   showArticleForm.value = true
 }
@@ -658,21 +899,17 @@ function closeArticleModal() {
 
 async function saveArticle() {
   try {
-    const articleData = {
-      ...formArticle.value,
-      conference_year_id: selYearForArticles.value
+    if (editArticle.value) {
+      await adminPanel.updateArticle(editArticle.value.id, formArticle.value)
+    } else {
+      await adminPanel.createArticle(formArticle.value)
     }
     
-    if (editArticle.value) {
-      await adminPanel.updateArticle(editArticle.value.id, articleData)
-    } else {
-      await adminPanel.createArticle(articleData)
-    }
     closeArticleModal()
-    refreshArticles()
+    await refreshArticles()
   } catch (error) {
     console.error('Error saving article:', error)
-    alert('Chyba pri ukladaní článku: ' + (error.response?.data?.message || error.message))
+    alert('Chyba pri ukladaní článku')
   }
 }
 
@@ -680,35 +917,41 @@ async function deleteArticle(id: number) {
   if (confirm('Naozaj chcete vymazať tento článok?')) {
     try {
       await adminPanel.deleteArticle(id)
-      refreshArticles()
+      await refreshArticles()
     } catch (error) {
       console.error('Error deleting article:', error)
-      alert('Chyba pri mazaní článku: ' + (error.response?.data?.message || error.message))
+      alert('Chyba pri mazaní článku')
     }
   }
 }
 
 // Assignment functions
 async function assignEditor() {
-  if (!editYear.value?.id || !selEditor.value) return
+  if (!selEditor.value || !selectedYearForAssignment.value) return
+  
   try {
-    await adminPanel.assignEditor(editYear.value.id, selEditor.value)
+    await adminPanel.assignEditor(selectedYearForAssignment.value, selEditor.value)
     selEditor.value = null
-    refreshAssignments()
+    selectedYearForAssignment.value = null
+    await refreshAssignments()
   } catch (error) {
     console.error('Error assigning editor:', error)
-    alert('Chyba pri priraďovaní editora: ' + (error.response?.data?.message || error.message))
+    alert('Chyba pri priraďovaní editora')
   }
 }
 
 async function removeEditor(assignmentId: number) {
-  if (!editYear.value?.id) return
-  try {
-    await adminPanel.removeEditor(editYear.value.id, assignmentId)
-    refreshAssignments()
-  } catch (error) {
-    console.error('Error removing editor:', error)
-    alert('Chyba pri odstraňovaní editora: ' + (error.response?.data?.message || error.message))
+  if (confirm('Naozaj chcete odstrániť toto priradenie?')) {
+    try {
+      const assignment = assignments.value.find(a => a.id === assignmentId)
+      if (assignment) {
+        await adminPanel.removeEditor(assignment.conference_year_id, assignmentId)
+        await refreshAssignments()
+      }
+    } catch (error) {
+      console.error('Error removing editor:', error)
+      alert('Chyba pri odstraňovaní priradenia')
+    }
   }
 }
 
@@ -725,20 +968,16 @@ function handleUserCreated() {
 
 function handleUserUpdated() {
   showEditUserModal.value = false
-  showPasswordChangeModal.value = false
   refreshUsers()
 }
 
 function handleUserDeleted() {
   showDeleteConfirmModal.value = false
-  showEditUserModal.value = false
-  selectedUser.value = null
   refreshUsers()
 }
 
 function handlePasswordUpdated() {
   showPasswordChangeModal.value = false
-  showEditUserModal.value = false
 }
 
 // Provide functions for child components
@@ -753,7 +992,8 @@ onMounted(async () => {
     refreshYears(),
     refreshArticles(),
     refreshEditors(),
-    refreshAssignments()
+    refreshAssignments(),
+    loadAdminFiles()
   ])
 })
 </script>
@@ -769,17 +1009,12 @@ onMounted(async () => {
   --accent-color: #f59e0b;
   --success-color: #10b981;
   --danger-color: #ef4444;
-  --warning-color: #f59e0b;
-  --info-color: #3b82f6;
   --dark-color: #1f2937;
   --light-color: #f9fafb;
   --border-color: #e5e7eb;
   --text-primary: #111827;
   --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
   --white: #ffffff;
-  --light-bg: #f8f9fa;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -793,7 +1028,7 @@ onMounted(async () => {
 }
 
 .dashboard-container {
-  font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-primary);
   background-color: var(--light-color);
   min-height: 100vh;
@@ -805,13 +1040,13 @@ onMounted(async () => {
   padding: 0 1rem;
 }
 
-/* Hero Section - adjust top padding to account for navbar */
+/* Hero Section */
 .hero-section {
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 0; /* Reduced top padding since navbar is now at the top */
-  overflow: hidden;
+  padding: 6rem 0 4rem;
   color: white;
+  overflow: hidden;
 }
 
 .hero-background {
@@ -833,10 +1068,8 @@ onMounted(async () => {
 
 .hero-particles {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -858,8 +1091,14 @@ onMounted(async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
-  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.8;
+  }
 }
 
 .hero-content {
@@ -871,8 +1110,8 @@ onMounted(async () => {
 .hero-title {
   font-size: 3.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
 }
 
 .title-line {
@@ -880,23 +1119,26 @@ onMounted(async () => {
 }
 
 .title-line.highlight {
-  background: linear-gradient(45deg, #f59e0b, #eab308);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .hero-subtitle {
-  font-size: 1.3rem;
-  margin-bottom: 2.5rem;
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
   opacity: 0.9;
 }
 
 .hero-stats {
   display: flex;
   justify-content: center;
-  gap: 3rem;
-  margin-top: 2.5rem;
+  gap: 4rem;
+  margin-top: 3rem;
 }
 
 .stat-item {
@@ -904,25 +1146,26 @@ onMounted(async () => {
 }
 
 .stat-number {
+  display: block;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #f59e0b;
-  margin-bottom: 0.5rem;
+  color: #fbbf24;
 }
 
 .stat-label {
-  font-size: 1rem;
+  display: block;
+  font-size: 0.875rem;
   opacity: 0.8;
+  margin-top: 0.5rem;
 }
 
-/* Management Sections */
+/* Management Section */
 .management-section {
   padding: 4rem 0;
-  background: white;
 }
 
 .management-section.alt-bg {
-  background: var(--light-bg);
+  background-color: var(--white);
 }
 
 .section-header {
@@ -938,38 +1181,38 @@ onMounted(async () => {
 }
 
 .section-subtitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto;
 }
 
 .management-content {
-  max-width: 1000px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .management-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
-  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .search-container {
   flex: 1;
-  max-width: 300px;
+  min-width: 300px;
 }
 
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #333; /* výrazný border */
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
-  color: white;
 }
 
 .search-input:focus {
@@ -978,70 +1221,54 @@ onMounted(async () => {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Buttons */
-.hero-btn {
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
   gap: 0.5rem;
 }
 
-.hero-btn.primary {
+.btn.primary {
   background: var(--primary-color);
-  color: black;
-  box-shadow: var(--shadow-md);
-  border: 2px solid black;
+  color: white;
 }
 
-.hero-btn.primary:hover:not(:disabled) {
+.btn.primary:hover {
   background: #1d4ed8;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border: none;
+  transform: translateY(-1px);
 }
 
-.hero-btn.primary:disabled {
-  background: var(--text-muted);
-  cursor: not-allowed;
-  transform: none;
+.btn.secondary {
+  background: var(--text-secondary);
+  color: white;
 }
 
-.hero-btn.secondary {
-  background: var(--border-color);
-  color: var(--text-primary);
-}
-
-.hero-btn.secondary:hover {
-  background: #d1d5db;
-}
-
-.icon-plus, .icon-edit, .icon-delete {
-  font-size: 1rem;
+.btn.secondary:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
 }
 
 /* Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
   margin-top: 2rem;
 }
 
 .feature-card {
-  background: white;
+  background: var(--white);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
-  position: relative;
+  border: 1px solid var(--border-color);
 }
 
 .feature-card:hover {
@@ -1049,97 +1276,61 @@ onMounted(async () => {
   box-shadow: var(--shadow-lg);
 }
 
-.feature-card.year-card {
-  border-left: 4px solid #dc3545; /* červený border pre neaktívne */
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); /* červenkastý gradient pre neaktívne */
-  border: 2px solid #dc3545;
+.card-header {
+  margin-bottom: 1rem;
 }
 
-.feature-card.year-card.active {
-  border-left-color: var(--success-color);
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); /* zelenkastý gradient pre aktívne */
-  border: 2px solid var(--success-color);
-}
-
-.feature-card.year-card h3 {
+.feature-card h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #721c24; /* tmavo červená pre neaktívne */
-  margin: 0;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
 }
 
-.feature-card.year-card.active h3 {
-  color: #155724; /* tmavo zelená pre aktívne */
-}
-
-.feature-card.year-card .meta-label {
-  font-weight: 600;
-  color: #721c24; /* tmavo červená pre neaktívne labels */
-}
-
-.feature-card.year-card.active .meta-label {
-  color: #155724; /* tmavo zelená pre aktívne labels */
-}
-
-.feature-card.year-card .meta-value {
-  color: #721c24; /* tmavo červená pre neaktívne hodnoty */
-}
-
-.feature-card.year-card.active .meta-value {
-  color: #155724; /* tmavo zelená pre aktívne hodnoty */
-}
-
-.feature-card.year-card .status-badge {
-  background: #dc3545; /* červené pozadie pre neaktívne */
-  color: white;
-}
-
-.feature-card.year-card.active .status-badge.active {
-  background: var(--success-color); /* zelené pozadie pre aktívne */
-  color: white;
-}
-
-.card-content {
-  margin-bottom: 1rem;
-}
-
-.year-meta, .article-meta {
-  margin-bottom: 1rem;
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .meta-item {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .meta-label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-secondary);
+  min-width: 80px;
 }
 
 .meta-value {
   color: var(--text-primary);
 }
 
+.meta-value.active {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.card-content {
+  margin-bottom: 1.5rem;
+}
+
 .content-preview {
   color: var(--text-secondary);
-  font-size: 0.9rem;
   line-height: 1.5;
-  margin-top: 0.5rem;
+  font-size: 0.9rem;
 }
 
-.card-meta {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1rem;
-  margin-top: 1rem;
+.card-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
-/* Action Buttons */
 .action-btn {
-  display: inline-flex;
-  align-items: center;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -1147,204 +1338,356 @@ onMounted(async () => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  gap: 0.25rem;
-  color: black;
+  text-decoration: none;
 }
 
 .action-btn.edit {
-  background: var(--info-color);
-  color: black;
+  background: var(--primary-color);
+  color: white;
 }
 
 .action-btn.edit:hover {
-  background: #2563eb;
-}
-
-.action-btn.secondary {
-  background: var(--text-secondary);
-  color: black;
-}
-
-.action-btn.secondary:hover {
-  background: #4b5563;
+  background: #1d4ed8;
 }
 
 .action-btn.delete {
   background: var(--danger-color);
-  color: black;
+  color: white;
 }
 
 .action-btn.delete:hover {
   background: #dc2626;
 }
 
-.card-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin-top: 1rem;
+.action-btn.download {
+  background: var(--success-color);
+  color: white;
 }
 
-/* Select Controls */
-.modern-select {
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-  transition: all 0.3s ease;
-  min-width: 200px;
+.action-btn.download:hover {
+  background: #059669;
 }
 
-.modern-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+.action-btn.copy {
+  background: var(--accent-color);
+  color: white;
 }
 
-/* Empty States */
-.empty-state {
+.action-btn.copy:hover {
+  background: #d97706;
+}
+
+.action-btn.secondary {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.action-btn.secondary:hover {
+  background: #4b5563;
+}
+
+/* File Upload Area */
+.file-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 3rem;
   text-align: center;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 2rem;
 }
 
-.empty-icon {
+.file-upload-area:hover,
+.file-upload-area.drag-over {
+  border-color: var(--primary-color);
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  opacity: 0.6;
 }
 
-.empty-state h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+.upload-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
-.empty-state p {
-  font-size: 1rem;
+.upload-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
 }
 
-/* Table Styles */
-.table-container {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
+/* Files Grid */
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
   margin-top: 2rem;
 }
 
-.modern-table {
+.file-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.file-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-info h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Table */
+.table-container {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.modern-table th,
-.modern-table td {
+.data-table th,
+.data-table td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
-.modern-table th {
-  background: var(--light-bg);
+.data-table th {
+  background: var(--secondary-color);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.modern-table tbody tr:hover {
-  background: var(--light-bg);
+.actions-cell {
+  white-space: nowrap;
 }
 
+.actions-cell .action-btn {
+  margin-right: 0.5rem;
+}
+
+/* Role Badge */
 .role-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .role-badge.role-admin {
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
 }
 
 .role-badge.role-editor {
-  background: #dbeafe;
+  background: rgba(37, 99, 235, 0.1);
   color: #2563eb;
 }
 
 .role-badge.role-user {
-  background: #f3f4f6;
+  background: rgba(107, 114, 128, 0.1);
   color: #6b7280;
 }
 
-.actions {
-  display: flex;
-  gap: 0.5rem;
+/* Form Controls */
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
-.action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
+.form-group label {
+  display: block;
   font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.modern-select, .modern-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.modern-select {
+  background-color: var(--white);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.action-btn.edit {
-  background: var(--info-color);
+.modern-input:focus, .modern-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* Assignment Cards */
+.assignments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.assignment-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assignment-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.assignment-info p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.assignment-year {
+  font-size: 0.8rem;
+  background: var(--primary-color);
   color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 500;
 }
 
-.action-btn.edit:hover {
-  background: #2563eb;
+/* Loading and Empty States */
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
 }
 
-.action-btn.secondary {
-  background: var(--text-secondary);
-  color: white;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-.action-btn.secondary:hover {
-  background: #4b5563;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.action-btn.delete {
-  background: var(--danger-color);
-  color: white;
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
 }
 
-.action-btn.delete:hover {
-  background: #dc2626;
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
 }
 
-/* Modals */
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 0.95rem;
+}
+
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-container {
-  background-color: white;
+  background: var(--white);
   border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-}
-
-.modal-container.large {
-  max-width: 700px;
-  max-height: 85vh;
+  box-shadow: var(--shadow-xl);
 }
 
 .modal-header {
@@ -1356,56 +1699,26 @@ onMounted(async () => {
 }
 
 .modal-header h3 {
-  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.close-button {
+  background: none;
+  border: none;
   font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+}
+
+.close-button:hover {
   color: var(--text-primary);
 }
 
 .modal-form {
   padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.modern-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.modern-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.checkbox-group {
-  margin-bottom: 1.5rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-weight: 500;
-  gap: 0.5rem;
-}
-
-.checkbox-label input[type="checkbox"] {
-  margin-right: 0.5rem;
-  transform: scale(1.2);
 }
 
 .form-actions {
@@ -1417,213 +1730,45 @@ onMounted(async () => {
   border-top: 1px solid var(--border-color);
 }
 
-/* Form Sections */
-.form-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.form-section:last-of-type {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.section-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 1.2rem;
-  background: var(--primary-color);
-  border-radius: 2px;
-}
-
-/* Editor Assignment Controls */
-.editor-assignment-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.select-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.select-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Assignments List */
-.assignments-list {
-  background: var(--light-bg);
-  border-radius: 8px;
-  padding: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.empty-assignments {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-secondary);
-}
-
-.empty-assignments p {
-  margin: 0;
-  font-style: italic;
-}
-
-.assignment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-}
-
-.assignment-item:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.assignment-item:last-child {
-  margin-bottom: 0;
-}
-
-.assignment-info {
-  flex: 1;
-}
-
-.editor-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.assignment-meta {
-  display: flex;
-  gap: 1rem;
-}
-
-.assignment-date {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-/* Small action buttons */
-.action-btn.small {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-/* Icons */
-.icon-user, .icon-plus, .icon-delete {
-  font-size: 1rem;
-}
-
-/* Larger modal for year editing */
-.modal-container.large {
-  max-width: 700px;
-  max-height: 85vh;
-}
-
-/* Responsive adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
   }
-
+  
   .hero-stats {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
   }
-
+  
   .management-actions {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .search-container {
-    max-width: none;
-  }
-
+  
   .cards-grid {
     grid-template-columns: 1fr;
   }
-
-  .modern-table {
-    font-size: 0.9rem;
+  
+  .files-grid {
+    grid-template-columns: 1fr;
   }
-
-  .modern-table td, .modern-table th {
+  
+  .file-actions {
+    flex-direction: column;
+  }
+  
+  .assignments-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .data-table {
+    font-size: 0.875rem;
+  }
+  
+  .data-table th,
+  .data-table td {
     padding: 0.75rem 0.5rem;
-  }
-
-  .card-actions {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    justify-content: center;
-  }
-
-  .editor-assignment-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .assignment-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .assignment-item .action-btn {
-    align-self: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .section-title {
-    font-size: 2rem;
-  }
-
-  .feature-card {
-    padding: 1rem;
-  }
-
-  .modal-container {
-    width: 95%;
-    margin: 1rem;
   }
 }
 </style>

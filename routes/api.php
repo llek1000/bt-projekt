@@ -37,9 +37,10 @@ Route::prefix('articles')->group(function () {
     Route::post('/search', [ArticleController::class, 'search']);
     Route::get('/stats/overview', [ArticleController::class, 'statistics']);
     Route::get('/export/json', [ArticleController::class, 'export']);
-
-    Route::get('/{article}/files/{file}/download', [FileController::class, 'download']);
 });
+
+// Public file download
+Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
 
 // Protected routes (Authentication required)
 Route::middleware('auth:sanctum')->group(function () {
@@ -51,7 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    // Upload endpoint - available for authenticated users
+    // File upload for TinyMCE - available for authenticated users
+    Route::post('/upload-file', [FileController::class, 'uploadForEditor'])->name('files.upload');
+    Route::get('/files/my-files', [FileController::class, 'listForEditor']);
+    
+    // Legacy image upload endpoint
     Route::post('/upload-image', [UploadController::class, 'upload']);
 
     // Editor routes (Editor and Admin access)
@@ -62,10 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{id}', [ArticleController::class, 'update']);
             Route::delete('/{id}', [ArticleController::class, 'destroy']);
             Route::post('/bulk-delete', [ArticleController::class, 'bulkDelete']);
-
-            Route::post('/{article}/files', [FileController::class, 'store']);
-            Route::delete('/files/{file}', [FileController::class, 'destroy']);
         });
+
+        // File management
+        Route::delete('/files/{file}', [FileController::class, 'destroy']);
 
         // Editor assignments - get current user's assignments
         Route::get('my-assignments', [EditorAssignmentController::class, 'myAssignments']);
@@ -74,8 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin routes (Admin only)
     Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
         // Conference Years Management
-        Route::apiResource('conference-years', ConferenceYearController::class)
-            ->except(['index', 'show']);
+        Route::apiResource('conference-years', ConferenceYearController::class);
 
         // User Management
         Route::get('users', [AdminController::class, 'getUsers']);
@@ -87,12 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Editor Assignment Management
         Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
-        Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
-        Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
-
-        // Subpage Management
-        Route::get('years/{year}/subpages', [SubpageController::class, 'index']);
-        Route::post('years/{year}/subpages', [SubpageController::class, 'store']);
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });
 });

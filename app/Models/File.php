@@ -16,12 +16,21 @@ class File extends Model
         'file_path',
         'mime_type',
         'file_size',
+        'category',
         'article_id',
+        'uploaded_by',
     ];
+
+    protected $appends = ['file_size_human', 'download_url'];
 
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
+    }
+
+    public function uploader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 
     public function getFileSizeHumanAttribute(): string
@@ -34,5 +43,15 @@ class File extends Model
         }
 
         return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    public function getDownloadUrlAttribute(): string
+    {
+        return route('files.download', $this->id);
+    }
+
+    public function getPublicUrlAttribute(): string
+    {
+        return asset('storage/' . $this->file_path);
     }
 }

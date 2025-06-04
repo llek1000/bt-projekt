@@ -1,13 +1,14 @@
 <template>
   <div class="dashboard-container">
     <NavbarComponent />
-    
+
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
         <div class="hero-overlay"></div>
         <div class="hero-particles">
-          <div class="particle" v-for="n in 20" :key="n"></div>
+          <div class="particle" v-for="i in 20" :key="i" 
+               :style="{ left: Math.random() * 100 + '%', animationDelay: Math.random() * 6 + 's' }"></div>
         </div>
       </div>
       <div class="container">
@@ -17,40 +18,39 @@
             <span class="title-line highlight">Dashboard</span>
           </h1>
           <p class="hero-subtitle">
-            Správa článkov a obsahu konferencie
+            Správa článkov a obsahu pre konferenčné ročníky
           </p>
-          
           <div class="hero-stats">
             <div class="stat-item">
-              <span class="stat-number">{{ totalAssignedArticles }}</span>
-              <span class="stat-label">Pridelené články</span>
+              <span class="stat-number">{{ totalArticles }}</span>
+              <span class="stat-label">Moje Články</span>
             </div>
             <div class="stat-item">
               <span class="stat-number">{{ assignments.length }}</span>
-              <span class="stat-label">Pridelené ročníky</span>
+              <span class="stat-label">Priradené Ročníky</span>
             </div>
             <div class="stat-item">
-              <span class="stat-number">{{ filteredArticles.length }}</span>
-              <span class="stat-label">Moje články</span>
+              <span class="stat-number">{{ files.length }}</span>
+              <span class="stat-label">Nahrané Súbory</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Article Management Section -->
+    <!-- Articles Management Section -->
     <section class="management-section">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Správa článkov</h2>
-          <p class="section-subtitle">Vytvárajte a upravujte články pre pridelené ročníky konferencie</p>
+          <h2 class="section-title">Správa Článkov</h2>
+          <p class="section-subtitle">Vytvárajte a upravujte články pre vámi spravované konferenčné ročníky</p>
         </div>
 
         <div class="management-actions">
           <div class="search-container">
             <input
-              v-model="searchQuery"
               type="text"
+              v-model="searchQuery"
               placeholder="Hľadať články..."
               class="search-input"
             />
@@ -58,39 +58,35 @@
           
           <div class="filter-controls">
             <div class="form-group">
-              <label>Filtrovať podľa ročníka:</label>
-              <select v-model="selectedConferenceYearId" class="modern-select">
+              <label>Filter podľa ročníka:</label>
+              <select v-model="selectedConferenceYear" class="modern-select">
                 <option value="">Všetky ročníky</option>
-                <option 
-                  v-for="cy in assignedConferenceYears" 
-                  :key="cy.id" 
-                  :value="cy.id"
-                >
-                  {{ cy.semester }} {{ cy.year }}
+                <option v-for="assignment in assignments" :key="assignment.id" :value="assignment.conference_year_id">
+                  {{ formatConferenceYear(assignment.conference_year) }}
                 </option>
               </select>
             </div>
           </div>
 
-          <button @click="openArticleModal()" class="hero-btn primary">
-            Vytvoriť nový článok
+          <button @click="openArticleModal()" class="btn primary">
+            Nový Článok
           </button>
         </div>
 
         <!-- Articles Grid -->
-        <div v-if="loading" class="loading-state">
+        <div v-if="isLoading" class="loading-state">
           <div class="loading-spinner"></div>
           <p>Načítavam články...</p>
         </div>
 
         <div v-else-if="filteredArticles.length === 0" class="empty-state">
-          <div class="empty-icon">📝</div>
+          <div class="empty-icon">📄</div>
           <h3>Žiadne články</h3>
-          <p>Zatiaľ nemáte žiadne články. Vytvorte prvý článok.</p>
+          <p>Zatiaľ nemáte vytvorené žiadne články pre vaše priradené ročníky.</p>
         </div>
 
         <div v-else class="cards-grid">
-          <div v-for="article in filteredArticles" :key="article.id" class="feature-card article-card">
+          <div v-for="article in filteredArticles" :key="article.id" class="feature-card">
             <div class="card-header">
               <h3>{{ article.title }}</h3>
               <div class="card-meta">
@@ -100,9 +96,7 @@
                 </div>
                 <div class="meta-item">
                   <span class="meta-label">Ročník:</span>
-                  <span class="meta-value">
-                    {{ article.conference_year ? `${article.conference_year.semester} ${article.conference_year.year}` : 'N/A' }}
-                  </span>
+                  <span class="meta-value">{{ formatConferenceYear(article.conference_year) }}</span>
                 </div>
                 <div class="meta-item">
                   <span class="meta-label">Vytvorené:</span>
@@ -112,7 +106,7 @@
             </div>
             
             <div class="card-content">
-              <div class="content-preview">{{ getContentPreview(article.content) }}</div>
+              <div class="content-preview" v-html="getContentPreview(article.content)"></div>
             </div>
             
             <div class="card-actions">
@@ -128,66 +122,144 @@
       </div>
     </section>
 
+    <!-- File Management Section -->
+    <section class="management-section alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Správa Súborov</h2>
+          <p class="section-subtitle">Nahrávajte a spravujte súbory pre vaše články</p>
+        </div>
+
+        <div class="management-actions">
+          <div class="file-upload-area" 
+               @drop="handleFileDrop" 
+               @dragover.prevent 
+               @dragenter.prevent
+               :class="{ 'drag-over': isDragOver }">
+            <input 
+              type="file" 
+              ref="fileInput" 
+              @change="handleFileSelect" 
+              multiple 
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+              style="display: none;"
+            />
+            <div class="upload-content">
+              <div class="upload-icon">📁</div>
+              <h3>Nahrať súbory</h3>
+              <p>Pretiahnite súbory sem alebo kliknite pre výber</p>
+              <button @click="$refs.fileInput.click()" class="btn secondary">
+                Vybrať súbory
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files Grid -->
+        <div v-if="isLoadingFiles" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Načítavam súbory...</p>
+        </div>
+
+        <div v-else-if="files.length === 0" class="empty-state">
+          <div class="empty-icon">📂</div>
+          <h3>Žiadne súbory</h3>
+          <p>Zatiaľ nemáte nahrané žiadne súbory.</p>
+        </div>
+
+        <div v-else class="files-grid">
+          <div v-for="file in files" :key="file.id" class="file-card">
+            <div class="file-icon">
+              <span v-if="isImageFile(file)">🖼️</span>
+              <span v-else-if="isPdfFile(file)">📄</span>
+              <span v-else>📎</span>
+            </div>
+            
+            <div class="file-info">
+              <h4>{{ file.original_name }}</h4>
+              <div class="file-meta">
+                <span class="file-size">{{ file.file_size_human }}</span>
+                <span class="file-date">{{ formatDate(file.created_at) }}</span>
+              </div>
+            </div>
+            
+            <div class="file-actions">
+              <a :href="file.download_url" target="_blank" class="action-btn download">
+                Stiahnuť
+              </a>
+              <button @click="copyFileUrl(file)" class="action-btn copy">
+                Kopírovať URL
+              </button>
+              <button @click="deleteFile(file.id)" class="action-btn delete">
+                Vymazať
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Article Modal -->
     <div v-if="showArticleModal" class="modal-overlay" @click="closeArticleModal">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h3>{{ editArticle ? 'Upraviť článok' : 'Vytvoriť nový článok' }}</h3>
+          <h3>{{ editingArticle ? 'Upraviť článok' : 'Nový článok' }}</h3>
           <button @click="closeArticleModal" class="close-button">&times;</button>
         </div>
         
         <form @submit.prevent="saveArticle" class="modal-form">
           <div class="form-group">
-            <label>Názov článku:</label>
+            <label for="articleTitle">Názov článku</label>
             <input
+              id="articleTitle"
+              type="text"
               v-model="articleForm.title"
-              type="text"
               required
               class="modern-input"
-              placeholder="Zadajte názov článku"
             />
           </div>
-
+          
           <div class="form-group">
-            <label>Autor:</label>
+            <label for="articleAuthor">Autor</label>
             <input
-              v-model="articleForm.author_name"
+              id="articleAuthor"
               type="text"
+              v-model="articleForm.author_name"
               required
               class="modern-input"
-              placeholder="Meno autora"
             />
           </div>
-
+          
           <div class="form-group">
-            <label>Ročník konferencie:</label>
-            <select v-model="articleForm.conference_year_id" required class="modern-select">
+            <label for="articleConferenceYear">Konferenčný ročník</label>
+            <select
+              id="articleConferenceYear"
+              v-model="articleForm.conference_year_id"
+              required
+              class="modern-select"
+            >
               <option value="">Vyberte ročník</option>
-              <option 
-                v-for="cy in assignedConferenceYears" 
-                :key="cy.id" 
-                :value="cy.id"
-              >
-                {{ cy.semester }} {{ cy.year }}
+              <option v-for="assignment in assignments" :key="assignment.id" :value="assignment.conference_year_id">
+                {{ formatConferenceYear(assignment.conference_year) }}
               </option>
             </select>
           </div>
-
+          
           <div class="form-group">
-            <label>Obsah článku:</label>
+            <label for="articleContent">Obsah</label>
             <Editor
               v-model="articleForm.content"
               :api-key="tinymceKey"
               :init="tinymceConfig"
             />
           </div>
-
+          
           <div class="form-actions">
-            <button type="button" @click="closeArticleModal" class="hero-btn secondary">
+            <button type="button" @click="closeArticleModal" class="btn secondary">
               Zrušiť
             </button>
-            <button type="submit" class="hero-btn primary">
-              {{ editArticle ? 'Uložiť zmeny' : 'Vytvoriť článok' }}
+            <button type="submit" class="btn primary">
+              {{ editingArticle ? 'Aktualizovať' : 'Vytvoriť' }}
             </button>
           </div>
         </form>
@@ -212,17 +284,22 @@ export default defineComponent({
 
   data() {
     return {
-      // Loading states
-      loading: false,
-      
-      // Data arrays
-      assignments: [] as any[],
+      // Articles
       articles: [] as any[],
-      conferenceYears: [] as any[],
+      assignments: [] as any[],
+      filteredArticles: [] as any[],
+      searchQuery: '',
+      selectedConferenceYear: '',
+      isLoading: false,
       
-      // Form states
+      // Files
+      files: [] as any[],
+      isLoadingFiles: false,
+      isDragOver: false,
+      
+      // Article Modal
       showArticleModal: false,
-      editArticle: null as any,
+      editingArticle: null as any,
       articleForm: {
         title: '',
         content: '',
@@ -230,11 +307,7 @@ export default defineComponent({
         conference_year_id: ''
       },
       
-      // Filter states
-      searchQuery: '',
-      selectedConferenceYearId: '',
-      
-      // TinyMCE configuration
+      // TinyMCE configuration with file upload support
       tinymceKey: 'ama3uyd2ecm9bw4zvg1689uk4qkpcxzv7sxvjv47ylo35cen',
       tinymceConfig: {
         height: 400,
@@ -244,163 +317,165 @@ export default defineComponent({
           'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
           'insertdatetime', 'media', 'table', 'help', 'wordcount'
         ],
-        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | help',
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
-        images_upload_handler: this.handleImageUpload,
+        toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help | image media link',
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        
+        // File upload configuration
         automatic_uploads: true,
-        file_picker_types: 'image',
-        file_picker_callback: this.handleFilePicker,
-        images_upload_url: 'http://localhost/bt/bt-projekt/public/api/upload-image',
-        images_upload_base_path: '',
-        images_upload_credentials: true,
-        setup: (editor: any) => {
-          editor.on('init', () => {
-            console.log('TinyMCE Editor initialized for EditDashboard')
-          })
+        file_picker_types: 'file image media',
+        
+        // Image upload
+        images_upload_handler: async (blobInfo: any) => {
+          const formData = new FormData()
+          formData.append('file', blobInfo.blob(), blobInfo.filename())
+          
+          try {
+            const response = await editorPanel.uploadImage(formData)
+            return response.data.location
+          } catch (error) {
+            console.error('Image upload failed:', error)
+            throw error
+          }
+        },
+        
+        // File upload handler
+        file_picker_callback: async (callback: any, value: any, meta: any) => {
+          if (meta.filetype === 'file') {
+            const input = document.createElement('input')
+            input.setAttribute('type', 'file')
+            input.setAttribute('accept', '.pdf,.doc,.docx,.txt,.zip,.rar')
+            
+            input.onchange = async () => {
+              const file = input.files?.[0]
+              if (file) {
+                const formData = new FormData()
+                formData.append('file', file)
+                
+                try {
+                  const response = await editorPanel.uploadFile(formData)
+                  callback(response.data.location, { text: file.name, title: file.name })
+                  await this.loadFiles() // Refresh files list
+                } catch (error) {
+                  console.error('File upload failed:', error)
+                  alert('Nahrávanie súboru zlyhalo')
+                }
+              }
+            }
+            
+            input.click()
+          } else if (meta.filetype === 'image') {
+            const input = document.createElement('input')
+            input.setAttribute('type', 'file')
+            input.setAttribute('accept', 'image/*')
+            
+            input.onchange = async () => {
+              const file = input.files?.[0]
+              if (file) {
+                const formData = new FormData()
+                formData.append('file', file)
+                
+                try {
+                  const response = await editorPanel.uploadImage(formData)
+                  callback(response.data.location, { alt: file.name, title: file.name })
+                } catch (error) {
+                  console.error('Image upload failed:', error)
+                  alert('Nahrávanie obrázka zlyhalo')
+                }
+              }
+            }
+            
+            input.click()
+          }
         }
       } as Settings
     }
   },
 
   computed: {
-    // Get conference years that are assigned to current user
-    assignedConferenceYears() {
-      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
-      return this.conferenceYears.filter(cy => assignedYearIds.includes(cy.id))
+    totalArticles() {
+      return this.articles.length
+    }
+  },
+
+  watch: {
+    searchQuery() {
+      this.filterArticles()
     },
-
-    // Filter articles based on assignments, search query and selected conference year
-    filteredArticles() {
-      let filtered = this.articles
-
-      // Only show articles from assigned conference years
-      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
-      filtered = filtered.filter(article => assignedYearIds.includes(article.conference_year_id))
-
-      // Apply search filter
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(article => 
-          article.title.toLowerCase().includes(query) ||
-          article.author_name.toLowerCase().includes(query) ||
-          (article.content && article.content.toLowerCase().includes(query))
-        )
-      }
-
-      // Apply conference year filter
-      if (this.selectedConferenceYearId) {
-        filtered = filtered.filter(article => 
-          article.conference_year_id === parseInt(this.selectedConferenceYearId)
-        )
-      }
-
-      return filtered
-    },
-
-    // Calculate total articles assigned to user
-    totalAssignedArticles() {
-      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
-      return this.articles.filter(article => assignedYearIds.includes(article.conference_year_id)).length
+    selectedConferenceYear() {
+      this.filterArticles()
     }
   },
 
   methods: {
-    // TinyMCE image upload handler
-    async handleImageUpload(blobInfo: any, progress: any): Promise<string> {
-      return new Promise(async (resolve, reject) => {
-        try {
-          const formData = new FormData()
-          formData.append('file', blobInfo.blob(), blobInfo.filename())
-
-          const response = await editorPanel.uploadImage(formData)
-          
-          if (response.data && response.data.location) {
-            resolve(response.data.location)
-          } else {
-            reject('Upload failed: No location returned')
-          }
-        } catch (error) {
-          console.error('Image upload error:', error)
-          reject('Upload failed: ' + (error.response?.data?.error || error.message))
-        }
-      })
-    },
-
-    // TinyMCE file picker callback
-    handleFilePicker(callback: any, value: any, meta: any) {
-      if (meta.filetype === 'image') {
-        const input = document.createElement('input')
-        input.setAttribute('type', 'file')
-        input.setAttribute('accept', 'image/*')
-
-        input.onchange = async () => {
-          const file = input.files?.[0]
-          if (file) {
-            try {
-              const formData = new FormData()
-              formData.append('file', file)
-
-              const response = await editorPanel.uploadImage(formData)
-              
-              if (response.data && response.data.location) {
-                callback(response.data.location, { title: file.name })
-              }
-            } catch (error) {
-              console.error('File picker upload error:', error)
-              alert('Chyba pri nahrávaní obrázka: ' + (error.response?.data?.error || error.message))
-            }
-          }
-        }
-
-        input.click()
-      }
-    },
-
-    // Load user assignments
+    // Articles methods
     async loadAssignments() {
       try {
         const response = await editorPanel.getMyAssignments()
         this.assignments = response.data.data || []
-        console.log('Loaded assignments:', this.assignments)
       } catch (error) {
         console.error('Error loading assignments:', error)
       }
     },
 
-    // Load conference years
-    async loadConferenceYears() {
-      try {
-        const response = await editorPanel.getConferenceYears()
-        this.conferenceYears = response.data.data || []
-        console.log('Loaded conference years:', this.conferenceYears)
-      } catch (error) {
-        console.error('Error loading conference years:', error)
-      }
-    },
-
-    // Load articles
     async loadArticles() {
+      this.isLoading = true
       try {
-        this.loading = true
         const response = await editorPanel.listArticles()
         this.articles = response.data.data || []
-        console.log('Loaded articles:', this.articles)
+        this.filterArticles()
       } catch (error) {
         console.error('Error loading articles:', error)
       } finally {
-        this.loading = false
+        this.isLoading = false
       }
     },
 
-    // Open article modal for create/edit
+    async loadFiles() {
+      this.isLoadingFiles = true
+      try {
+        const response = await editorPanel.getMyFiles()
+        this.files = response.data.data || []
+      } catch (error) {
+        console.error('Error loading files:', error)
+      } finally {
+        this.isLoadingFiles = false
+      }
+    },
+
+    filterArticles() {
+      let filtered = [...this.articles]
+
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase()
+        filtered = filtered.filter(article => 
+          article.title.toLowerCase().includes(query) ||
+          article.author_name.toLowerCase().includes(query)
+        )
+      }
+
+      if (this.selectedConferenceYear) {
+        filtered = filtered.filter(article => 
+          article.conference_year_id == this.selectedConferenceYear
+        )
+      }
+
+      // Filter by user's assignments
+      const assignedYearIds = this.assignments.map(a => a.conference_year_id)
+      filtered = filtered.filter(article => 
+        assignedYearIds.includes(article.conference_year_id)
+      )
+
+      this.filteredArticles = filtered
+    },
+
     openArticleModal(article = null) {
-      this.editArticle = article
+      this.editingArticle = article
       if (article) {
         this.articleForm = {
-          title: article.title || '',
+          title: article.title,
           content: article.content || '',
-          author_name: article.author_name || '',
-          conference_year_id: article.conference_year_id?.toString() || ''
+          author_name: article.author_name,
+          conference_year_id: article.conference_year_id
         }
       } else {
         this.articleForm = {
@@ -413,70 +488,123 @@ export default defineComponent({
       this.showArticleModal = true
     },
 
-    // Close article modal
     closeArticleModal() {
       this.showArticleModal = false
-      this.editArticle = null
-      this.articleForm = {
-        title: '',
-        content: '',
-        author_name: '',
-        conference_year_id: ''
-      }
+      this.editingArticle = null
     },
 
-    // Save article (create or update)
     async saveArticle() {
       try {
-        const articleData = {
-          title: this.articleForm.title,
-          content: this.articleForm.content,
-          author_name: this.articleForm.author_name,
-          conference_year_id: parseInt(this.articleForm.conference_year_id)
-        }
-
-        if (this.editArticle) {
-          await editorPanel.updateArticle(this.editArticle.id, articleData)
+        if (this.editingArticle) {
+          await editorPanel.updateArticle(this.editingArticle.id, this.articleForm)
         } else {
-          await editorPanel.createArticle(articleData)
+          await editorPanel.createArticle(this.articleForm)
         }
-
-        await this.loadArticles()
+        
         this.closeArticleModal()
+        await this.loadArticles()
       } catch (error) {
         console.error('Error saving article:', error)
-        alert('Chyba pri ukladaní článku: ' + (error.response?.data?.message || error.message))
+        alert('Chyba pri ukladaní článku')
       }
     },
 
-    // Delete article
     async deleteArticle(id: number) {
-      if (!confirm('Naozaj chcete vymazať tento článok?')) return
-
-      try {
-        await editorPanel.deleteArticle(id)
-        await this.loadArticles()
-      } catch (error) {
-        console.error('Error deleting article:', error)
-        alert('Chyba pri mazaní článku: ' + (error.response?.data?.message || error.message))
+      if (confirm('Naozaj chcete vymazať tento článok?')) {
+        try {
+          await editorPanel.deleteArticle(id)
+          await this.loadArticles()
+        } catch (error) {
+          console.error('Error deleting article:', error)
+          alert('Chyba pri mazaní článku')
+        }
       }
     },
 
-    // Helper methods
-    formatDate(dateString?: string): string {
+    // File methods
+    handleFileDrop(event: DragEvent) {
+      event.preventDefault()
+      this.isDragOver = false
+      
+      const files = event.dataTransfer?.files
+      if (files) {
+        this.uploadFiles(Array.from(files))
+      }
+    },
+
+    handleFileSelect(event: Event) {
+      const target = event.target as HTMLInputElement
+      const files = target.files
+      if (files) {
+        this.uploadFiles(Array.from(files))
+      }
+    },
+
+    async uploadFiles(files: File[]) {
+      for (const file of files) {
+        await this.uploadSingleFile(file)
+      }
+      await this.loadFiles()
+    },
+
+    async uploadSingleFile(file: File) {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      try {
+        await editorPanel.uploadFile(formData)
+      } catch (error) {
+        console.error('Error uploading file:', error)
+        alert(`Chyba pri nahrávaní súboru ${file.name}`)
+      }
+    },
+
+    async deleteFile(fileId: number) {
+      if (confirm('Naozaj chcete vymazať tento súbor?')) {
+        try {
+          await editorPanel.deleteFile(fileId)
+          await this.loadFiles()
+        } catch (error) {
+          console.error('Error deleting file:', error)
+          alert('Chyba pri mazaní súboru')
+        }
+      }
+    },
+
+    copyFileUrl(file: any) {
+      navigator.clipboard.writeText(file.download_url).then(() => {
+        alert('URL súboru bola skopírovaná do schránky')
+      })
+    },
+
+    isImageFile(file: any) {
+      return file.mime_type?.startsWith('image/')
+    },
+
+    isPdfFile(file: any) {
+      return file.mime_type === 'application/pdf'
+    },
+
+    // Utility methods
+    formatConferenceYear(conferenceYear: any) {
+      if (!conferenceYear) return 'Neznámy ročník'
+      return `${conferenceYear.semester} ${conferenceYear.year}`
+    },
+
+    formatDate(dateString: string) {
       return editorPanel.helpers.formatDate(dateString)
     },
 
-    getContentPreview(content: string): string {
-      return editorPanel.helpers.getContentPreview(content, 150)
+    getContentPreview(content: string) {
+      return editorPanel.helpers.getContentPreview(content, 100)
     }
   },
 
   async mounted() {
     await Promise.all([
       this.loadAssignments(),
-      this.loadConferenceYears(),
-      this.loadArticles()
+      this.loadArticles(),
+      this.loadFiles()
     ])
   }
 })
@@ -573,10 +701,12 @@ export default defineComponent({
 
 @keyframes float {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
+    opacity: 1;
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.8;
   }
 }
 
@@ -641,7 +771,10 @@ export default defineComponent({
 /* Management Section */
 .management-section {
   padding: 4rem 0;
-  background: white;
+}
+
+.management-section.alt-bg {
+  background-color: var(--white);
 }
 
 .section-header {
@@ -659,62 +792,57 @@ export default defineComponent({
 .section-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .management-actions {
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.5rem;
   margin-bottom: 2rem;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
 .search-container {
   flex: 1;
-  min-width: 250px;
-  border: 1.5px solid #111;
-  border-radius: 25px;
-  background: white;
-  padding: 0.25rem 0.5rem;
-  display: flex;
-  align-items: center;
+  min-width: 300px;
 }
 
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: none;
-  background: transparent;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
   font-size: 0.95rem;
-  border-radius: 25px;
-  outline: none;
-  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
-  background: #f3f4f6;
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .filter-controls {
   display: flex;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .filter-controls .form-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   margin-bottom: 0;
 }
 
 .filter-controls label {
-  font-size: 0.9rem;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--text-secondary);
-  white-space: nowrap;
+  margin-bottom: 0.5rem;
 }
 
-.hero-btn, .btn {
+.btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -727,51 +855,45 @@ export default defineComponent({
   gap: 0.5rem;
 }
 
-.hero-btn.primary, .btn.primary {
+.btn.primary {
   background: var(--primary-color);
-  color: black;
-  border: 1.5px solid #111;
-  border-radius: 25px;
+  color: white;
 }
 
-.hero-btn.primary:hover, .btn.primary:hover {
+.btn.primary:hover {
   background: #1d4ed8;
-  border: none;
+  transform: translateY(-1px);
 }
 
-.hero-btn.secondary, .btn.secondary {
+.btn.secondary {
   background: var(--text-secondary);
-  color: black;
-  border: 1.5px solid #111;
-  border-radius: 25px;
+  color: white;
 }
 
-.hero-btn.secondary:hover, .btn.secondary:hover {
-  background: red;
-  border: none;
+.btn.secondary:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
 }
 
 /* Cards Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 1.5rem;
+  margin-top: 2rem;
 }
 
 .feature-card {
-  background: white;
+  background: var(--white);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
   border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 .feature-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -783,28 +905,25 @@ export default defineComponent({
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
 }
 
 .card-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-color);
+  gap: 0.25rem;
 }
 
 .meta-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   font-size: 0.875rem;
 }
 
 .meta-label {
   font-weight: 500;
   color: var(--text-secondary);
+  min-width: 80px;
 }
 
 .meta-value {
@@ -812,67 +931,176 @@ export default defineComponent({
 }
 
 .card-content {
-  flex: 1;
-  padding: 1rem 0;
+  margin-bottom: 1.5rem;
 }
 
 .content-preview {
   color: var(--text-secondary);
-  font-size: 0.9rem;
   line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 .card-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 .action-btn {
-  flex: 1;
   padding: 0.5rem 1rem;
-  border: 1px solid #111;
-  border-radius: 25px;
+  border: none;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: black;
+  text-decoration: none;
 }
 
 .action-btn.edit {
   background: var(--primary-color);
+  color: white;
 }
 
 .action-btn.edit:hover {
-  background: rgb(0, 162, 255);
-  border: none;
+  background: #1d4ed8;
 }
 
 .action-btn.delete {
   background: var(--danger-color);
+  color: white;
 }
 
 .action-btn.delete:hover {
   background: #dc2626;
-  border: none;
+}
+
+.action-btn.download {
+  background: var(--success-color);
+  color: white;
+}
+
+.action-btn.download:hover {
+  background: #059669;
+}
+
+.action-btn.copy {
+  background: var(--accent-color);
+  color: white;
+}
+
+.action-btn.copy:hover {
+  background: #d97706;
+}
+
+/* File Upload Area */
+.file-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.file-upload-area:hover,
+.file-upload-area.drag-over {
+  border-color: var(--primary-color);
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  opacity: 0.6;
+}
+
+.upload-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.upload-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Files Grid */
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.file-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.file-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-info h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 /* Form Controls */
 .modern-select, .modern-input {
   padding: 0.75rem 1rem;
-  border: 1px solid #111;
-  border-radius: 25px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  background: white;
-  width: 100%;
-  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
 .modern-select {
+  background-color: var(--white);
   cursor: pointer;
 }
 
@@ -884,12 +1112,9 @@ export default defineComponent({
 
 /* Loading and Empty States */
 .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
   text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
 }
 
 .loading-spinner {
@@ -899,7 +1124,7 @@ export default defineComponent({
   border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem;
 }
 
 @keyframes spin {
@@ -914,14 +1139,16 @@ export default defineComponent({
 }
 
 .empty-icon {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: 1rem;
+  opacity: 0.6;
 }
 
 .empty-state h3 {
   font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
 .empty-state p {
@@ -944,10 +1171,10 @@ export default defineComponent({
 }
 
 .modal-container {
-  background: white;
+  background: var(--white);
   border-radius: 12px;
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-xl);
@@ -957,35 +1184,31 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: 1.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
 }
 
 .close-button {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: var(--text-secondary);
   cursor: pointer;
+  color: var(--text-secondary);
   padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
 }
 
 .close-button:hover {
-  background: var(--light-color);
   color: var(--text-primary);
 }
 
 .modal-form {
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .form-group {
@@ -994,9 +1217,9 @@ export default defineComponent({
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
   font-weight: 500;
   color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
 .form-actions {
@@ -1004,7 +1227,7 @@ export default defineComponent({
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
-  padding-top: 1.5rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--border-color);
 }
 
@@ -1016,26 +1239,28 @@ export default defineComponent({
   
   .hero-stats {
     flex-direction: column;
-    gap: 1rem;
+    gap: 2rem;
   }
   
   .management-actions {
     flex-direction: column;
-    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .filter-controls {
+    flex-direction: column;
   }
   
   .cards-grid {
     grid-template-columns: 1fr;
   }
   
-  .modal-container {
-    margin: 1rem;
-    max-width: calc(100% - 2rem);
+  .files-grid {
+    grid-template-columns: 1fr;
   }
-
-  .modal-header,
-  .modal-form {
-    padding: 1rem;
+  
+  .file-actions {
+    flex-direction: column;
   }
 }
 </style>

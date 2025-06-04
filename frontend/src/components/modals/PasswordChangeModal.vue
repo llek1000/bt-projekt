@@ -10,8 +10,8 @@
           <div class="form-group">
             <label for="newPassword">New Password</label>
             <input
-              type="password"
               id="newPassword"
+              type="password"
               v-model="passwordForm.password"
               required
             />
@@ -19,8 +19,8 @@
           <div class="form-group">
             <label for="confirmNewPassword">Confirm New Password</label>
             <input
-              type="password"
               id="confirmNewPassword"
+              type="password"
               v-model="passwordForm.password_confirmation"
               required
             />
@@ -31,7 +31,9 @@
               <button type="button" @click="$emit('close')" class="btn-cancel">
                 Cancel
               </button>
-              <button type="submit" class="btn-save">Update Password</button>
+              <button type="submit" class="btn-save">
+                Save Password
+              </button>
             </div>
           </div>
         </form>

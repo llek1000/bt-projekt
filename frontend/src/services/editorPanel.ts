@@ -70,6 +70,16 @@ export default {
     })
   },
 
+  // File upload for TinyMCE
+  uploadFile(formData: FormData) {
+    return api.post<{ location: string; filename: string; file_id: number; download_url: string }>('/upload-file', formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json'
+      }
+    })
+  },
+
   // Get current user info
   getCurrentUser() {
     return api.get<{ user: any }>('/user')
@@ -88,6 +98,16 @@ export default {
   // Get articles by conference year
   getArticlesByConferenceYear(conferenceYearId: number) {
     return api.get<{ data: any[]; conference_year?: any }>(`/articles/conference-year/${conferenceYearId}`)
+  },
+
+  // List user's uploaded files
+  getMyFiles() {
+    return api.get<{ data: any[] }>('/files/my-files')
+  },
+
+  // Delete file
+  deleteFile(fileId: number) {
+    return api.delete(`/editor/files/${fileId}`)
   },
 
   // Helper methods for editors

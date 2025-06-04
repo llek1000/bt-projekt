@@ -29,6 +29,14 @@ class ConferenceYear extends Model
     }
 
     /**
+     * Get all editor assignments for this conference year
+     */
+    public function editorAssignments(): HasMany
+    {
+        return $this->hasMany(EditorAssignment::class);
+    }
+
+    /**
      * Scope to get only active conference years
      */
     public function scopeActive($query)

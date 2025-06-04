@@ -70,21 +70,6 @@
                 <span>📷</span>
               </a>
             </div>
-            
-            <div class="newsletter">
-              <h4>Newsletter</h4>
-              <p>Zostaňte informovaní o najnovších správach a udalostiach univerzity</p>
-              <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
-                <input 
-                  type="email" 
-                  v-model="newsletterEmail"
-                  placeholder="Zadajte váš email"
-                  class="newsletter-input"
-                  required
-                />
-                <button type="submit" class="newsletter-btn">Prihlásiť</button>
-              </form>
-            </div>
           </div>
         </div>
       </div>

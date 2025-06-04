@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\ConferenceYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -317,6 +318,87 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Chyba pri načítavaní editorov: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get conference years with their assigned editors
+     */
+    public function getYearsWithEditors()
+    {
+        try {
+            $yearsWithEditors = ConferenceYear::with([
+                'editorAssignments.user.roles'
+            ])
+            ->orderBy('year', 'desc')
+            ->orderBy('semester', 'desc')
+            ->get()
+            ->map(function ($year) {
+                return [
+                    'id' => $year->id,
+                    'year' => $year->year,
+                    'semester' => $year->semester,
+                    'is_active' => $year->is_active,
+                    'created_at' => $year->created_at,
+                    'updated_at' => $year->updated_at,
+                    'editors' => $year->editorAssignments->map(function ($assignment) {
+                        return [
+                            'assignment_id' => $assignment->id,
+                            'user_id' => $assignment->user_id,
+                            'username' => $assignment->user->username,
+                            'email' => $assignment->user->email,
+                            'roles' => $assignment->user->roles->pluck('name')->toArray(),
+                            'assigned_at' => $assignment->created_at
+                        ];
+                    })
+                ];
+            });
+
+            return response()->json(['data' => $yearsWithEditors]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Chyba pri načítavaní ročníkov s editormi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get system info
+     */
+    public function getSystemInfo()
+    {
+        try {
+            $info = [
+                'users_count' => User::count(),
+                'conference_years_count' => ConferenceYear::count(),
+                'active_years_count' => ConferenceYear::where('is_active', true)->count(),
+                'php_version' => PHP_VERSION,
+                'laravel_version' => app()->version()
+            ];
+
+            return response()->json(['data' => $info]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Chyba pri načítavaní systémových informácií: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all files in system (Admin only)
+     */
+    public function getAllFiles()
+    {
+        try {
+            $files = \App\Models\File::with('uploader')
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
+            return response()->json(['data' => $files]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Chyba pri načítavaní súborov: ' . $e->getMessage()
             ], 500);
         }
     }

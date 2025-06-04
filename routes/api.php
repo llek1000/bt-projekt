@@ -91,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('roles', [AdminController::class, 'getRoles']);
         Route::post('users/{userId}/assign-role', [AdminController::class, 'assignUserRole']);
         
-        // Editor Assignment Management - ADD THESE MISSING ROUTES
+        // Editor Assignment Management
         Route::prefix('years/{year}/editors')->group(function () {
             Route::get('/', [EditorAssignmentController::class, 'index']);
             Route::post('/', [EditorAssignmentController::class, 'store']);
@@ -101,10 +101,14 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Editor related routes
         Route::get('editors', [AdminController::class, 'getEditors']);
+        Route::get('years-with-editors', [AdminController::class, 'getYearsWithEditors']); // Nová route
         Route::get('assignments', [EditorAssignmentController::class, 'all']);
         Route::get('assignments/user/{userId}', [EditorAssignmentController::class, 'byUser']);
         
         // System info
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
+        
+        // File Management (Admin can see all files)
+        Route::get('files', [AdminController::class, 'getAllFiles']);
     });
 });

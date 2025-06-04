@@ -8,19 +8,19 @@
             <span class="icon-search">🔍</span>
             <span class="button-text">Vyhľadať</span>
           </button>
-          
+
           <button @click="toggleQuicklinks" class="topbar-button">
             <span class="icon-quicklinks">≡</span>
             <span class="button-text">Rýchle odkazy</span>
           </button>
-          
+
           <a href="/login" class="topbar-button">
             <span class="icon-login">👤</span>
             <span class="button-text">Prihlásenie</span>
           </a>
         </div>
       </div>
-      
+
       <!-- Dropdown vyhľadávania -->
       <transition name="slide-down">
         <div class="search-dropdown" v-if="searchOpen">
@@ -33,7 +33,7 @@
           </form>
         </div>
       </transition>
-      
+
       <!-- Dropdown rýchlych odkazov -->
       <transition name="slide-down">
         <div class="quicklinks-dropdown" v-if="quicklinksOpen">
@@ -74,7 +74,7 @@
         </div>
       </transition>
     </div>
-    
+
     <!-- Hlavné menu -->
     <nav class="main-navbar">
       <div class="navbar-container">
@@ -89,7 +89,7 @@
             </div>
           </a>
         </div>
-        
+
         <div class="main-nav-links">
           <a href="/publications" class="main-nav-link">
             <span>Publikácie</span>
@@ -106,7 +106,7 @@
         </div>
       </div>
     </nav>
-    
+
     <!-- Hlavný obsah -->
     <main class="main-content">
       <!-- Login Hero sekcia -->
@@ -122,39 +122,39 @@
                 <h2>Prihlásenie</h2>
                 <p class="login-subtitle">Vstup do systému výskumného inštitútu</p>
               </div>
-              
+
               <div class="form-group">
                 <label for="email">Email</label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  v-model="email" 
+                <input
+                  type="email"
+                  id="email"
+                  v-model="email"
                   placeholder="Zadajte váš email"
                   :class="{ error: submitted && !email }"
                 />
                 <span v-if="submitted && !email" class="error-message">Email je povinný</span>
               </div>
-              
+
               <div class="form-group">
                 <label for="password">Heslo</label>
-                <input 
-                  type="password" 
-                  id="password" 
-                  v-model="password" 
+                <input
+                  type="password"
+                  id="password"
+                  v-model="password"
                   placeholder="Zadajte vaše heslo"
                   :class="{ error: submitted && !password }"
                 />
                 <span v-if="submitted && !password" class="error-message">Heslo je povinné</span>
               </div>
-              
+
               <div v-if="error" class="error-alert">{{ error }}</div>
-              
+
               <button @click="login" class="login-button" :disabled="loading">
                 <span v-if="!loading">Prihlásiť sa</span>
                 <span v-else>Prihlasovanie...</span>
                 <span class="btn-arrow">→</span>
               </button>
-              
+
               <div class="login-links">
                 <a href="#" class="login-link">Zabudli ste heslo?</a>
                 <a href="#" class="login-link">Registrácia</a>
@@ -164,7 +164,7 @@
         </div>
       </section>
     </main>
-    
+
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-content">
@@ -261,19 +261,28 @@ export default {
     login() {
       this.submitted = true;
       this.error = null;
-      
+
       if (!this.email || !this.password) {
         return;
       }
-      
+
       this.loading = true;
-      
+
       authentification.login({
         email: this.email,
         password: this.password
       })
         .then(response => {
-          this.$router.push('/dashboard');
+          console.log('Backend response:', response.data);
+
+          // Use the redirect_url from backend response
+          const redirectUrl = response.data.redirect_url || '/dashboard';
+          console.log('Redirecting to:', redirectUrl);
+
+          // Navigate to the URL provided by backend
+          setTimeout(() => {
+            this.$router.push(redirectUrl);
+          }, 500);
         })
         .catch(error => {
           this.error = error.response?.data?.message || 'Prihlásenie zlyhalo. Skúste to znovu.';
@@ -1002,41 +1011,41 @@ export default {
   .topbar-container {
     padding: 0.5rem 1rem;
   }
-  
+
   .navbar-container {
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
   }
-  
+
   .main-nav-links {
     gap: 1rem;
   }
-  
+
   .login-form {
     padding: 2rem;
     margin: 1rem;
   }
-  
+
   .login-header h2 {
     font-size: 1.75rem;
   }
-  
+
   .login-links {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .footer-bottom .container {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .quicklinks-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -1047,15 +1056,15 @@ export default {
   .login-form {
     padding: 1.5rem;
   }
-  
+
   .login-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .form-group input {
     padding: 0.875rem;
   }
-  
+
   .login-button {
     padding: 0.875rem 1.5rem;
     font-size: 1rem;

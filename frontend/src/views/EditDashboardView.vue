@@ -483,33 +483,25 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-/* CSS Variables */
 :root {
   --primary-color: #2563eb;
   --secondary-color: #f8fafc;
   --accent-color: #f59e0b;
   --success-color: #10b981;
   --danger-color: #ef4444;
-  --warning-color: #f59e0b;
-  --info-color: #3b82f6;
   --dark-color: #1f2937;
   --light-color: #f9fafb;
   --border-color: #e5e7eb;
   --text-primary: #111827;
   --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
   --white: #ffffff;
-  --light-bg: #f8f9fa;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -517,7 +509,7 @@ export default defineComponent({
 }
 
 .dashboard-container {
-  font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   color: var(--text-primary);
   background-color: var(--light-color);
   min-height: 100vh;
@@ -646,7 +638,7 @@ export default defineComponent({
   margin-top: 0.5rem;
 }
 
-/* Management Sections */
+/* Management Section */
 .management-section {
   padding: 4rem 0;
   background: white;
@@ -680,20 +672,27 @@ export default defineComponent({
 .search-container {
   flex: 1;
   min-width: 250px;
+  border: 1.5px solid #111;
+  border-radius: 25px;
+  background: white;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: none;
+  background: transparent;
   font-size: 0.95rem;
-  transition: border-color 0.3s ease;
+  border-radius: 25px;
+  outline: none;
+  color: var(--text-primary);
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
+  background: #f3f4f6;
 }
 
 .filter-controls {
@@ -715,7 +714,7 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-.hero-btn {
+.hero-btn, .btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -728,23 +727,28 @@ export default defineComponent({
   gap: 0.5rem;
 }
 
-.hero-btn.primary {
+.hero-btn.primary, .btn.primary {
   background: var(--primary-color);
-  color: white;
+  color: black;
+  border: 1.5px solid #111;
+  border-radius: 25px;
 }
 
-.hero-btn.primary:hover {
+.hero-btn.primary:hover, .btn.primary:hover {
   background: #1d4ed8;
-  transform: translateY(-1px);
+  border: none;
 }
 
-.hero-btn.secondary {
+.hero-btn.secondary, .btn.secondary {
   background: var(--text-secondary);
-  color: white;
+  color: black;
+  border: 1.5px solid #111;
+  border-radius: 25px;
 }
 
-.hero-btn.secondary:hover {
-  background: #4b5563;
+.hero-btn.secondary:hover, .btn.secondary:hover {
+  background: red;
+  border: none;
 }
 
 /* Cards Grid */
@@ -761,6 +765,9 @@ export default defineComponent({
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
   border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .feature-card:hover {
@@ -768,7 +775,7 @@ export default defineComponent({
   box-shadow: var(--shadow-lg);
 }
 
-.feature-card .card-header {
+.card-header {
   margin-bottom: 1rem;
 }
 
@@ -777,220 +784,6 @@ export default defineComponent({
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-}
-
-.card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.meta-item {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.card-content {
-  margin-bottom: 1rem;
-}
-
-.content-preview {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.card-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-.action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.action-btn.edit {
-  background: var(--info-color);
-  color: black;
-  
-}
-
-.action-btn.edit:hover {
-  background: #2563eb;
-}
-
-.action-btn.delete {
-  background: var(--danger-color);
-  color: black;
-}
-
-.action-btn.delete:hover {
-  background: #dc2626;
-}
-
-/* Select Controls */
-.modern-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: white;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-}
-
-.modern-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-/* Loading and Empty States */
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.empty-state p {
-  font-size: 0.95rem;
-}
-
-/* Modals */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  background: white;
-  border-radius: 12px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-xl);
-  width: 800px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.close-button:hover {
-  background: var(--light-bg);
-}
-
-.modal-form {
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.modern-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.3s ease;
-}
-
-.modern-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-}
-
-/* Loading State */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Article Cards */
-.article-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 .card-meta {
@@ -1040,30 +833,99 @@ export default defineComponent({
 .action-btn {
   flex: 1;
   padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid #111;
+  border-radius: 25px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: black;
 }
 
 .action-btn.edit {
   background: var(--primary-color);
-  color: white;
 }
 
 .action-btn.edit:hover {
-  background: var(--primary-dark);
+  background: rgb(0, 162, 255);
+  border: none;
 }
 
 .action-btn.delete {
   background: var(--danger-color);
-  color: white;
 }
 
 .action-btn.delete:hover {
   background: #dc2626;
+  border: none;
+}
+
+/* Form Controls */
+.modern-select, .modern-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #111;
+  border-radius: 25px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modern-select {
+  cursor: pointer;
+}
+
+.modern-input:focus, .modern-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Loading and Empty States */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.empty-state p {
+  font-size: 0.95rem;
 }
 
 /* Modal Styles */
@@ -1118,7 +980,7 @@ export default defineComponent({
 }
 
 .close-button:hover {
-  background: var(--light-bg);
+  background: var(--light-color);
   color: var(--text-primary);
 }
 
@@ -1137,24 +999,6 @@ export default defineComponent({
   color: var(--text-primary);
 }
 
-.modern-input,
-.modern-select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.modern-input:focus,
-.modern-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -1164,39 +1008,26 @@ export default defineComponent({
   border-top: 1px solid var(--border-color);
 }
 
-/* Debug Info */
-.debug-info {
-  background: #f0f0f0;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.debug-info h4 {
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.debug-info p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-}
-
-.debug-info details {
-  margin-top: 0.5rem;
-}
-
-.debug-info pre {
-  background: white;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  overflow-x: auto;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .management-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .modal-container {
     margin: 1rem;
     max-width: calc(100% - 2rem);
@@ -1205,20 +1036,6 @@ export default defineComponent({
   .modal-header,
   .modal-form {
     padding: 1rem;
-  }
-
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .management-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .hero-stats {
-    flex-direction: column;
-    gap: 1rem;
   }
 }
 </style>

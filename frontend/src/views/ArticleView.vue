@@ -1,9 +1,11 @@
 <template>
   <div class="page-container">
+    <!-- Navbar -->
     <NavbarComponent />
-    
+
+    <!-- Main Content -->
     <main class="main-content">
-      <!-- Breadcrumb Navigation -->
+      <!-- Breadcrumb Section -->
       <section class="breadcrumb-section">
         <div class="container">
           <nav class="breadcrumb">
@@ -11,45 +13,58 @@
             <span class="breadcrumb-separator">›</span>
             <router-link to="/publications" class="breadcrumb-link">Publikácie</router-link>
             <span class="breadcrumb-separator">›</span>
-            <span class="breadcrumb-current">{{ article?.title || 'Načítava...' }}</span>
+            <span class="breadcrumb-current">{{ article?.title || 'Načítavam...' }}</span>
           </nav>
         </div>
       </section>
 
-      <!-- Article Content -->
+      <!-- Article Section -->
       <section class="article-section">
         <div class="container">
+          <!-- Loading State -->
           <div v-if="loading" class="loading-state">
             <div class="loading-spinner"></div>
-            <p>Načítavam článok...</p>
+            <h3>Načítavam článok...</h3>
           </div>
 
+          <!-- Error State -->
           <div v-else-if="error" class="error-state">
             <div class="error-icon">⚠️</div>
-            <h3>Chyba pri načítavaní článku</h3>
+            <h3>Chyba pri načítaní článku</h3>
             <p>{{ error }}</p>
             <button @click="loadArticle" class="retry-button">
               Skúsiť znovu
             </button>
           </div>
 
-          <article v-else-if="article" class="article-content">
+          <!-- Not Found State -->
+          <div v-else-if="!article" class="not-found-state">
+            <div class="not-found-icon">📄</div>
+            <h3>Článok nebol nájdený</h3>
+            <p>Požadovaný článok neexistuje alebo bol odstránený.</p>
+            <router-link to="/publications" class="back-link">
+              Späť na publikácie
+            </router-link>
+          </div>
+
+          <!-- Article Content -->
+          <div v-else class="article-content">
             <!-- Article Header -->
             <header class="article-header">
               <div class="article-meta">
                 <div class="meta-item">
-                  <span class="meta-label">Konferencia:</span>
-                  <span class="meta-value">
-                    {{ article.conference_year?.semester }} {{ article.conference_year?.year }}
-                  </span>
+                  <span class="meta-label">Dátum publikácie</span>
+                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Autor:</span>
+                  <span class="meta-label">Autor</span>
                   <span class="meta-value">{{ article.author_name }}</span>
                 </div>
-                <div class="meta-item">
-                  <span class="meta-label">Publikované:</span>
-                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
+                <div class="meta-item" v-if="article.conference_year">
+                  <span class="meta-label">Konferencia</span>
+                  <span class="meta-value">
+                    {{ article.conference_year.semester }} {{ article.conference_year.year }}
+                  </span>
                 </div>
               </div>
               
@@ -67,49 +82,45 @@
             <!-- Article Footer -->
             <footer class="article-footer">
               <div class="article-actions">
-                <button @click="$router.go(-1)" class="back-button">
+                <router-link to="/publications" class="back-button">
                   ← Späť na publikácie
-                </button>
+                </router-link>
                 <button @click="shareArticle" class="share-button">
                   📤 Zdieľať článok
                 </button>
               </div>
             </footer>
-          </article>
-
-          <div v-else class="not-found-state">
-            <div class="not-found-icon">📄</div>
-            <h3>Článok nebol nájdený</h3>
-            <p>Článok s ID {{ $route.params.id }} neexistuje.</p>
-            <router-link to="/publications" class="back-link">
-              ← Späť na publikácie
-            </router-link>
           </div>
         </div>
       </section>
 
-      <!-- Related Articles -->
+      <!-- Related Articles Section -->
       <section v-if="relatedArticles.length > 0" class="related-section">
         <div class="container">
           <h2 class="section-title">Súvisiace články</h2>
           <div class="related-grid">
-            <div v-for="relatedArticle in relatedArticles" :key="relatedArticle.id" class="related-card">
+            <article 
+              v-for="relatedArticle in relatedArticles" 
+              :key="relatedArticle.id"
+              class="related-card"
+            >
               <div class="related-meta">
-                <span class="related-author">{{ relatedArticle.author_name }}</span>
                 <span class="related-date">{{ formatDate(relatedArticle.created_at) }}</span>
+                <span class="related-author">{{ relatedArticle.author_name }}</span>
               </div>
               <h3 class="related-title">
                 <router-link :to="`/articles/${relatedArticle.id}`">
                   {{ relatedArticle.title }}
                 </router-link>
               </h3>
-              <p class="related-excerpt">{{ getExcerpt(relatedArticle.content) }}</p>
-            </div>
+              <p class="related-excerpt">{{ formatArticleSummary(relatedArticle.content) }}</p>
+            </article>
           </div>
         </div>
       </section>
     </main>
 
+    <!-- Footer -->
     <FooterComponent />
   </div>
 </template>
@@ -142,9 +153,12 @@ export default {
   
   watch: {
     '$route.params.id': {
-      handler() {
-        this.loadArticle()
-        this.loadRelatedArticles()
+      immediate: true,
+      async handler(newId, oldId) {
+        if (newId !== oldId) {
+          await this.loadArticle()
+          await this.loadRelatedArticles()
+        }
       }
     }
   },
@@ -161,51 +175,59 @@ export default {
         if (!this.article) {
           this.error = 'Článok nebol nájdený'
         }
-        
       } catch (error) {
-        console.error('Error loading article:', error)
-        this.error = error.response?.data?.message || 'Nepodarilo sa načítať článok'
+        console.error('Chyba pri načítaní článku:', error)
+        if (error.response?.status === 404) {
+          this.error = 'Článok nebol nájdený'
+        } else {
+          this.error = 'Nepodarilo sa načítať článok'
+        }
       } finally {
         this.loading = false
       }
     },
-    
+
     async loadRelatedArticles() {
       try {
         if (!this.article?.conference_year_id) return
-        
-        const articles = await articleApi.getArticlesByConferenceYear(this.article.conference_year_id)
+
+        const { articles } = await articleApi.getArticlesByConferenceYear(
+          this.article.conference_year_id
+        )
         
         // Filter out current article and limit to 3
-        this.relatedArticles = articles.articles
-          ?.filter(a => a.id !== this.article.id)
-          ?.slice(0, 3) || []
-          
+        this.relatedArticles = articles
+          .filter(article => article.id !== this.article.id)
+          .slice(0, 3)
       } catch (error) {
-        console.error('Error loading related articles:', error)
+        console.error('Chyba pri načítaní súvisiacich článkov:', error)
+        this.relatedArticles = []
       }
     },
-    
+
     formatDate(dateString) {
       if (!dateString) return 'Neznámy dátum'
       
-      return new Date(dateString).toLocaleDateString('sk-SK', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      try {
+        return new Date(dateString).toLocaleDateString('sk-SK', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch {
+        return 'Neznámy dátum'
+      }
     },
-    
-    getExcerpt(content) {
+
+    formatArticleSummary(content) {
       if (!content) return 'Žiadny obsah...'
       
-      // Remove HTML tags and limit to 150 characters
-      const plainText = content.replace(/<[^>]*>/g, '')
-      return plainText.length > 150 
-        ? plainText.substring(0, 150) + '...'
-        : plainText
+      const cleanContent = content.replace(/<[^>]*>/g, '')
+      return cleanContent.length > 120 
+        ? cleanContent.substring(0, 120) + '...' 
+        : cleanContent
     },
-    
+
     shareArticle() {
       if (navigator.share) {
         navigator.share({
@@ -214,9 +236,10 @@ export default {
           url: window.location.href
         })
       } else {
-        // Fallback - copy URL to clipboard
-        navigator.clipboard.writeText(window.location.href)
-        alert('URL článku bola skopírovaná do schránky!')
+        // Fallback - copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('Link bol skopírovaný do schránky!')
+        })
       }
     }
   }
@@ -224,10 +247,14 @@ export default {
 </script>
 
 <style scoped>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 /* CSS Variables */
 :root {
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
+  --secondary-color: #f59e0b;
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-light: #9ca3af;
@@ -237,6 +264,7 @@ export default {
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 /* Base Styles */
@@ -291,6 +319,10 @@ export default {
 .breadcrumb-current {
   color: var(--text-secondary);
   font-weight: 500;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Article Section */
@@ -340,14 +372,15 @@ export default {
 .meta-value {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .article-title {
+  font-family: 'Poppins', sans-serif;
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--text-primary);
   line-height: 1.2;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -357,7 +390,7 @@ export default {
 }
 
 .content-body {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   line-height: 1.8;
   color: var(--text-primary);
 }
@@ -368,8 +401,9 @@ export default {
 .content-body h4,
 .content-body h5,
 .content-body h6 {
-  margin: 2rem 0 1rem;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
+  margin: 2rem 0 1rem;
   color: var(--text-primary);
 }
 
@@ -401,72 +435,72 @@ export default {
 
 .content-body blockquote {
   border-left: 4px solid var(--primary-color);
-  padding-left: 1.5rem;
+  padding: 1rem 1.5rem;
   margin: 2rem 0;
+  background: var(--bg-secondary);
+  border-radius: 0 8px 8px 0;
   font-style: italic;
-  color: var(--text-secondary);
 }
 
 .no-content {
   text-align: center;
-  padding: 3rem 0;
-  color: var(--text-light);
+  padding: 3rem;
+  color: var(--text-secondary);
 }
 
 /* Article Footer */
 .article-footer {
   padding: 2rem 3rem 3rem;
   border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .article-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
 }
 
 .back-button,
 .share-button {
   padding: 0.75rem 1.5rem;
-  border: none;
   border-radius: 8px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.95rem;
 }
 
 .back-button {
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--text-secondary);
+  color: black;
 }
 
 .back-button:hover {
-  background: var(--border-color);
-  color: var(--text-primary);
+  background: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .share-button {
   background: var(--primary-color);
-  color: white;
+  color: black;
 }
 
 .share-button:hover {
   background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 /* Related Articles */
 .related-section {
-  padding: 3rem 0;
+  padding: 4rem 0;
   background: var(--bg-secondary);
 }
 
 .section-title {
+  font-family: 'Poppins', sans-serif;
   font-size: 2rem;
   font-weight: 700;
   text-align: center;
@@ -478,19 +512,21 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .related-card {
   background: var(--bg-primary);
-  padding: 2rem;
   border-radius: 12px;
+  padding: 2rem;
   box-shadow: var(--shadow-md);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .related-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
 }
 
 .related-meta {
@@ -503,15 +539,16 @@ export default {
 }
 
 .related-title {
-  margin: 0 0 1rem;
   font-size: 1.25rem;
   font-weight: 600;
+  margin-bottom: 1rem;
+  line-height: 1.3;
 }
 
 .related-title a {
   color: var(--text-primary);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.3s ease;
 }
 
 .related-title a:hover {
@@ -520,7 +557,8 @@ export default {
 
 .related-excerpt {
   color: var(--text-secondary);
-  margin: 0;
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
 /* Loading, Error & Not Found States */
@@ -538,18 +576,19 @@ export default {
   border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  margin: 0 auto 2rem;
 }
 
 .error-icon,
 .not-found-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
 }
 
 .error-state h3,
 .not-found-state h3 {
   font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 1rem;
   color: var(--text-primary);
 }
@@ -557,21 +596,22 @@ export default {
 .retry-button,
 .back-link {
   display: inline-block;
+  margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
   background: var(--primary-color);
   color: white;
   text-decoration: none;
   border-radius: 8px;
   font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  margin-top: 1rem;
 }
 
 .retry-button:hover,
 .back-link:hover {
   background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
 @keyframes spin {
@@ -581,45 +621,63 @@ export default {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .article-header,
-  .article-body,
-  .article-footer {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+  .article-header {
+    padding: 2rem 1.5rem;
   }
-  
+
+  .article-body {
+    padding: 2rem 1.5rem;
+  }
+
+  .article-footer {
+    padding: 1.5rem;
+  }
+
   .article-title {
     font-size: 2rem;
   }
-  
+
   .article-meta {
+    gap: 1rem;
+  }
+
+  .article-actions {
     flex-direction: column;
     gap: 1rem;
   }
-  
-  .article-actions {
-    flex-direction: column;
+
+  .breadcrumb-current {
+    max-width: 200px;
   }
-  
+
   .related-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .breadcrumb {
-    flex-wrap: wrap;
+  .article-header {
+    padding: 1.5rem 1rem;
   }
-  
-  .article-header,
-  .article-body,
+
+  .article-body {
+    padding: 1.5rem 1rem;
+  }
+
   .article-footer {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding: 1rem;
   }
-  
+
   .article-title {
     font-size: 1.75rem;
+  }
+
+  .content-body {
+    font-size: 1rem;
+  }
+
+  .breadcrumb-current {
+    max-width: 150px;
   }
 }
 </style>

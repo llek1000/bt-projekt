@@ -180,108 +180,6 @@
           </div>
         </div>
       </section>
-
-      <!-- Úspechy section -->
-      <section class="achievements-section">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">Naše úspechy</h2>
-            <p class="section-subtitle">Míľniky, ktoré definujú našu cestu</p>
-          </div>
-          <div class="achievements-timeline">
-            <div class="timeline-item">
-              <div class="timeline-year">2023</div>
-              <div class="timeline-content">
-                <h4>Prielom v génových terapiách</h4>
-                <p>Náš tím vyvinul novú metódu génovej terapie, ktorá sa ukázala ako vysoko účinná pri liečbe zriedkavých genetických ochorení.</p>
-              </div>
-            </div>
-            
-            <div class="timeline-item">
-              <div class="timeline-year">2021</div>
-              <div class="timeline-content">
-                <h4>Medzinárodné ocenenie za inovačnosť</h4>
-                <p>Získali sme prestížne ocenenie Európskej únie za inovatívny prístup k výskumu udržateľných technológií.</p>
-              </div>
-            </div>
-            
-            <div class="timeline-item">
-              <div class="timeline-year">2019</div>
-              <div class="timeline-content">
-                <h4>Otvorenie nového výskumného centra</h4>
-                <p>Spustili sme naše najmodernejšie výskumné centrum vybavené najnovšími technológiami pre pokročilý výskum.</p>
-              </div>
-            </div>
-            
-            <div class="timeline-item">
-              <div class="timeline-year">2015</div>
-              <div class="timeline-content">
-                <h4>Strategické partnerstvo s NASA</h4>
-                <p>Nadviazali sme spoluprácu s NASA na výskume materiálov pre vesmírne misie.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Kontakt a lokalita section -->
-      <section class="contact-location-section">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">Navštívte nás</h2>
-            <p class="section-subtitle">Sme tu pre vás</p>
-          </div>
-          <div class="contact-grid">
-            <div class="contact-info">
-              <h3>Kontaktné údaje</h3>
-              <div class="contact-details">
-                <div class="contact-item">
-                  <span class="contact-icon">📍</span>
-                  <div class="contact-text">
-                    <strong>Adresa</strong>
-                    <p>Univerzitný kampus<br>1180 Viedeň, Rakúsko</p>
-                  </div>
-                </div>
-                <div class="contact-item">
-                  <span class="contact-icon">📞</span>
-                  <div class="contact-text">
-                    <strong>Telefón</strong>
-                    <p>+43 1 47654 0</p>
-                  </div>
-                </div>
-                <div class="contact-item">
-                  <span class="contact-icon">✉️</span>
-                  <div class="contact-text">
-                    <strong>Email</strong>
-                    <p>research@institute.ac.at</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="visit-info">
-              <h3>Návštevné hodiny</h3>
-              <div class="visit-schedule">
-                <div class="schedule-item">
-                  <span class="day">Pondelok - Piatok</span>
-                  <span class="time">8:00 - 18:00</span>
-                </div>
-                <div class="schedule-item">
-                  <span class="day">Sobota</span>
-                  <span class="time">9:00 - 14:00</span>
-                </div>
-                <div class="schedule-item">
-                  <span class="day">Nedeľa</span>
-                  <span class="time">Zatvorené</span>
-                </div>
-              </div>
-              <div class="visit-note">
-                <p><strong>Poznámka:</strong> Pre návštevy laboratórií je potrebné vopred dohodnúť termín.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
 
     <!-- Footer -->
@@ -596,11 +494,12 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+
 }
 
 .credential {
   background: var(--primary-color);
-  color: white;
+  color: black;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.875rem;

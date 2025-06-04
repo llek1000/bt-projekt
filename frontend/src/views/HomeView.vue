@@ -1,269 +1,222 @@
 <template>
   <div class="page-container">
-    <!-- Použitie spoločného navbar komponentu -->
     <NavbarComponent />
     
-    <!-- Zvyšok obsahu HomeView zostáva rovnaký -->
     <main class="main-content">
       <!-- Hero sekcia -->
       <section class="hero-section">
         <div class="hero-background">
           <div class="hero-overlay"></div>
-          <div class="hero-particles"></div>
+          <div class="hero-particles">
+            <div class="particle" v-for="n in 20" :key="n" 
+                 :style="{ left: Math.random() * 100 + '%', top: Math.random() * 100 + '%' }"></div>
+          </div>
         </div>
-        <div class="hero-content">
-          <div class="hero-text">
+        
+        <div class="container">
+          <div class="hero-content">
             <h1 class="hero-title">
-              <span class="title-line">Centrum pre</span>
-              <span class="title-line highlight">Vedecký výskum</span>
+              <span class="title-line">Výskumný Inštitút</span>
+              <span class="title-line highlight">Moderných Technológií</span>
             </h1>
             <p class="hero-subtitle">
-              Posúvanie hraníc poznania prostredníctvom inovácií a spolupráce
+              Sme popredná inštitúcia zameraná na výskum a vývoj najnovších technológií. 
+              Naša práca formuje budúcnosť vedy a technológií.
             </p>
             <div class="hero-buttons">
-              <a href="/about" class="hero-btn secondary">
-                <span>O nás</span>
+              <router-link to="/publications" class="hero-btn primary">
+                Naše Publikácie
                 <span class="btn-arrow">→</span>
-              </a>
+              </router-link>
+              <router-link to="/about" class="hero-btn secondary">
+                O Nás
+                <span class="btn-arrow">→</span>
+              </router-link>
             </div>
-          </div>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <span class="stat-number">150+</span>
-              <span class="stat-label">Projektov</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">200+</span>
-              <span class="stat-label">Publikácií</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-number">500+</span>
-              <span class="stat-label">Partnerov</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Vítacia sekcia -->
-      <section class="welcome-section">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">Vitajte v budúcnosti výskumu</h2>
-            <p class="section-subtitle">Kde sa inovácie stretávajú s excelentnosťou</p>
-          </div>
-          <div class="welcome-content">
-            <div class="welcome-text">
-              <p class="highlight-text">
-                Náš inštitút je zameraný na pokrok vo vedeckom poznaní prostredníctvom inovatívneho výskumu v rôznych disciplínach.
-              </p>
-              <p>
-                Spojujeme svetových odborníkov, moderné zariadenia a inovatívne prístupy na riešenie najnaliehavejších výziev našej doby.
-              </p>
-              <p>
-                Prostredníctvom spolupráce s priemyslom, vládou a inými akademickými inštitúciami sa snažíme previesť vedecké objavy 
-                do praktických aplikácií, ktoré prospievajú spoločnosti a zlepšujú životy.
-              </p>
-            </div>
-            <div class="welcome-features">
-              <div class="feature-item">
-                <div class="feature-icon">🎯</div>
-                <h4>Zameraný výskum</h4>
-                <p>Cielené štúdie v kľúčových vedeckých oblastiach</p>
+            
+            <div class="hero-stats">
+              <div class="stat-item">
+                <span class="stat-number">{{ totalArticles }}</span>
+                <span class="stat-label">Publikácií</span>
               </div>
-              <div class="feature-item">
-                <div class="feature-icon">🤝</div>
-                <h4>Spolupráca</h4>
-                <p>Globálne partnerstvá a zdieľanie poznatkov</p>
+              <div class="stat-item">
+                <span class="stat-number">4</span>
+                <span class="stat-label">Oddelení</span>
               </div>
-              <div class="feature-item">
-                <div class="feature-icon">💡</div>
-                <h4>Inovácia</h4>
-                <p>Moderné technológie a metódy</p>
+              <div class="stat-item">
+                <span class="stat-number">15+</span>
+                <span class="stat-label">Rokov Výskumu</span>
               </div>
             </div>
           </div>
         </div>
       </section>
-      
-      <!-- Sekcia výskumných oblastí -->
-      <section class="research-areas">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">Výskumné oblasti</h2>
-            <p class="section-subtitle">Preskúmajte naše kľúčové oblasti pôsobenia</p>
-          </div>
-          <div class="research-grid">
-            <div class="research-card">
-              <div class="card-header">
-                <div class="research-icon life-sciences">🧪</div>
-                <h3>Životné vedy</h3>
-              </div>
-              <p>Skúmanie základných biologických procesov a vývoj nových prístupov k zdraviu a chorobám.</p>
-              <div class="card-footer">
-                <a href="#" class="learn-more">Zistiť viac →</a>
-              </div>
-            </div>
-            <div class="research-card">
-              <div class="card-header">
-                <div class="research-icon data-science">💻</div>
-                <h3>Údaje a vedy o údajoch</h3>
-              </div>
-              <p>Vývoj výpočtových metód a algoritmov AI na extrakciu poznatkov z komplexných dátových súborov.</p>
-              <div class="card-footer">
-                <a href="#" class="learn-more">Zistiť viac →</a>
-              </div>
-            </div>
-            <div class="research-card">
-              <div class="card-header">
-                <div class="research-icon environmental">🌍</div>
-                <h3>Environmentálne vedy</h3>
-              </div>
-              <p>Štúdium zmien klímy, biodiverzity a vývoj udržateľných riešení pre environmentálne výzvy.</p>
-              <div class="card-footer">
-                <a href="#" class="learn-more">Zistiť viac →</a>
-              </div>
-            </div>
-            <div class="research-card">
-              <div class="card-header">
-                <div class="research-icon materials">⚡</div>
-                <h3>Vedy o materiáloch</h3>
-              </div>
-              <p>Tvorba a analýza nových materiálov s aplikáciami v energetike, zdravotnej starostlivosti a technológii.</p>
-              <div class="card-footer">
-                <a href="#" class="learn-more">Zistiť viac →</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- Najnovšie správy -->
+
+      <!-- Najnovšie články -->
       <section class="latest-news">
         <div class="container">
           <div class="section-header">
-            <h2 class="section-title">Najnovšie správy</h2>
-            <p class="section-subtitle">Aktuality z nášho inštitútu</p>
+            <h2 class="section-title">Najnovšie Články</h2>
+            <p class="section-subtitle">
+              Objavte naše najnovšie výskumné práce a vedecké publikácie
+            </p>
           </div>
-          <div class="news-grid">
-            <article class="news-card featured">
-              <div class="news-image">
-                <div class="news-category">Prelom</div>
-              </div>
+
+          <!-- Loading state -->
+          <div v-if="isLoading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Načítavajú sa články...</p>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="error" class="error-state">
+            <div class="error-icon">⚠️</div>
+            <h3>Chyba pri načítavaní</h3>
+            <p>{{ error }}</p>
+            <button @click="loadLatestArticles" class="retry-button">
+              Skúsiť znovu
+            </button>
+          </div>
+
+          <!-- Articles grid -->
+          <div v-else-if="latestArticles.length > 0" class="news-grid">
+            <article 
+              v-for="(article, index) in latestArticles" 
+              :key="article.id"
+              class="news-card"
+              :class="{ featured: index === 0 }"
+            >
               <div class="news-content">
                 <div class="news-meta">
-                  <span class="news-date">18. mája 2025</span>
-                  <span class="reading-time">5 min čítania</span>
+                  <span class="news-category">
+                    {{ formatConferenceYear(article.conference_year) }}
+                  </span>
+                  <span class="news-date">{{ formatDate(article.created_at) }}</span>
                 </div>
-                <h3>Veľký prielom v kvantovej výpočtovej technike</h3>
-                <p>Naši výskumníci dosiahli významný míľnik v kvantovej korekcii chýb, čo priblížilo praktické kvantové počítanie k realite.</p>
-                <a href="#" class="read-more">Prečítať celú správu →</a>
+                <h3>{{ article.title }}</h3>
+                <p class="news-author">
+                  <span class="author-icon">👤</span>
+                  {{ article.author_name }}
+                </p>
+                <p class="news-excerpt">{{ getArticlePreview(article.content) }}</p>
+                <router-link 
+                  :to="`/articles/${article.id}`" 
+                  class="read-more"
+                >
+                  Čítať viac
+                  <span class="arrow">→</span>
+                </router-link>
               </div>
             </article>
-            <article class="news-card">
-              <div class="news-content">
-                <div class="news-meta">
-                  <span class="news-date">5. mája 2025</span>
-                  <span class="reading-time">3 min čítania</span>
-                </div>
-                <h3>Nová medzinárodná výskumná spolupráca</h3>
-                <p>Inštitút nadviazal nové partnerstvo s poprednými výskumnými centrami v Európe a Ázii.</p>
-                <a href="#" class="read-more">Prečítať viac →</a>
-              </div>
-            </article>
-            <article class="news-card">
-              <div class="news-content">
-                <div class="news-meta">
-                  <span class="news-date">22. apríla 2025</span>
-                  <span class="reading-time">2 min čítania</span>
-                </div>
-                <h3>Oznámenie o ročnej vedeckej sympózii</h3>
-                <p>15. ročník Vedeckej sympózy sa uskutoční tento október, s hlavnými rečníkmi z celého sveta.</p>
-                <a href="#" class="read-more">Prečítať viac →</a>
-              </div>
-            </article>
+          </div>
+
+          <!-- Empty state -->
+          <div v-else class="empty-state">
+            <div class="empty-icon">📄</div>
+            <h3>Žiadne články</h3>
+            <p>Momentálne nie sú k dispozícii žiadne články.</p>
+          </div>
+
+          <!-- Show more button -->
+          <div v-if="latestArticles.length > 0" class="section-footer">
+            <router-link to="/publications" class="hero-btn secondary">
+              Zobraziť všetky publikácie
+              <span class="btn-arrow">→</span>
+            </router-link>
           </div>
         </div>
       </section>
-      
-      <!-- Udalosti a zaujímavosti oddelení -->
-      <section class="events-departments">
+
+      <!-- Vítacia sekcia -->
+      <section class="welcome-section">
         <div class="container">
-          <div class="section-grid">
-            <!-- Nadchádzajúce udalosti -->
-            <div class="events-section">
-              <h2 class="section-title">Nadchádzajúce udalosti</h2>
-              <div class="events-list">
-                <div class="event-card">
-                  <div class="event-date">
-                    <span class="date-number">12</span>
-                    <span class="date-month">JUN</span>
-                  </div>
-                  <div class="event-details">
-                    <h4>Workshop o výskumnej metodológii</h4>
-                    <p>Pokročilé výskumné metodológie a techniky analýzy dát.</p>
-                    <div class="event-meta">
-                      <span class="event-time">⏰ 10:00 - 16:00</span>
-                      <span class="event-location">📍 Budova vedy</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="event-card">
-                  <div class="event-date">
-                    <span class="date-number">24</span>
-                    <span class="date-month">JUL</span>
-                  </div>
-                  <div class="event-details">
-                    <h4>Budúcnosť obnoviteľnej energie</h4>
-                    <p>Prednáška hostí Dr. Eleny Rodriguezovej z MIT.</p>
-                    <div class="event-meta">
-                      <span class="event-time">⏰ 14:00 - 16:00</span>
-                      <span class="event-location">📍 Hlavná audítka</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <a href="/events" class="view-all-btn">Zobraziť všetky udalosti →</a>
+          <div class="welcome-content">
+            <div class="welcome-text">
+              <h2>Vitajte v našom výskumnom centre</h2>
+              <p>
+                Sme moderná vedecká inštitúcia zameraná na <span class="highlight-text">inovatívny výskum</span> 
+                v oblasti biotechnológií, informatiky a pokročilých materiálov. Naše tímy pracujú na 
+                projektoch, ktoré môžu zmeniť svet.
+              </p>
             </div>
             
-            <!-- Zaujímavosti oddelení -->
-            <div class="departments-section">
-              <h2 class="section-title">Naše oddelenia</h2>
-              <div class="departments-grid">
-                <a href="/departments/animal-science" class="department-card">
-                  <div class="department-icon">🐄</div>
-                  <h4>Živočíšna veda</h4>
-                  <p>Udržateľné poľnohospodárske praktiky</p>
-                </a>
-                <a href="/departments/biochemistry" class="department-card">
-                  <div class="department-icon">🧬</div>
-                  <h4>Biochémia</h4>
-                  <p>Chemické procesy v živote</p>
-                </a>
-                <a href="/departments/physics" class="department-card">
-                  <div class="department-icon">⚛️</div>
-                  <h4>Fyzika</h4>
-                  <p>Základné princípy</p>
-                </a>
-                <a href="/departments/earth-sciences" class="department-card">
-                  <div class="department-icon">🌋</div>
-                  <h4>Vedy o Zemi</h4>
-                  <p>Charakteristiky planéty</p>
-                </a>
+            <div class="welcome-features">
+              <div class="feature-item">
+                <div class="feature-icon">🔬</div>
+                <h4>Moderné Laboratóriá</h4>
+                <p>Najnovšie vybavenie pre pokročilý výskum</p>
               </div>
-              <a href="/departments" class="view-all-btn">Zobraziť všetky oddelenia →</a>
+              <div class="feature-item">
+                <div class="feature-icon">👥</div>
+                <h4>Odborný Tím</h4>
+                <p>Skúsení vedci a výskumníci</p>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">🌍</div>
+                <h4>Globálne Partnerstvá</h4>
+                <p>Spolupráca s univerzitami po celom svete</p>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Výskumné oblasti -->
+      <section class="research-areas">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Naše Výskumné Oblasti</h2>
+            <p class="section-subtitle">
+              Špecializujeme sa na klúčové oblasti modernej vedy a technológií
+            </p>
+          </div>
+          
+          <div class="research-grid">
+            <div class="research-card">
+              <div class="card-header">
+                <div class="research-icon life-sciences">🧬</div>
+                <h3>Vedy o Živote</h3>
+              </div>
+              <p>Výskum v oblasti molekulárnej biológie, genetiky a biotechnológií pre zdravie budúcnosti.</p>
+              <div class="card-footer">
+                <router-link to="/departments" class="learn-more">Zistiť viac →</router-link>
+              </div>
+            </div>
+            
+            <div class="research-card">
+              <div class="card-header">
+                <div class="research-icon data-science">💻</div>
+                <h3>Dátová Veda</h3>
+              </div>
+              <p>Analýza veľkých dát, umelá inteligencia a strojové učenie pre riešenie komplexných problémov.</p>
+              <div class="card-footer">
+                <router-link to="/departments" class="learn-more">Zistiť viac →</router-link>
+              </div>
+            </div>
+            
+            <div class="research-card">
+              <div class="card-header">
+                <div class="research-icon environmental">🌱</div>
+                <h3>Environmentálne Technológie</h3>
+              </div>
+              <p>Udržateľné riešenia pre ochranu životného prostredia a zelené technológie.</p>
+              <div class="card-footer">
+                <router-link to="/departments" class="learn-more">Zistiť viac →</router-link>
+              </div>
+            </div>
+            
           </div>
         </div>
       </section>
     </main>
-    
-    <!-- Footer -->
+
     <FooterComponent />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { articleApi } from '@/services/article'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FooterComponent from '@/components/FooterComponent.vue'
 
@@ -272,39 +225,77 @@ export default defineComponent({
   components: {
     NavbarComponent,
     FooterComponent
+  },
+  
+  data() {
+    return {
+      latestArticles: [] as any[],
+      isLoading: false,
+      error: null as string | null,
+      totalArticles: 0
+    }
+  },
+  
+  async mounted() {
+    await this.loadLatestArticles()
+  },
+  
+  methods: {
+    async loadLatestArticles() {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        const articles = await articleApi.getArticles()
+        
+        // Get latest 6 articles
+        this.latestArticles = articles.slice(0, 5)
+        this.totalArticles = articles.length
+        
+      } catch (error) {
+        console.error('Error loading articles:', error)
+        this.error = 'Nepodarilo sa načítať články'
+      } finally {
+        this.isLoading = false
+      }
+    },
+    
+    formatDate(dateString?: string): string {
+      if (!dateString) return 'Neznámy dátum'
+      
+      try {
+        return new Date(dateString).toLocaleDateString('sk-SK', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch {
+        return 'Neznámy dátum'
+      }
+    },
+    
+    formatConferenceYear(conferenceYear?: any): string {
+      if (!conferenceYear) return 'Neznámy ročník'
+      return `${conferenceYear.semester} ${conferenceYear.year}`
+    },
+    
+    getArticlePreview(content?: string): string {
+      if (!content) return 'Žiadny obsah...'
+      
+      const plainText = content.replace(/<[^>]*>/g, '')
+      return plainText.length > 150 
+        ? plainText.substring(0, 150) + '...' 
+        : plainText
+    }
   }
 })
 </script>
 
 <style scoped>
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
-
-/* CSS Variables */
-:root {
-  --primary-color: #2563eb;
-  --primary-dark: #1d4ed8;
-  --primary-light: #3b82f6;
-  --secondary-color: #f59e0b;
-  --accent-color: #10b981;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-dark: #0f172a;
-  --border-color: #e5e7eb;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-/* Base Styles */
+/* Základné štýly */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -313,7 +304,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
+  color: #1f2937;
   line-height: 1.6;
 }
 
@@ -323,7 +314,11 @@ export default defineComponent({
   padding: 0 1.5rem;
 }
 
-/* Animations */
+.main-content {
+  flex: 1;
+}
+
+/* Animácie */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -364,7 +359,7 @@ export default defineComponent({
   }
 }
 
-/* Transitions */
+/* Prechody */
 .slide-down-enter-active,
 .slide-down-leave-active {
   transition: all 0.3s ease;
@@ -428,7 +423,7 @@ export default defineComponent({
   font-size: 1rem;
 }
 
-/* Search & Quicklinks Dropdowns */
+/* Vyhľadávanie & Rýchle odkazy */
 .search-dropdown, .quicklinks-dropdown {
   position: absolute;
   top: 100%;
@@ -642,12 +637,12 @@ export default defineComponent({
 /* Hero sekcia */
 .hero-section {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .hero-background {
@@ -656,7 +651,6 @@ export default defineComponent({
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="500" cy="500" r="500"><stop offset="0%" stop-color="%234facfe"/><stop offset="100%" stop-color="%2300f2fe"/></radialGradient></defs><rect width="1000" height="1000" fill="url(%23a)"/></svg>') center/cover;
 }
 
 .hero-overlay {
@@ -670,28 +664,35 @@ export default defineComponent({
 
 .hero-particles {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle><circle cx="80" cy="40" r="1" fill="white" opacity="0.4"><animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite"/></circle><circle cx="40" cy="80" r="1" fill="white" opacity="0.2"><animate attributeName="opacity" values="0.2;1;0.2" dur="4s" repeatCount="indefinite"/></circle></svg>') repeat;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
 .hero-content {
   position: relative;
-  z-index: 10;
+  z-index: 2;
   text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  animation: fadeInUp 1s ease-out;
+  color: white;
 }
 
 .hero-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: 3.5rem;
   font-weight: 700;
-  color: white;
   margin-bottom: 1.5rem;
   line-height: 1.2;
 }
@@ -701,62 +702,58 @@ export default defineComponent({
 }
 
 .title-line.highlight {
-  background: linear-gradient(45deg, #ffd700, #ff6b6b);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
   margin-bottom: 3rem;
-  font-weight: 300;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  opacity: 0.9;
 }
 
 .hero-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
 }
 
 .hero-btn {
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.1rem;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .hero-btn.primary {
-  background: white;
-  color: var(--primary-color);
-  box-shadow: var(--shadow-lg);
+  background: #f59e0b;
+  color: black;
 }
 
 .hero-btn.primary:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-xl);
+  background: #d97706;
+  transform: translateY(-2px);
 }
 
 .hero-btn.secondary {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: black;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
 }
 
 .hero-btn.secondary:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .btn-arrow {
@@ -764,32 +761,32 @@ export default defineComponent({
 }
 
 .hero-btn:hover .btn-arrow {
-  transform: translateX(5px);
+  transform: translateX(3px);
 }
 
 .hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  max-width: 600px;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  margin-top: 3rem;
 }
 
 .stat-item {
   text-align: center;
-  color: white;
 }
 
 .stat-number {
+  display: block;
   font-size: 2.5rem;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  color: #fbbf24;
 }
 
 .stat-label {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 300;
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
 }
 
 .scroll-indicator {
@@ -798,14 +795,18 @@ export default defineComponent({
   left: 50%;
   transform: translateX(-50%);
   color: white;
-  text-align: center;
-  animation: float 2s ease-in-out infinite;
+  opacity: 0.7;
 }
 
 .scroll-arrow {
   font-size: 1.5rem;
-  margin-top: 0.5rem;
-  animation: pulse 2s ease-in-out infinite;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 }
 
 /* Section Headers */
@@ -815,99 +816,274 @@ export default defineComponent({
 }
 
 .section-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: 2.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #1f2937;
   margin-bottom: 1rem;
 }
 
 .section-subtitle {
+  font-size: 1.1rem;
+  color: #6b7280;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section-footer {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+/* Najnovšie články */
+.latest-news {
+  padding: 6rem 0;
+  background: #f8fafc;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.news-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.news-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.news-card.featured {
+  grid-column: span 2;
+}
+
+.news-content {
+  padding: 2rem;
+}
+
+.news-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.news-category {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.news-date {
+  color: #6b7280;
+}
+
+.news-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.news-card.featured h3 {
+  font-size: 1.875rem;
+}
+
+.news-author {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.author-icon {
+  font-size: 1rem;
+}
+
+.news-excerpt {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.read-more {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.read-more:hover {
+  color: #1d4ed8;
+}
+
+.arrow {
+  transition: transform 0.3s ease;
+}
+
+.read-more:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* Loading, Error, Empty States */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-state h3,
+.empty-state h3 {
   font-size: 1.25rem;
-  color: var(--text-secondary);
-  font-weight: 300;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #1d4ed8;
 }
 
 /* Vítacia sekcia */
 .welcome-section {
   padding: 6rem 0;
-  background: var(--bg-primary);
+  background: white;
 }
 
 .welcome-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 4rem;
-  align-items: start;
+  align-items: center;
 }
 
-.welcome-text {
-  font-size: 1.125rem;
-  line-height: 1.8;
+.welcome-text h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+}
+
+.welcome-text p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  line-height: 1.7;
 }
 
 .highlight-text {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--primary-color);
-  margin-bottom: 1.5rem;
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 .welcome-features {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 2rem;
 }
 
 .feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 16px;
-  text-align: center;
+  background: #f8fafc;
+  border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .feature-item:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-md);
+  background: #f1f5f9;
+  transform: translateY(-2px);
 }
 
 .feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  flex-shrink: 0;
 }
 
 .feature-item h4 {
   font-size: 1.125rem;
   font-weight: 600;
+  color: #1f2937;
   margin-bottom: 0.5rem;
-  color: var(--text-primary);
 }
 
 .feature-item p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  color: #6b7280;
+  font-size: 0.95rem;
 }
 
 /* Výskumné oblasti */
 .research-areas {
   padding: 6rem 0;
-  background: var(--bg-secondary);
+  background: #f8fafc;
 }
 
 .research-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
 .research-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 2rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid var(--border-color);
+  border: 1px solid #e5e7eb;
   position: relative;
   overflow: hidden;
 }
@@ -919,7 +1095,7 @@ export default defineComponent({
   left: 0;
   right: 0;
   height: 4px;
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -929,8 +1105,8 @@ export default defineComponent({
 }
 
 .research-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -941,12 +1117,14 @@ export default defineComponent({
 }
 
 .research-icon {
-  font-size: 2.5rem;
-  padding: 1rem;
-  border-radius: 16px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5rem;
+  color: white;
 }
 
 .research-icon.life-sciences { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -955,14 +1133,13 @@ export default defineComponent({
 .research-icon.materials { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
 
 .research-card h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
+  color: #1f2937;
 }
 
 .research-card p {
-  color: var(--text-secondary);
+  color: #6b7280;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -972,644 +1149,43 @@ export default defineComponent({
 }
 
 .learn-more {
-  color: var(--primary-color);
+  color: #2563eb;
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .learn-more:hover {
-  gap: 1rem;
+  color: #1d4ed8;
 }
 
-/* Najnovšie správy */
-.latest-news {
-  padding: 6rem 0;
-  background: var(--bg-primary);
-}
-
-.news-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-.news-card {
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  border: 1px solid var(--border-color);
-}
-
-.news-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
-}
-
-.news-card.featured {
-  grid-row: span 2;
-}
-
-.news-image {
-  position: relative;
-  height: 200px;
-  background: var(--gradient-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.news-card.featured .news-image {
-  height: 300px;
-}
-
-.news-category {
-  background: rgba(255, 255, 255, 0.2);
-  color: black;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  font-size: 50px;
-}
-
-.news-content {
-  padding: 1.5rem;
-}
-
-.news-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-
-.news-card h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  line-height: 1.4;
-}
-
-.news-card.featured h3 {
-  font-size: 1.5rem;
-}
-
-.news-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.read-more {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-}
-
-.read-more:hover {
-  color: var(--primary-dark);
-}
-
-/* Udalosti a oddelenia */
-.events-departments {
-  padding: 6rem 0;
-  background: var(--bg-secondary);
-}
-
-.section-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-}
-
-.events-section, .departments-section {
-  background: white;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: var(--shadow-sm);
-}
-
-.events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.event-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-}
-
-.event-card:hover {
-  transform: translateX(5px);
-  box-shadow: var(--shadow-md);
-}
-
-.event-date {
-  background: var(--gradient-primary);
-  color: white;
-  padding: 1rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 80px;
-  text-align: center;
-}
-
-.date-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.date-month {
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  margin-top: 0.25rem;
-}
-
-.event-details h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.event-details p {
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.event-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  color: var(--text-light);
-  font-size: 0.75rem;
-}
-
-.departments-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.department-card {
-  background: var(--bg-secondary);
-  padding: 1.5rem;
-  border-radius: 16px;
-  text-align: center;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.3s ease;
-  display: block;
-}
-
-.department-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  background: white;
-}
-
-.department-icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-}
-
-.department-card h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.department-card p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-.view-all-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border: 2px solid var(--primary-color);
-  border-radius: 50px;
-  transition: all 0.3s ease;
-}
-
-.view-all-btn:hover {
-  background: var(--primary-color);
-  color: white;
-  transform: translateY(-2px);
-}
-
-/* Footer */
-.footer {
-  background: var(--bg-dark);
-  color: black;
-  margin-top: auto;
-}
-
-.footer-content {
-  padding: 4rem 0 2rem;
-  
-}
-
-.footer-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 3rem;
-}
-
-.footer-column.main {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.footer-logo h3 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.footer-tagline {
-  color: black;
-  font-size: 0.875rem;
-}
-
-.contact-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: black;
-  font-size: 0.875rem;
-}
-
-.contact-icon {
-  font-size: 1rem;
-}
-
-.footer-column h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: black;
-}
-
-.footer-column ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.footer-column a {
-  color: black;
-  text-decoration: none;
-  transition: color 0.3s ease;
-  font-size: 0.875rem;
-}
-
-.footer-column a:hover {
-  color: gray;
-}
-
-.social-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
-
-.social-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: black;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  font-size: 0.875rem;
-}
-
-.social-link:hover {
-  color: gray;
-  transform: translateX(5px);
-}
-
-.newsletter h5 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: black;
-}
-
-.newsletter p {
-  color: black;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.newsletter-form {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.newsletter-form input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #374151;
-  border-radius: 8px;
-  background: #445a79;
-  color: white;
-  font-size: 0.875rem;
-  outline: none;
-}
-
-.newsletter-form input::placeholder {
-  color:white;
-}
-
-.newsletter-form button {
-  padding: 0.75rem 1rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  background: green;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.newsletter-form button:hover {
-  background: var(--primary-dark);
-}
-
-.footer-bottom {
-  background: #445a79;
-  padding: 1.5rem 0;
-  border-top: 1px solid #374151;
-}
-
-.footer-bottom .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.footer-bottom p {
-  margin: 0;
-  color: white;
-  font-size: 0.875rem;
-}
-
-.footer-links {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.footer-links a {
-  color: white;
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-  color: gray;
-}
-
-/* Auth Section Styles */
-.auth-section {
-  display: flex;
-  align-items: center;
-}
-
-.user-menu {
-  position: relative;
-}
-
-.user-dropdown {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: none;
-  border: none;
-  color: #555;
-  font-size: 0.9rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.user-dropdown:hover {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: #3498db;
-}
-
-.icon-user {
-  font-size: 1rem;
-}
-
-.user-name {
-  font-weight: 500;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dropdown-arrow {
-  font-size: 0.7rem;
-  transition: transform 0.2s ease;
-}
-
-.dropdown-arrow.open {
-  transform: rotate(180deg);
-}
-
-/* User Dropdown Menu */
-.user-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
-  z-index: 1000;
-  overflow: hidden;
-}
-
-.user-info {
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.user-details {
-  text-align: left;
-}
-
-.user-name-full {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 0.25rem;
-}
-
-.user-email {
-  font-size: 0.875rem;
-  color: #666;
-  margin-bottom: 0.25rem;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: #3498db;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.menu-divider {
-  height: 1px;
-  background: #e0e0e0;
-}
-
-.menu-actions {
-  padding: 0.5rem 0;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: none;
-  border: none;
-  color: #555;
-  font-size: 0.9rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.menu-item:hover {
-  background-color: #f8f9fa;
-  color: #333;
-}
-
-.menu-icon {
-  font-size: 1rem;
-  width: 20px;
-  text-align: center;
-}
-
-.admin-link:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-}
-
-.editor-link:hover {
-  background-color: rgba(40, 167, 69, 0.1);
-  color: #28a745;
-}
-
-.logout-button {
-  border-top: 1px solid #e0e0e0;
-  color: #dc3545;
-}
-
-.logout-button:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #c82333;
-}
-
-/* Responsive adjustments */
+/* Responzívny dizajn */
 @media (max-width: 768px) {
-  .user-name {
-    display: none;
+  .hero-title {
+    font-size: 2.5rem;
   }
   
-  .user-dropdown-menu {
-    min-width: 250px;
-    right: -10px;
+  .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
   }
   
-  .user-info {
-    padding: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .button-text {
-    display: none;
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
   }
   
-  .user-dropdown-menu {
-    min-width: 220px;
-    right: -20px;
+  .welcome-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .news-card.featured {
+    grid-column: span 1;
+  }
+  
+  .news-grid {
+    grid-template-columns: 1fr;
   }
 }
-
-/* Slide down animation for user menu */
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s ease;
-  transform-origin: top center;
-}
-
-.slide-down-enter-from {
-  opacity: 0;
-  transform: translateY(-10px) scaleY(0.8);
-}
-
-.slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(-10px) scaleY(0.8);
-}
-
-/* Existing styles continued... */
 </style>

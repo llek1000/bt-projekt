@@ -172,9 +172,14 @@
                   {{ article.author_name }}
                 </div>
                 
+                <div class="publication-date-info">
+                  <i class="date-icon">📅</i>
+                  Publikované: {{ formatDate(article.created_at) }}
+                </div>
+                
                 <div class="publication-meta">
                   <div class="conference-info">
-                    <i class="conference-icon">📅</i>
+                    <i class="conference-icon">🎓</i>
                     {{ article.conference_year?.semester }} {{ article.conference_year?.year }}
                   </div>
                 </div>
@@ -189,7 +194,7 @@
                   :to="`/articles/${article.id}`" 
                   class="read-more-btn"
                 >
-                  Čítať viac
+                  Čítať článok
                   <span class="arrow">→</span>
                 </router-link>
               </div>
@@ -431,8 +436,13 @@ export default {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--gradient-primary);
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 6rem 0 4rem;
+  overflow: hidden;
+  color: white;
 }
+
 
 .hero-background {
   position: absolute;
@@ -553,8 +563,8 @@ export default {
 .filter-section .search-input {
   width: 100%;
   padding: 0.875rem 1rem 0.875rem 3rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid black;
+  border-radius: 25px;
   font-size: 1rem;
   background: white;
   transition: all 0.3s ease;
@@ -604,8 +614,8 @@ export default {
 
 .filter-select {
   padding: 0.75rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
+  border: 1px solid black;
+  border-radius: 25px;
   background: white;
   font-size: 0.875rem;
   min-width: 180px;
@@ -778,12 +788,11 @@ export default {
   align-items: center;
   padding: 1rem 1.5rem;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
 }
 
 .type-badge {
   background: var(--primary-color);
-  color: white;
+  color: black;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -800,6 +809,8 @@ export default {
 
 .card-body {
   padding: 1.5rem;
+  border: 1px solid black;
+  border-radius: 25px;
 }
 
 .publication-title {
@@ -821,6 +832,20 @@ export default {
 }
 
 .author-icon {
+  font-size: 1rem;
+}
+
+.publication-date-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.date-icon {
   font-size: 1rem;
 }
 

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Horná lišta -->
     <div class="topbar">
       <div class="topbar-container">
         <div class="topbar-right">
@@ -14,8 +13,7 @@
             <span class="button-text">Rýchle odkazy</span>
           </button>
 
-          <!-- Dynamické zobrazenie prihlásenia/odhlásenia -->
-          <div v-if="!isLoggedIn" class="auth-section">
+          <div v-if="!isAuthenticated" class="auth-section">
             <router-link to="/login" class="topbar-button">
               <span class="icon-login">👤</span>
               <span class="button-text">Prihlásenie</span>
@@ -25,19 +23,18 @@
           <div v-else class="auth-section user-menu">
             <div class="user-dropdown" @click="toggleUserMenu">
               <span class="icon-user">👤</span>
-              <span class="user-name">{{ currentUser?.username || 'Používateľ' }}</span>
+              <span class="user-name">{{ user?.username || 'Používateľ' }}</span>
               <span class="dropdown-arrow" :class="{ 'open': userMenuOpen }">▼</span>
             </div>
 
-            <!-- User Dropdown Menu -->
             <transition name="slide-down">
               <div v-if="userMenuOpen" class="user-dropdown-menu">
                 <div class="user-info">
                   <div class="user-details">
-                    <div class="user-name-full">{{ currentUser?.username }}</div>
-                    <div class="user-email">{{ currentUser?.email }}</div>
-                    <div class="user-role" v-if="currentUser?.roles?.length">
-                      {{ currentUser.roles.map(r => r.name).join(', ') }}
+                    <div class="user-name-full">{{ user?.username }}</div>
+                    <div class="user-email">{{ user?.email }}</div>
+                    <div class="user-role" v-if="user?.roles?.length">
+                      {{ user.roles.map(r => r.name).join(', ') }}
                     </div>
                   </div>
                 </div>
@@ -76,7 +73,6 @@
         </div>
       </div>
 
-      <!-- Dropdown vyhľadávania -->
       <transition name="slide-down">
         <div class="search-dropdown" v-if="searchOpen">
           <form class="search-form" @submit.prevent="searchArticles">
@@ -94,7 +90,6 @@
         </div>
       </transition>
 
-      <!-- Dropdown rýchlych odkazov -->
       <transition name="slide-down">
         <div class="quicklinks-dropdown" v-if="quicklinksOpen">
           <div class="quicklinks-grid">
@@ -136,7 +131,6 @@
       </transition>
     </div>
 
-    <!-- Hlavné menu -->
     <nav class="main-navbar">
       <div class="navbar-container">
         <div class="logo-container">
@@ -176,7 +170,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import authentification from '@/services/authentification'
+import auth from '@/services/authentification'
 
 export default defineComponent({
   name: 'NavbarComponent',
@@ -187,19 +181,18 @@ export default defineComponent({
       userMenuOpen: false,
       searchQuery: '',
 
-      // User authentication
-      currentUser: null as any,
-      isLoggedIn: false,
+      isAuthenticated: false,
+      user: null as any,
     }
   },
 
   computed: {
     isAdmin() {
-      return this.currentUser?.roles?.some((role: any) => role.name.toLowerCase() === 'admin') || false
+      return this.user?.roles?.some((role: any) => role.name.toLowerCase() === 'admin') || false
     },
 
     isEditor() {
-      return this.currentUser?.roles?.some((role: any) => role.name.toLowerCase() === 'editor') || false
+      return this.user?.roles?.some((role: any) => role.name.toLowerCase() === 'editor') || false
     }
   },
 
@@ -241,22 +234,16 @@ export default defineComponent({
 
     async handleLogout() {
       try {
-        await authentification.logout()
-
-        // Vyčisti lokálne dáta
-        this.currentUser = null
-        this.isLoggedIn = false
-        this.userMenuOpen = false
-
-        // Presmeruj na domovskú stránku
+        await auth.logout()
+        this.isAuthenticated = false
+        this.user = null
         this.$router.push('/')
-
-        // Zobraz správu o úspešnom odhlásení
-        alert('Boli ste úspešne odhlásení')
-
       } catch (error) {
-        console.error('Chyba pri odhlasovaní:', error)
-        alert('Nastala chyba pri odhlasovaní')
+        console.error('Logout error:', error)
+        auth.forceLogout()
+        this.isAuthenticated = false
+        this.user = null
+        this.$router.push('/')
       }
     },
 
@@ -264,13 +251,12 @@ export default defineComponent({
       try {
         const token = localStorage.getItem('token')
         if (!token) {
-          this.isLoggedIn = false
-          this.currentUser = null
+          this.isAuthenticated = false
+          this.user = null
           return
         }
 
-        // Skontroluj platnosť tokenu a získaj používateľské údaje
-        const response = await fetch('http://localhost/bt-projekt/public/api/user', {
+        const response = await fetch('http://localhost/bt/bt-projekt/public/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -279,23 +265,21 @@ export default defineComponent({
 
         if (response.ok) {
           const data = await response.json()
-          this.currentUser = data.user
-          this.isLoggedIn = true
+          this.user = data.user
+          this.isAuthenticated = true
         } else {
-          // Token neplatný, vyčisti údaje
           localStorage.removeItem('token')
-          this.isLoggedIn = false
-          this.currentUser = null
+          this.isAuthenticated = false
+          this.user = null
         }
 
       } catch (error) {
         console.error('Chyba pri kontrole autentifikácie:', error)
-        this.isLoggedIn = false
-        this.currentUser = null
+        this.isAuthenticated = false
+        this.user = null
       }
     },
 
-    // Zatvorenie menu pri kliknutí mimo
     handleClickOutside(event: Event) {
       const target = event.target as HTMLElement
 
@@ -314,19 +298,15 @@ export default defineComponent({
   },
 
   async mounted() {
-    // Skontroluj stav autentifikácie pri načítaní
     await this.checkAuthStatus()
 
-    // Pridaj event listener pre kliknutie mimo menu
     document.addEventListener('click', this.handleClickOutside)
   },
 
   beforeUnmount() {
-    // Odstráň event listener
     document.removeEventListener('click', this.handleClickOutside)
   },
 
-  // Watch for route changes to update auth status
   watch: {
     '$route'() {
       this.checkAuthStatus()
@@ -336,7 +316,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* CSS Variables */
+
 :root {
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
@@ -347,7 +327,6 @@ export default defineComponent({
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Horná lišta */
 .topbar {
   background-color: #f5f5f5;
   border-bottom: 1px solid var(--border-color);
@@ -394,7 +373,6 @@ export default defineComponent({
   font-size: 1rem;
 }
 
-/* Auth Section Styles */
 .auth-section {
   display: flex;
   align-items: center;
@@ -440,7 +418,6 @@ export default defineComponent({
   transform: rotate(180deg);
 }
 
-/* User Dropdown Menu */
 .user-dropdown-menu {
   position: absolute;
   top: 100%;
@@ -539,7 +516,6 @@ export default defineComponent({
   color: #c82333;
 }
 
-/* Dropdown Styles */
 .search-dropdown, .quicklinks-dropdown {
   position: absolute;
   top: 100%;
@@ -640,7 +616,6 @@ export default defineComponent({
   color: var(--primary-color);
 }
 
-/* Hlavné menu */
 .main-navbar {
   background-color: white;
   box-shadow: var(--shadow-md);
@@ -726,7 +701,7 @@ export default defineComponent({
   transform: scaleX(1);
 }
 
-/* Transitions */
+
 .slide-down-enter-active,
 .slide-down-leave-active {
   transition: all 0.3s ease;
@@ -743,7 +718,7 @@ export default defineComponent({
   transform: translateY(-10px) scaleY(0.8);
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .user-name {
     display: none;

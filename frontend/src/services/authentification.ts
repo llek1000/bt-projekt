@@ -22,7 +22,37 @@ export default {
   },
   
   logout() {
+    // First try to call API logout if token exists
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Try API logout but don't fail if it doesn't work
+      return api.post('/logout').catch(error => {
+        console.warn('API logout failed, but continuing with local logout:', error.message);
+      }).finally(() => {
+        // Always remove token regardless of API call result
+        localStorage.removeItem('token');
+      });
+    } else {
+      // No token, just resolve immediately
+      localStorage.removeItem('token');
+      return Promise.resolve();
+    }
+  },
+
+  // Method to force logout without API call
+  forceLogout() {
     localStorage.removeItem('token');
-    return api.post('/logout');
+    return Promise.resolve();
+  },
+
+  // Check if user is authenticated
+  isAuthenticated() {
+    return !!localStorage.getItem('token');
+  },
+
+  // Get current token
+  getToken() {
+    return localStorage.getItem('token');
   }
 }

@@ -49,16 +49,28 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $request->user()->currentAccessToken()->delete();
+            // Check if user is authenticated
+            if ($request->user()) {
+                // If authenticated, delete the current token
+                $request->user()->currentAccessToken()->delete();
 
-            Log::info('Úspešné odhlásenie', [
-                'user_id' => $request->user()->id,
-                'ip' => $request->ip()
-            ]);
+                Log::info('Úspešné odhlásenie', [
+                    'user_id' => $request->user()->id,
+                    'ip' => $request->ip()
+                ]);
+            }
 
+            // Always return success - even for unauthenticated requests
             return $this->success([], 'Odhlásenie úspešné');
         } catch (\Exception $e) {
-            return $this->handleException($e, 'Chyba pri odhlasovaní', 'Nepodarilo sa odhlásiť');
+            // Log the error but still return success
+            Log::warning('Chyba pri odhlasovaní', [
+                'error' => $e->getMessage(),
+                'ip' => $request->ip()
+            ]);
+            
+            // Still return success to allow client-side cleanup
+            return $this->success([], 'Odhlásenie úspešné');
         }
     }
 
@@ -120,8 +132,8 @@ class AuthController extends Controller
 
     private function getRedirectUrl($user)
     {
-        if ($this->hasRole($user, 'Admin')) return '/admin/dashboard';
-        if ($this->hasRole($user, 'Editor')) return '/edit/dashboard';
+        if ($this->hasRole($user, 'admin')) return '/admin/dashboard';
+        if ($this->hasRole($user, 'editor')) return '/edit/dashboard';
         return '/';
     }
 }

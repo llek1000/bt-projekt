@@ -42,10 +42,12 @@ Route::prefix('articles')->group(function () {
 // Public file download
 Route::get('/files/{file}/download', [FileController::class, 'download'])->name('files.download');
 
+// Logout route - can be called even with invalid token
+Route::post('/logout', [AuthController::class, 'logout']);
+
 // Protected routes (Authentication required)
 Route::middleware('auth:sanctum')->group(function () {
     // User routes
-    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return response()->json([
             'user' => $request->user()->load('roles')
@@ -88,9 +90,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
         Route::get('roles', [AdminController::class, 'getRoles']);
         Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
-
-        // Editor Assignment Management
+        
+        // Editor assignments
+        Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
         Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
+        Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
+        Route::get('assignments', [EditorAssignmentController::class, 'getAllAssignments']);
+        
+        // File management for admin
+        Route::get('files', [FileController::class, 'getAllFiles']);
+        Route::delete('files/{file}', [FileController::class, 'destroy']);
+        Route::post('files/bulk-delete', [FileController::class, 'bulkDeleteFiles']);
+        Route::get('files/statistics', [FileController::class, 'getFileStatistics']);
+        
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });
 });

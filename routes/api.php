@@ -7,7 +7,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConferenceYearController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\EditorAssignmentController;
-use App\Http\Controllers\SubpageController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\FileController;
 
@@ -54,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // File upload for TinyMCE
     Route::post('/upload-file', [FileController::class, 'uploadForEditor'])->name('files.upload');
     Route::get('/files/my-files', [FileController::class, 'listForEditor']);
+
+    // Legacy image upload endpoint
+    Route::post('/upload-image', [UploadController::class, 'upload']);
 
 
     Route::prefix('editor')->middleware('checkrole:admin,editor')->group(function () {

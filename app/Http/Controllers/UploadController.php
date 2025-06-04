@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UploadController extends Controller
@@ -16,13 +15,13 @@ class UploadController extends Controller
             ]);
 
             $file = $request->file('file');
-            
+
             // Generovanie unikátneho názvu súboru
             $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            
+
             // Uloženie súboru do storage/app/public/images
             $path = $file->storeAs('images', $filename, 'public');
-            
+
             // Generovanie URL pre prístup k súboru
             $url = asset('storage/' . $path);
 

@@ -16,7 +16,6 @@ class File extends Model
         'file_path',
         'mime_type',
         'file_size',
-        'category',
         'article_id',
         'uploaded_by',
     ];

@@ -23,7 +23,6 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-
     ];
 
     /**
@@ -48,7 +47,7 @@ class User extends Authenticatable
         ];
     }
 
-        // Add this relationship
+    // Add this relationship
     public function roles()
     {
         return $this->belongsToMany(Role::class);
@@ -56,16 +55,16 @@ class User extends Authenticatable
 
     // Check if user has a specific role
     public function hasRole($role)
-{
-    if (is_string($role)) {
-        // Fix: Check against 'name' column (not 'username') and make case-insensitive
-        return $this->roles->contains(function($value) use ($role) {
-            return strtolower($value->name) === strtolower($role);
-        });
-    }
+    {
+        if (is_string($role)) {
+            // Fix: Check against 'name' column (not 'username') and make case-insensitive
+            return $this->roles->contains(function($value) use ($role) {
+                return strtolower($value->name) === strtolower($role);
+            });
+        }
 
-    return !! $role->intersect($this->roles)->count();
-}
+        return !! $role->intersect($this->roles)->count();
+    }
 
     // Assign role to user
     public function assignRole($role)
@@ -76,5 +75,11 @@ class User extends Authenticatable
 
         $this->roles()->sync($role, false);
         return $this;
+    }
+    
+    // Add this method to fix the error
+    public function getRoleNames()
+    {
+        return $this->roles->pluck('name')->toArray();
     }
 }

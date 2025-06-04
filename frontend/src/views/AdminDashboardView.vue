@@ -295,19 +295,19 @@
     </section>
 
     <!-- Editor Assignments Section -->
-    <section class="management-section">
+    <section class="management-section alt-bg">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Priradenie editorov</h2>
-          <p class="section-subtitle">Priraďte editorov k ročníkom konferencie</p>
+          <h2 class="section-title">Editor Assignments</h2>
+          <p class="section-subtitle">Assign editors to specific conference years</p>
         </div>
-
+        
         <div class="management-content">
-          <div class="management-actions">
+          <div class="assignment-controls">
             <div class="form-group">
-              <label>Vybrať editora:</label>
-              <select v-model="selEditor" class="modern-select">
-                <option :value="null">Vyberte editora</option>
+              <label for="editorSelect">Select Editor</label>
+              <select id="editorSelect" v-model="selEditor" class="modern-select">
+                <option value="" disabled>Choose an editor...</option>
                 <option v-for="editor in editors" :key="editor.id" :value="editor.id">
                   {{ editor.username }} ({{ editor.email }})
                 </option>
@@ -315,30 +315,61 @@
             </div>
             
             <div class="form-group">
-              <label>Vybrať ročník:</label>
-              <select v-model="selectedYearForAssignment" class="modern-select">
-                <option :value="null">Vyberte ročník</option>
+              <label for="yearSelect">Select Conference Year</label>
+              <select id="yearSelect" v-model="selectedYearForAssignment" class="modern-select">
+                <option value="" disabled>Choose a year...</option>
                 <option v-for="year in years" :key="year.id" :value="year.id">
                   {{ formatConferenceYear(year) }}
                 </option>
               </select>
             </div>
             
-            <button @click="assignEditor" :disabled="!selEditor || !selectedYearForAssignment" class="btn primary">
-              Priradiť editora
+            <button 
+              @click="assignEditor" 
+              class="btn primary"
+              :disabled="!selEditor || !selectedYearForAssignment">
+              Assign Editor
             </button>
           </div>
-
-          <div class="assignments-list">
-            <div v-for="assignment in assignments" :key="assignment.id" class="assignment-card">
-              <div class="assignment-info">
-                <h4>{{ assignment.user.username }}</h4>
-                <p>{{ assignment.user.email }}</p>
-                <span class="assignment-year">{{ formatConferenceYear(assignment.conference_year) }}</span>
-              </div>
-              <button @click="removeEditor(assignment.id)" class="action-btn delete">
-                Odstrániť
-              </button>
+          
+          <div class="assignments-container">
+            <h3>Current Assignments</h3>
+            
+            <div class="table-container" v-if="assignments.length > 0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Editor</th>
+                    <th>Conference Year</th>
+                    <th>Assigned Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="assignment in assignments" :key="assignment.id">
+                    <td>{{ assignment.user ? assignment.user.username : 'Unknown' }}</td>
+                    <td>
+                      <span v-if="assignment.conference_year">
+                        {{ formatConferenceYear(assignment.conference_year) }}
+                        <span class="active-badge" v-if="assignment.conference_year.is_active">Active</span>
+                      </span>
+                      <span v-else>Unknown Year</span>
+                    </td>
+                    <td>{{ formatDate(assignment.created_at) }}</td>
+                    <td class="actions-cell">
+                      <button @click="removeEditor(assignment.id)" class="action-btn delete">
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div v-else class="empty-state">
+              <div class="empty-icon">📝</div>
+              <h3>No Assignments Found</h3>
+              <p>Assign editors to conference years to see them listed here.</p>
             </div>
           </div>
         </div>
@@ -815,17 +846,23 @@ async function refreshAssignments() {
 
 // Year functions
 function openYearModal(y = null) {
-  editYear.value = y
+  editYear.value = y;
   if (y) {
+    // When editing, populate with existing data
     formYear.value = {
-      semester: y.semester,
-      year: y.year,
-      is_active: y.is_active
-    }
+      year: y.year.toString(),
+      semester: y.semester, 
+      is_active: y.is_active || false
+    };
   } else {
-    formYear.value = { semester: '', year: '', is_active: false }
+    // When creating, clear the form with defaults
+    formYear.value = {
+      year: new Date().getFullYear().toString(),
+      semester: '',
+      is_active: false
+    };
   }
-  showYearForm.value = true
+  showYearForm.value = true;
 }
 
 function closeYearModal() {
@@ -835,17 +872,46 @@ function closeYearModal() {
 
 async function saveYear() {
   try {
-    if (editYear.value) {
-      await adminPanel.updateYear(editYear.value.id, formYear.value)
-    } else {
-      await adminPanel.createYear(formYear.value)
+    // Validate the form data
+    const errors = [];
+    if (!formYear.value.year) {
+      errors.push('Year is required');
+    } else if (!/^\d{4}$/.test(formYear.value.year)) {
+      errors.push('Year must be a 4-digit number');
     }
     
-    closeYearModal()
-    await refreshYears()
+    if (!formYear.value.semester) {
+      errors.push('Semester is required');
+    } else if (!['Winter', 'Summer'].includes(formYear.value.semester)) {
+      errors.push('Semester must be either Winter or Summer');
+    }
+    
+    // If validation fails, show errors and return
+    if (errors.length > 0) {
+      alert('Please correct the following errors:\n' + errors.join('\n'));
+      return;
+    }
+    
+    // Ensure data format is correct
+    const yearData = {
+      year: formYear.value.year.toString(), // Ensure it's a string
+      semester: formYear.value.semester,
+      is_active: formYear.value.is_active || false
+    };
+    
+    if (editYear.value) {
+      // Update existing year
+      await adminPanel.updateYear(editYear.value.id, yearData);
+    } else {
+      // Create new year
+      await adminPanel.createYear(yearData);
+    }
+    
+    await refreshYears();
+    closeYearModal();
   } catch (error) {
-    console.error('Error saving year:', error)
-    alert('Chyba pri ukladaní ročníka')
+    console.error('Error saving year:', error);
+    alert('Failed to save conference year: ' + (error.response?.data?.message || error.message));
   }
 }
 
@@ -1516,13 +1582,13 @@ onMounted(async () => {
 
 .data-table th,
 .data-table td {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
 .data-table th {
-  background: var(--secondary-color);
+  background-color: var(--bg-secondary);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -1532,7 +1598,26 @@ onMounted(async () => {
 }
 
 .actions-cell .action-btn {
-  margin-right: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.actions-cell .action-btn:hover {
+  color: var(--text-primary);
+}
+
+.action-btn.delete {
+  color: #ef4444;
+}
+
+.action-btn.delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* Role Badge */
@@ -1661,26 +1746,30 @@ onMounted(async () => {
 }
 
 .empty-state {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 3rem;
   color: var(--text-secondary);
+  text-align: center;
 }
 
 .empty-icon {
-  font-size: 4rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .empty-state h3 {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .empty-state p {
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 400px;
 }
 
 /* Modal Styles */

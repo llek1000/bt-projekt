@@ -79,30 +79,19 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Admin routes (Admin only)
-    Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
+    Route::middleware(['auth:sanctum', 'checkrole:admin'])->prefix('admin')->group(function () {
         // Conference Years Management
         Route::apiResource('conference-years', ConferenceYearController::class);
-
+        
         // User Management
         Route::get('users', [AdminController::class, 'getUsers']);
         Route::post('users', [AdminController::class, 'createUser']);
         Route::put('users/{id}', [AdminController::class, 'updateUser']);
         Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
         Route::get('roles', [AdminController::class, 'getRoles']);
-        Route::post('users/{userId}/roles', [AdminController::class, 'assignUserRole']);
-
-        // Editor assignments
-        Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
-        Route::post('years/{year}/editors', [EditorAssignmentController::class, 'store']);
-        Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
-        Route::get('assignments', [EditorAssignmentController::class, 'getAllAssignments']);
-
-        // File management for admin
-        Route::get('files', [FileController::class, 'getAllFiles']);
-        Route::delete('files/{file}', [FileController::class, 'destroy']);
-        Route::post('files/bulk-delete', [FileController::class, 'bulkDeleteFiles']);
-        Route::get('files/statistics', [FileController::class, 'getFileStatistics']);
-
+        Route::post('users/{userId}/assign-role', [AdminController::class, 'assignUserRole']);
+        
+        // System info
         Route::get('system/info', [AdminController::class, 'getSystemInfo']);
     });
 });

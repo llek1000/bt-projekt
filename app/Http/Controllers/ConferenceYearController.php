@@ -16,8 +16,8 @@ class ConferenceYearController extends Controller
     {
         try {
             $conferenceYears = ConferenceYear::orderBy('year', 'desc')
-                                           ->orderBy('semester', 'desc')
-                                           ->get();
+                          ->orderBy('semester', 'asc')
+                          ->get();
 
             return $this->success(['data' => $conferenceYears], 'Ročníky konferencie boli úspešne načítané');
         } catch (\Exception $e) {
@@ -32,18 +32,12 @@ class ConferenceYearController extends Controller
     {
         return $this->executeWithTransaction(function() use ($request) {
             $errors = $this->validateRequest($request, [
-                'year' => [
-                    'required',
-                    'string',
-                    'size:4',
-                    'regex:/^\d{4}$/'
-                ],
-                'semester' => 'required|in:Winter,Summer',
+                'year' => 'required|string|max:4',
+                'semester' => 'required|string|in:Winter,Summer',
                 'is_active' => 'boolean'
             ], [
                 'year.required' => 'Rok je povinný',
-                'year.size' => 'Rok musí mať presne 4 číslice',
-                'year.regex' => 'Rok musí byť platné 4-miestne číslo',
+                'year.max' => 'Rok nemôže presiahnuť 4 znaky',
                 'semester.required' => 'Semester je povinný',
                 'semester.in' => 'Semester musí byť buď Winter alebo Summer'
             ]);
@@ -54,16 +48,18 @@ class ConferenceYearController extends Controller
 
             // Check for duplicate year/semester combination
             $exists = ConferenceYear::where('year', $request->year)
-                                    ->where('semester', $request->semester)
-                                    ->exists();
+                ->where('semester', $request->semester)
+                ->exists();
 
             if ($exists) {
-                return $this->error('Ročník konferencie s týmto rokom a semestrom už existuje', [
-                    'combination' => ['Táto kombinácia rok/semester už existuje']
-                ], 422);
+                return $this->error('Kombinácia roku a semestra už existuje', null, 422);
             }
 
-            $conferenceYear = ConferenceYear::create($request->validated());
+            $conferenceYear = ConferenceYear::create([
+                'year' => $request->year,
+                'semester' => $request->semester,
+                'is_active' => $request->has('is_active') ? $request->is_active : false
+            ]);
 
             return $this->success(['data' => $conferenceYear], 'Ročník konferencie bol úspešne vytvorený', 201);
         }, 'Vytvorenie ročníka konferencie zlyhalo');
@@ -90,33 +86,46 @@ class ConferenceYearController extends Controller
     {
         return $this->executeWithTransaction(function() use ($request, $id) {
             $conferenceYear = ConferenceYear::findOrFail($id);
-
+            
             $errors = $this->validateRequest($request, [
                 'year' => [
+                    'sometimes',
                     'required',
                     'string',
                     'size:4',
                     'regex:/^\d{4}$/',
-                    Rule::unique('conference_years')->where(function ($query) use ($request) {
-                        return $query->where('semester', $request->semester);
+                    Rule::unique('conference_years')->where(function ($query) use ($request, $id) {
+                        return $query->where('year', $request->year)
+                                   ->where('semester', $request->semester)
+                                   ->where('id', '!=', $id);
                     })->ignore($id)
                 ],
-                'semester' => 'required|in:Winter,Summer',
-                'is_active' => 'boolean'
+                'semester' => [
+                    'sometimes', 
+                    'required', 
+                    'string', 
+                    'in:Winter,Summer'
+                ],
+                'is_active' => 'sometimes|boolean'
             ], [
                 'year.required' => 'Rok je povinný',
                 'year.size' => 'Rok musí mať presne 4 číslice',
                 'year.regex' => 'Rok musí byť platné 4-miestne číslo',
-                'year.unique' => 'Táto kombinácia rok/semester už existuje',
                 'semester.required' => 'Semester je povinný',
-                'semester.in' => 'Semester musí byť buď Winter alebo Summer'
+                'semester.in' => 'Semester musí byť buď Winter alebo Summer',
+                'semester.unique' => 'Kombinácia roku a semestra už existuje'
             ]);
 
             if ($errors) {
                 return $this->error('Neplatné údaje', $errors, 422);
             }
 
-            $conferenceYear->update($request->validated());
+            // Remove this block to allow multiple active years
+            // if ($request->has('is_active') && $request->is_active) {
+            //     ConferenceYear::where('id', '!=', $id)->update(['is_active' => false]);
+            // }
+
+            $conferenceYear->update($request->only(['year', 'semester', 'is_active']));
 
             return $this->success(['data' => $conferenceYear->fresh()], 'Ročník konferencie bol úspešne aktualizovaný');
         }, 'Aktualizácia ročníka konferencie zlyhala');
@@ -169,10 +178,10 @@ class ConferenceYearController extends Controller
         return $this->executeWithTransaction(function() use ($id) {
             $conferenceYear = ConferenceYear::findOrFail($id);
 
-            // Deactivate all other conference years
-            ConferenceYear::where('is_active', true)->update(['is_active' => false]);
+            // Remove this line to allow multiple active years
+            // ConferenceYear::where('is_active', true)->update(['is_active' => false]);
 
-            // Activate the selected conference year
+            // Just activate this year without affecting others
             $conferenceYear->update(['is_active' => true]);
 
             return $this->success(['data' => $conferenceYear->fresh()], 'Ročník konferencie bol úspešne nastavený ako aktívny');
@@ -186,8 +195,8 @@ class ConferenceYearController extends Controller
     {
         try {
             $conferenceYears = ConferenceYear::where('year', $year)
-                                           ->orderBy('semester')
-                                           ->get();
+                          ->orderBy('semester', 'asc')
+                          ->get();
 
             return $this->success(['data' => $conferenceYears], "Ročníky konferencie pre rok {$year} boli úspešne načítané");
         } catch (\Exception $e) {
@@ -202,10 +211,10 @@ class ConferenceYearController extends Controller
     {
         try {
             $years = ConferenceYear::select('year')
-                                  ->distinct()
-                                  ->orderBy('year', 'desc')
-                                  ->pluck('year');
-
+                ->orderBy('year', 'desc')
+                ->distinct()
+                ->pluck('year');
+                
             return $this->success(['data' => $years], 'Dostupné roky boli úspešne načítané');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Available years failed', 'Načítanie dostupných rokov zlyhalo');

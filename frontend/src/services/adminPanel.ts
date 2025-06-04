@@ -97,20 +97,20 @@ export default {
   },
 
   // Conference Years Management (Admin only)
-  getConferenceYears() { 
-    return api.get<{ data: any[] }>('/conference-years') 
+  getConferenceYears() {
+    return api.get<{ data: any[] }>('/admin/conference-years')
   },
 
-  createYear(data: ConferenceYearData) { 
-    return api.post<{ data: any }>('/admin/conference-years', data) 
+  createYear(data: ConferenceYearData) {
+    return api.post<{ data: any }>('/admin/conference-years', data)
   },
 
-  updateYear(id: number, data: Partial<ConferenceYearData>) { 
-    return api.put<{ data: any }>(`/admin/conference-years/${id}`, data) 
+  updateYear(id: number, data: Partial<ConferenceYearData>) {
+    return api.put<{ data: any }>(`/admin/conference-years/${id}`, data)
   },
 
-  deleteYear(id: number) { 
-    return api.delete(`/admin/conference-years/${id}`) 
+  deleteYear(id: number) {
+    return api.delete(`/admin/conference-years/${id}`)
   },
 
   // Editor Assignment Management (Admin only)
@@ -189,7 +189,7 @@ export default {
 
   // Delete file (Admin can delete any file)
   deleteFile(fileId: number) {
-    return api.delete(`/admin/files/${fileId}`)
+    return api.delete(`/editor/files/${fileId}`);
   },
 
   // Bulk delete files (Admin only)

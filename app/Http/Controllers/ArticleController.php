@@ -13,18 +13,18 @@ use Illuminate\Support\Facades\Auth;
 class ArticleController extends Controller
 {
     /**
-     * Display a listing of articles
+     * Display articles
      */
     public function index(Request $request): JsonResponse
     {
         $query = Article::with('conferenceYear');
 
-        // Filter by conference year if provided
+
         if ($request->has('conference_year_id')) {
             $query->where('conference_year_id', $request->conference_year_id);
         }
 
-        // Search by title or author if provided
+
         if ($request->has('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
@@ -43,7 +43,7 @@ class ArticleController extends Controller
     }
 
     /**
-     * Store a newly created article
+     * Create a new article
      */
     public function store(Request $request): JsonResponse
     {
@@ -61,7 +61,7 @@ class ArticleController extends Controller
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
-        // Check if user has permission for this conference year (admin bypass)
+
         $user = Auth::user();
         if (!$this->hasRole($user, 'admin')) {
             $hasAssignment = EditorAssignment::where('user_id', $user->id)
@@ -118,7 +118,7 @@ class ArticleController extends Controller
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
-        // Check if user has permission for this conference year (admin bypass)
+
         $user = Auth::user();
         if (!$this->hasRole($user, 'admin')) {
             $conferenceYearId = $validated['conference_year_id'] ?? $article->conference_year_id;
@@ -185,21 +185,7 @@ class ArticleController extends Controller
         ]);
     }
 
-    /**
-     * Get articles by author
-     */
-    public function getByAuthor($authorName): JsonResponse
-    {
-        $articles = Article::with('conferenceYear')
-            ->where('author_name', 'like', "%{$authorName}%")
-            ->orderBy('created_at', 'desc')
-            ->get();
 
-        return response()->json([
-            'data' => $articles,
-            'message' => 'Články od autora boli úspešne načítané'
-        ]);
-    }
 
     /**
      * Search articles

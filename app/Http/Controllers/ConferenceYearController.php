@@ -46,7 +46,7 @@ class ConferenceYearController extends Controller
                 return $this->error('Neplatné údaje', $errors, 422);
             }
 
-            // Check for duplicate year/semester combination
+
             $exists = ConferenceYear::where('year', $request->year)
                 ->where('semester', $request->semester)
                 ->exists();
@@ -79,14 +79,12 @@ class ConferenceYearController extends Controller
         }
     }
 
-    /**
-     * Update the specified conference year
-     */
+
     public function update(Request $request, $id): JsonResponse
     {
         return $this->executeWithTransaction(function() use ($request, $id) {
             $conferenceYear = ConferenceYear::findOrFail($id);
-            
+
             $errors = $this->validateRequest($request, [
                 'year' => [
                     'sometimes',
@@ -101,9 +99,9 @@ class ConferenceYearController extends Controller
                     })->ignore($id)
                 ],
                 'semester' => [
-                    'sometimes', 
-                    'required', 
-                    'string', 
+                    'sometimes',
+                    'required',
+                    'string',
                     'in:Winter,Summer'
                 ],
                 'is_active' => 'sometimes|boolean'
@@ -120,10 +118,7 @@ class ConferenceYearController extends Controller
                 return $this->error('Neplatné údaje', $errors, 422);
             }
 
-            // Remove this block to allow multiple active years
-            // if ($request->has('is_active') && $request->is_active) {
-            //     ConferenceYear::where('id', '!=', $id)->update(['is_active' => false]);
-            // }
+
 
             $conferenceYear->update($request->only(['year', 'semester', 'is_active']));
 
@@ -131,9 +126,6 @@ class ConferenceYearController extends Controller
         }, 'Aktualizácia ročníka konferencie zlyhala');
     }
 
-    /**
-     * Remove the specified conference year
-     */
     public function destroy($id): JsonResponse
     {
         return $this->executeWithTransaction(function() use ($id) {
@@ -152,9 +144,7 @@ class ConferenceYearController extends Controller
         }, 'Vymazanie ročníka konferencie zlyhalo');
     }
 
-    /**
-     * Get the active conference year
-     */
+
     public function active(): JsonResponse
     {
         try {
@@ -170,18 +160,13 @@ class ConferenceYearController extends Controller
         }
     }
 
-    /**
-     * Set a conference year as active
-     */
+
     public function setActive($id): JsonResponse
     {
         return $this->executeWithTransaction(function() use ($id) {
             $conferenceYear = ConferenceYear::findOrFail($id);
 
-            // Remove this line to allow multiple active years
-            // ConferenceYear::where('is_active', true)->update(['is_active' => false]);
 
-            // Just activate this year without affecting others
             $conferenceYear->update(['is_active' => true]);
 
             return $this->success(['data' => $conferenceYear->fresh()], 'Ročník konferencie bol úspešne nastavený ako aktívny');
@@ -204,9 +189,7 @@ class ConferenceYearController extends Controller
         }
     }
 
-    /**
-     * Get available years
-     */
+
     public function availableYears(): JsonResponse
     {
         try {
@@ -214,7 +197,7 @@ class ConferenceYearController extends Controller
                 ->orderBy('year', 'desc')
                 ->distinct()
                 ->pluck('year');
-                
+
             return $this->success(['data' => $years], 'Dostupné roky boli úspešne načítané');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Available years failed', 'Načítanie dostupných rokov zlyhalo');

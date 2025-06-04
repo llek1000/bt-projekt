@@ -61,16 +61,18 @@ class ArticleController extends Controller
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
-        // Check if user has permission for this conference year
+        // Check if user has permission for this conference year (admin bypass)
         $user = Auth::user();
-        $hasAssignment = EditorAssignment::where('user_id', $user->id)
-            ->where('conference_year_id', $validated['conference_year_id'])
-            ->exists();
+        if (!$this->hasRole($user, 'admin')) {
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $validated['conference_year_id'])
+                ->exists();
 
-        if (!$hasAssignment) {
-            return response()->json([
-                'message' => 'Nemáte oprávnenie vytvárať články pre tento ročník konferencie'
-            ], 403);
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie vytvárať články pre tento ročník konferencie'
+                ], 403);
+            }
         }
 
         $article = Article::create($validated);
@@ -116,16 +118,17 @@ class ArticleController extends Controller
             'author_name.max' => 'Meno autora nemôže presiahnuť 255 znakov'
         ]);
 
-        // Check if user has permission for this conference year
+        // Check if user has permission for this conference year (admin bypass)
         $user = Auth::user();
         if (!$this->hasRole($user, 'admin')) {
+            $conferenceYearId = $validated['conference_year_id'] ?? $article->conference_year_id;
             $hasAssignment = EditorAssignment::where('user_id', $user->id)
-                ->where('conference_year_id', $validated['conference_year_id'])
+                ->where('conference_year_id', $conferenceYearId)
                 ->exists();
 
             if (!$hasAssignment) {
                 return response()->json([
-                    'message' => 'Nemáte oprávnenie vytvárať články pre tento ročník konferencie'
+                    'message' => 'Nemáte oprávnenie upravovať články pre tento ročník konferencie'
                 ], 403);
             }
         }
@@ -146,16 +149,18 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
 
-        // Check if user has permission for this conference year
+        // Check if user has permission for this conference year (admin bypass)
         $user = Auth::user();
-        $hasAssignment = EditorAssignment::where('user_id', $user->id)
-            ->where('conference_year_id', $article->conference_year_id)
-            ->exists();
+        if (!$this->hasRole($user, 'admin')) {
+            $hasAssignment = EditorAssignment::where('user_id', $user->id)
+                ->where('conference_year_id', $article->conference_year_id)
+                ->exists();
 
-        if (!$hasAssignment) {
-            return response()->json([
-                'message' => 'Nemáte oprávnenie vymazávať články pre tento ročník konferencie'
-            ], 403);
+            if (!$hasAssignment) {
+                return response()->json([
+                    'message' => 'Nemáte oprávnenie vymazávať články pre tento ročník konferencie'
+                ], 403);
+            }
         }
 
         $article->delete();
@@ -269,17 +274,19 @@ class ArticleController extends Controller
         $user = Auth::user();
         $articleIds = $validated['article_ids'];
 
-        // Check permissions for all articles
-        $articles = Article::whereIn('id', $articleIds)->get();
-        $userAssignments = EditorAssignment::where('user_id', $user->id)
-            ->pluck('conference_year_id')
-            ->toArray();
+        // Check permissions for all articles (admin bypass)
+        if (!$this->hasRole($user, 'admin')) {
+            $articles = Article::whereIn('id', $articleIds)->get();
+            $userAssignments = EditorAssignment::where('user_id', $user->id)
+                ->pluck('conference_year_id')
+                ->toArray();
 
-        foreach ($articles as $article) {
-            if (!in_array($article->conference_year_id, $userAssignments)) {
-                return response()->json([
-                    'message' => 'Nemáte oprávnenie vymazávať niektoré z vybraných článkov'
-                ], 403);
+            foreach ($articles as $article) {
+                if (!in_array($article->conference_year_id, $userAssignments)) {
+                    return response()->json([
+                        'message' => 'Nemáte oprávnenie vymazávať niektoré z vybraných článkov'
+                    ], 403);
+                }
             }
         }
 

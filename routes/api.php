@@ -79,11 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('years/{year}/editors/{assignment}', [EditorAssignmentController::class, 'destroy']);
         Route::get('years/{year}/editors', [EditorAssignmentController::class, 'index']);
 
-        // Subpages per year
-        Route::get('years/{year}/subpages', [SubpageController::class, 'index']);
-        Route::post('years/{year}/subpages', [SubpageController::class, 'store']);
-        Route::put('subpages/{subpage}', [SubpageController::class, 'update']);
-        Route::delete('subpages/{subpage}', [SubpageController::class, 'destroy']);
+
     });
 
     // Upload endpoint - dostupný pre všetkých prihlásených používateľov

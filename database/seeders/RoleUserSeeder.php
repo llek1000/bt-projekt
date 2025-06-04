@@ -10,25 +10,30 @@ class RoleUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get users and roles
-        $adminUser = User::where('email', 'admin@example.com')->first();
-        $editorUser = User::where('email', 'editor@example.com')->first();
-
         $adminRole = Role::where('name', 'admin')->first();
         $editorRole = Role::where('name', 'editor')->first();
 
-        // Assign roles using the model methods (better than direct DB insert)
-        if ($adminUser && $adminRole) {
-            $adminUser->assignRole('admin');
+        $adminUsers = [
+            'admin@example.com',
+            'admin2@example.com'
+        ];
+
+        foreach ($adminUsers as $email) {
+            $user = User::where('email', $email)->first();
+            $user->roles()->syncWithoutDetaching([$adminRole->id]);
         }
 
-        if ($editorUser && $editorRole) {
-            $editorUser->assignRole('editor');
-        }
+        // Assign editor role to editor users
+        $editorUsers = [
+            'editor1@example.com',
+            'editor2@example.com',
+            'editor3@example.com',
+            'editor4@example.com'
+        ];
 
-        // Optional: Output confirmation
-        $this->command->info('Roles assigned successfully!');
-        $this->command->info('Admin user roles: ' . implode(', ', $adminUser->getRoleNames()));
-        $this->command->info('Editor user roles: ' . implode(', ', $editorUser->getRoleNames()));
+        foreach ($editorUsers as $email) {
+            $user = User::where('email', $email)->first();
+            $user->roles()->syncWithoutDetaching([$editorRole->id]);
+        }
     }
 }

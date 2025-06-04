@@ -45,23 +45,20 @@ class AdminController extends Controller
     {
         try {
             $validated = $request->validate([
-                'username' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
+                'username' => 'required|string|max:255|unique:users',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string|min:8',
+                'password_confirmation' => 'required|same:password',
                 'roles' => 'required|array',
             ], [
                 'username.required' => 'Meno používateľa je povinné',
-                'username.string' => 'Meno používateľa musí byť text',
-                'username.max' => 'Meno používateľa nesmie presiahnuť 255 znakov',
+                'username.unique' => 'Meno používateľa už existuje',
                 'email.required' => 'Email je povinný',
-                'email.string' => 'Email musí byť text',
-                'email.email' => 'Email musí mať platný formát',
-                'email.max' => 'Email nesmie presiahnuť 255 znakov',
-                'email.unique' => 'Tento email už existuje',
+                'email.email' => 'Email nie je v správnom formáte',
+                'email.unique' => 'Email už existuje',
                 'password.required' => 'Heslo je povinné',
-                'password.string' => 'Heslo musí byť text',
-                'password.min' => 'Heslo musí mať najmenej 8 znakov',
-                'password.confirmed' => 'Potvrdenie hesla sa nezhoduje',
+                'password.min' => 'Heslo musí mať aspoň 8 znakov',
+                'password_confirmation.same' => 'Heslá sa nezhodujú',
                 'roles.required' => 'Role sú povinné',
                 'roles.array' => 'Role musia byť v správnom formáte',
             ]);
@@ -79,11 +76,12 @@ class AdminController extends Controller
             }
 
             if (isset($validated['roles'])) {
-                $roles = Role::whereIn('name', $validated['roles'])->get();
-                if ($roles->isEmpty()) {
-                    throw new \Exception('Vybrané role neboli nájdené');
+                foreach ($validated['roles'] as $roleName) {
+                    $role = Role::where('name', $roleName)->first();
+                    if ($role) {
+                        $user->roles()->attach($role->id);
+                    }
                 }
-                $user->roles()->attach($roles);
             }
 
             DB::commit();
@@ -93,13 +91,11 @@ class AdminController extends Controller
         } catch (ValidationException $e) {
             DB::rollBack();
             return response()->json([
-                'error' => 'Neplatné údaje',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'error' => 'Nepodarilo sa vytvoriť používateľa',
                 'message' => $e->getMessage()
             ], 500);
         }

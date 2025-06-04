@@ -107,7 +107,7 @@ export default {
         let roleName = "No Role";
         if (this.userForm.roleId) {
           const selectedRole = this.roles().find(
-            (r) => r.id === parseInt(this.userForm.roleId)
+            role => role.id == this.userForm.roleId
           );
           if (selectedRole) {
             roleName = selectedRole.name;
@@ -116,11 +116,11 @@ export default {
 
         // Create user data object that matches the UserData interface
         const userData = {
-          username: this.userForm.name, // Using username as per API interface
+          username: this.userForm.name,
           email: this.userForm.email,
           password: this.userForm.password,
           password_confirmation: this.userForm.password_confirmation,
-          roles: [roleName], // Use the role name for display
+          roles: [roleName]
         };
 
         console.log("Sending user data:", JSON.stringify(userData));
@@ -137,9 +137,15 @@ export default {
         console.error("Error creating user:", error);
         // More detailed error display:
         if (error.response && error.response.data) {
-          console.log("Server response:", error.response.data);
+          if (error.response.data.errors) {
+            const errorMessages = Object.values(error.response.data.errors).flat().join(', ');
+            alert("Validation errors: " + errorMessages);
+          } else {
+            alert("Failed to create user: " + error.response.data.message);
+          }
+        } else {
+          alert("Failed to create user: " + (error.response?.data?.message || error.message || "Unknown error"));
         }
-        alert("Failed to create user: " + (error.response?.data?.message || error.message || "Unknown error"));
       }
     }
   }

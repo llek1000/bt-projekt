@@ -50,10 +50,10 @@
               Vytvoriť používateľa
             </button>
             <div class="search-container">
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Hľadať používateľov..."
+              <input 
+                v-model="searchQuery" 
+                type="text" 
+                placeholder="Hľadať používateľov..." 
                 class="search-input"
               />
             </div>
@@ -71,24 +71,25 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id" class="table-row">
+                <tr v-for="user in filteredUsers" :key="user.id">
                   <td>{{ user.id }}</td>
                   <td>{{ user.username }}</td>
                   <td>{{ user.email }}</td>
                   <td>
                     <span class="role-badge" :class="getRoleBadgeClass(user.roles?.[0]?.name || 'user')">
-                      {{ user.roles?.[0]?.name || 'No Role' }}
+                      {{ user.roles?.[0]?.name || 'Žiadna rola' }}
                     </span>
                   </td>
-                  <td>
-                    <div class="card-actions">
-                      <button @click="openEditUserModal(user)" class="action-btn edit">
-                        Upraviť
-                      </button>
-                      <button @click="deleteUser(user.id)" class="action-btn delete">
-                        Vymazať
-                      </button>
-                    </div>
+                  <td class="actions">
+                    <button @click="openEditUserModal(user)" class="action-btn edit">
+                      Upraviť
+                    </button>
+                    <button @click="selectedUser = user; showPasswordChangeModal = true" class="action-btn secondary">
+                      Zmeniť heslo
+                    </button>
+                    <button @click="selectedUser = user; showDeleteConfirmModal = true" class="action-btn delete">
+                      Vymazať
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -351,30 +352,30 @@
     </div>
 
     <!-- Modals -->
-    <CreateUserModal
+    <CreateUserModal 
       v-if="showCreateUserModal"
       @close="showCreateUserModal = false"
       @user-created="handleUserCreated"
     />
-    
-    <EditUserModal
+
+    <EditUserModal 
       v-if="showEditUserModal"
       @close="showEditUserModal = false"
       @user-updated="handleUserUpdated"
       @change-password="showPasswordChangeModal = true"
       @delete="showDeleteConfirmModal = true"
     />
-    
-    <DeleteConfirmationModal
-      v-if="showDeleteConfirmModal"
-      @close="showDeleteConfirmModal = false"
-      @confirm="handleUserDeleted"
-    />
-    
-    <PasswordChangeModal
+
+    <PasswordChangeModal 
       v-if="showPasswordChangeModal"
       @close="showPasswordChangeModal = false"
       @password-updated="handlePasswordUpdated"
+    />
+
+    <DeleteConfirmationModal 
+      v-if="showDeleteConfirmModal"
+      @close="showDeleteConfirmModal = false"
+      @confirm="handleUserDeleted"
     />
   </div>
 </template>
@@ -384,6 +385,10 @@ import { ref, onMounted, computed, provide } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import adminPanel from '@/services/adminPanel'
 import NavbarComponent from '@/components/NavbarComponent.vue'
+import CreateUserModal from '@/components/modals/CreateUserModal.vue'
+import EditUserModal from '@/components/modals/EditUserModal.vue'
+import PasswordChangeModal from '@/components/modals/PasswordChangeModal.vue'
+import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal.vue'
 
 const years = ref<any[]>([])
 const users = ref<any[]>([])
@@ -481,11 +486,12 @@ const tinymceConfig = {
 }
 
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
-  const query = searchQuery.value.toLowerCase()
+  if (!searchQuery.value) {
+    return users.value
+  }
   return users.value.filter(user => 
-    user.username?.toLowerCase().includes(query) || 
-    user.email?.toLowerCase().includes(query)
+    user.username?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
@@ -498,7 +504,7 @@ function getRoleBadgeClass(role: string) {
   switch (role?.toLowerCase()) {
     case 'admin': return 'role-admin'
     case 'editor': return 'role-editor'
-    default: return 'role-default'
+    default: return 'role-user'
   }
 }
 
@@ -522,7 +528,7 @@ async function refreshUsers() {
     const response = await adminPanel.getUsers()
     users.value = response.data?.users || []
   } catch (error) {
-    console.error('Error loading users:', error)
+    console.error('Error fetching users:', error)
   }
 }
 
@@ -531,7 +537,7 @@ async function fetchRoles() {
     const response = await adminPanel.getRoles()
     roles.value = response.data?.roles || []
   } catch (error) {
-    console.error('Error loading roles:', error)
+    console.error('Error fetching roles:', error)
   }
 }
 
@@ -707,29 +713,32 @@ async function removeEditor(assignmentId: number) {
 }
 
 // User modal handlers
-function openEditUserModal(user: any) { 
+function openEditUserModal(user: any) {
   selectedUser.value = user
-  showEditUserModal.value = true 
+  showEditUserModal.value = true
 }
 
-function handleUserCreated() { 
+function handleUserCreated() {
+  showCreateUserModal.value = false
   refreshUsers()
-  showCreateUserModal.value = false 
 }
 
-function handleUserUpdated() { 
+function handleUserUpdated() {
+  showEditUserModal.value = false
+  showPasswordChangeModal.value = false
   refreshUsers()
-  showEditUserModal.value = false 
 }
 
-function handleUserDeleted() { 
-  refreshUsers()
+function handleUserDeleted() {
   showDeleteConfirmModal.value = false
-  showEditUserModal.value = false 
+  showEditUserModal.value = false
+  selectedUser.value = null
+  refreshUsers()
 }
 
-function handlePasswordUpdated() { 
-  showPasswordChangeModal.value = false 
+function handlePasswordUpdated() {
+  showPasswordChangeModal.value = false
+  showEditUserModal.value = false
 }
 
 // Provide functions for child components
@@ -742,7 +751,9 @@ onMounted(async () => {
     refreshUsers(),
     fetchRoles(),
     refreshYears(),
-    refreshEditors() // Pridané načítanie editorov
+    refreshArticles(),
+    refreshEditors(),
+    refreshAssignments()
   ])
 })
 </script>
@@ -1149,6 +1160,15 @@ onMounted(async () => {
   background: #2563eb;
 }
 
+.action-btn.secondary {
+  background: var(--text-secondary);
+  color: black;
+}
+
+.action-btn.secondary:hover {
+  background: #4b5563;
+}
+
 .action-btn.delete {
   background: var(--danger-color);
   color: black;
@@ -1204,13 +1224,13 @@ onMounted(async () => {
   font-size: 1rem;
 }
 
-/* Table */
+/* Table Styles */
 .table-container {
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  margin-top: 2rem;
 }
 
 .modern-table {
@@ -1218,45 +1238,85 @@ onMounted(async () => {
   border-collapse: collapse;
 }
 
-.modern-table th {
-  background: var(--light-bg);
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
-}
-
+.modern-table th,
 .modern-table td {
   padding: 1rem;
+  text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
-.table-row:hover {
+.modern-table th {
+  background: var(--light-bg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modern-table tbody tr:hover {
   background: var(--light-bg);
 }
 
 .role-badge {
-  display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.role-admin {
-  background-color: #dc3545;
+.role-badge.role-admin {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.role-badge.role-editor {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.role-badge.role-user {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.edit {
+  background: var(--info-color);
   color: white;
 }
 
-.role-editor {
-  background-color: #28a745;
+.action-btn.edit:hover {
+  background: #2563eb;
+}
+
+.action-btn.secondary {
+  background: var(--text-secondary);
   color: white;
 }
 
-.role-default {
-  background-color: #f8f9fa;
-  color: #333;
+.action-btn.secondary:hover {
+  background: #4b5563;
+}
+
+.action-btn.delete {
+  background: var(--danger-color);
+  color: white;
+}
+
+.action-btn.delete:hover {
+  background: #dc2626;
 }
 
 /* Modals */

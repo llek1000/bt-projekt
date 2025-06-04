@@ -2,7 +2,7 @@
   <div class="page-container">
     <!-- Navbar -->
     <NavbarComponent />
-
+    
     <!-- Main Content -->
     <main class="main-content">
       <!-- Breadcrumb Section -->
@@ -10,9 +10,9 @@
         <div class="container">
           <nav class="breadcrumb">
             <router-link to="/" class="breadcrumb-link">Domov</router-link>
-            <span class="breadcrumb-separator">›</span>
+            <span class="breadcrumb-separator">></span>
             <router-link to="/publications" class="breadcrumb-link">Publikácie</router-link>
-            <span class="breadcrumb-separator">›</span>
+            <span class="breadcrumb-separator">></span>
             <span class="breadcrumb-current">{{ article?.title || 'Načítavam...' }}</span>
           </nav>
         </div>
@@ -24,50 +24,49 @@
           <!-- Loading State -->
           <div v-if="loading" class="loading-state">
             <div class="loading-spinner"></div>
-            <h3>Načítavam článok...</h3>
+            <p>Načítavam článok...</p>
           </div>
 
           <!-- Error State -->
-          <div v-else-if="error" class="error-state">
-            <div class="error-icon">⚠️</div>
+          <div v-else-if="error && !article" class="error-state">
+            <i class="error-icon fas fa-exclamation-triangle"></i>
             <h3>Chyba pri načítaní článku</h3>
             <p>{{ error }}</p>
             <button @click="loadArticle" class="retry-button">
+              <i class="fas fa-redo"></i>
               Skúsiť znovu
             </button>
           </div>
 
           <!-- Not Found State -->
-          <div v-else-if="!article" class="not-found-state">
-            <div class="not-found-icon">📄</div>
-            <h3>Článok nebol nájdený</h3>
+          <div v-else-if="!loading && !article" class="not-found-state">
+            <i class="not-found-icon fas fa-file-times"></i>
+            <h3>Článok sa nenašiel</h3>
             <p>Požadovaný článok neexistuje alebo bol odstránený.</p>
             <router-link to="/publications" class="back-link">
+              <i class="fas fa-arrow-left"></i>
               Späť na publikácie
             </router-link>
           </div>
 
           <!-- Article Content -->
-          <div v-else class="article-content">
+          <article v-else class="article-content">
             <!-- Article Header -->
             <header class="article-header">
               <div class="article-meta">
                 <div class="meta-item">
-                  <span class="meta-label">Dátum publikácie</span>
-                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
-                </div>
-                <div class="meta-item">
                   <span class="meta-label">Autor</span>
                   <span class="meta-value">{{ article.author_name }}</span>
                 </div>
-                <div class="meta-item" v-if="article.conference_year">
+                <div class="meta-item">
                   <span class="meta-label">Konferencia</span>
-                  <span class="meta-value">
-                    {{ article.conference_year.semester }} {{ article.conference_year.year }}
-                  </span>
+                  <span class="meta-value">{{ formatConferenceYear(article.conference_year) }}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Publikované</span>
+                  <span class="meta-value">{{ formatDate(article.created_at) }}</span>
                 </div>
               </div>
-              
               <h1 class="article-title">{{ article.title }}</h1>
             </header>
 
@@ -75,22 +74,24 @@
             <div class="article-body">
               <div v-if="article.content" class="content-body" v-html="article.content"></div>
               <div v-else class="no-content">
-                <p>Obsah článku nie je dostupný.</p>
+                <p>Tento článok nemá žiadny obsah.</p>
               </div>
             </div>
 
             <!-- Article Footer -->
             <footer class="article-footer">
               <div class="article-actions">
-                <router-link to="/publications" class="back-button">
-                  ← Späť na publikácie
-                </router-link>
+                <button @click="goBack" class="back-button">
+                  <i class="fas fa-arrow-left"></i>
+                  Späť
+                </button>
                 <button @click="shareArticle" class="share-button">
-                  📤 Zdieľať článok
+                  <i class="fas fa-share"></i>
+                  Zdieľať
                 </button>
               </div>
             </footer>
-          </div>
+          </article>
         </div>
       </section>
 
@@ -101,19 +102,20 @@
           <div class="related-grid">
             <article 
               v-for="relatedArticle in relatedArticles" 
-              :key="relatedArticle.id"
+              :key="relatedArticle.id" 
               class="related-card"
+              @click="navigateToArticle(relatedArticle.id)"
             >
               <div class="related-meta">
-                <span class="related-date">{{ formatDate(relatedArticle.created_at) }}</span>
                 <span class="related-author">{{ relatedArticle.author_name }}</span>
+                <span class="related-date">{{ formatDate(relatedArticle.created_at) }}</span>
               </div>
               <h3 class="related-title">
                 <router-link :to="`/articles/${relatedArticle.id}`">
                   {{ relatedArticle.title }}
                 </router-link>
               </h3>
-              <p class="related-excerpt">{{ formatArticleSummary(relatedArticle.content) }}</p>
+              <p class="related-excerpt">{{ getExcerpt(relatedArticle.content) }}</p>
             </article>
           </div>
         </div>
@@ -137,6 +139,8 @@ export default {
     FooterComponent
   },
   
+  props: ['id'],
+  
   data() {
     return {
       article: null,
@@ -152,13 +156,11 @@ export default {
   },
   
   watch: {
-    '$route.params.id': {
-      immediate: true,
-      async handler(newId, oldId) {
-        if (newId !== oldId) {
-          await this.loadArticle()
-          await this.loadRelatedArticles()
-        }
+    // Watch for route changes to reload article
+    '$route'(to, from) {
+      if (to.params.id !== from.params.id) {
+        this.loadArticle()
+        this.loadRelatedArticles()
       }
     }
   },
@@ -169,19 +171,18 @@ export default {
         this.loading = true
         this.error = null
         
-        const articleId = this.$route.params.id
-        this.article = await articleApi.getArticle(articleId)
+        const article = await articleApi.getArticle(this.id)
         
-        if (!this.article) {
-          this.error = 'Článok nebol nájdený'
+        if (!article) {
+          this.article = null
+          this.error = 'Článok sa nenašiel'
+        } else {
+          this.article = article
         }
       } catch (error) {
-        console.error('Chyba pri načítaní článku:', error)
-        if (error.response?.status === 404) {
-          this.error = 'Článok nebol nájdený'
-        } else {
-          this.error = 'Nepodarilo sa načítať článok'
-        }
+        console.error('Error loading article:', error)
+        this.error = 'Chyba pri načítaní článku'
+        this.article = null
       } finally {
         this.loading = false
       }
@@ -189,57 +190,63 @@ export default {
 
     async loadRelatedArticles() {
       try {
-        if (!this.article?.conference_year_id) return
+        if (!this.article || !this.article.conference_year_id) return
 
-        const { articles } = await articleApi.getArticlesByConferenceYear(
-          this.article.conference_year_id
-        )
+        // Get articles from the same conference year
+        const { articles } = await articleApi.getArticlesByConferenceYear(this.article.conference_year_id)
         
-        // Filter out current article and limit to 3
-        this.relatedArticles = articles
-          .filter(article => article.id !== this.article.id)
+        // Filter out current article and limit to 3 related articles
+        this.relatedArticles = (articles || [])
+          .filter(article => article.id !== parseInt(this.id))
           .slice(0, 3)
+
       } catch (error) {
-        console.error('Chyba pri načítaní súvisiacich článkov:', error)
+        console.error('Error loading related articles:', error)
         this.relatedArticles = []
       }
     },
 
     formatDate(dateString) {
       if (!dateString) return 'Neznámy dátum'
-      
-      try {
-        return new Date(dateString).toLocaleDateString('sk-SK', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      } catch {
-        return 'Neznámy dátum'
-      }
+      return new Date(dateString).toLocaleDateString('sk-SK', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
     },
 
-    formatArticleSummary(content) {
+    formatConferenceYear(conferenceYear) {
+      if (!conferenceYear) return 'Neznámy ročník'
+      return `${conferenceYear.semester} ${conferenceYear.year}`
+    },
+
+    getExcerpt(content) {
       if (!content) return 'Žiadny obsah...'
       
-      const cleanContent = content.replace(/<[^>]*>/g, '')
-      return cleanContent.length > 120 
-        ? cleanContent.substring(0, 120) + '...' 
-        : cleanContent
+      // Remove HTML tags and get first 100 characters
+      const plainText = content.replace(/<[^>]*>/g, '')
+      return plainText.length > 100 ? plainText.substring(0, 100) + '...' : plainText
+    },
+
+    navigateToArticle(articleId) {
+      this.$router.push(`/articles/${articleId}`)
+    },
+
+    goBack() {
+      this.$router.go(-1)
     },
 
     shareArticle() {
       if (navigator.share) {
         navigator.share({
           title: this.article.title,
-          text: `Článok od ${this.article.author_name}`,
+          text: `Prečítajte si článok: ${this.article.title}`,
           url: window.location.href
         })
       } else {
-        // Fallback - copy to clipboard
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          alert('Link bol skopírovaný do schránky!')
-        })
+        // Fallback - copy URL to clipboard
+        navigator.clipboard.writeText(window.location.href)
+        alert('URL článku bola skopírovaná do schránky')
       }
     }
   }

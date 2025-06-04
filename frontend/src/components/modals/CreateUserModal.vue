@@ -2,23 +2,23 @@
   <div class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Create New User</h3>
+        <h3>Vytvoriť nového používateľa</h3>
         <button @click="$emit('close')" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
         <form @submit.prevent="createUser">
           <div class="form-group">
-            <label for="userName">Full Name</label>
+            <label for="userName">Celé meno</label>
             <input type="text" id="userName" v-model="userForm.name" required />
           </div>
           
           <div class="form-group">
-            <label for="userEmail">Email Address</label>
+            <label for="userEmail">E-mailová adresa</label>
             <input type="email" id="userEmail" v-model="userForm.email" required />
           </div>
           
           <div class="form-group">
-            <label for="userPassword">Password</label>
+            <label for="userPassword">Heslo</label>
             <input
               type="password"
               id="userPassword"
@@ -28,7 +28,7 @@
           </div>
           
           <div class="form-group">
-            <label for="userPasswordConfirm">Confirm Password</label>
+            <label for="userPasswordConfirm">Potvrdiť heslo</label>
             <input
               type="password"
               id="userPasswordConfirm"
@@ -39,9 +39,9 @@
           </div>
           
           <div class="form-group">
-            <label for="userRole">Assign Role</label>
+            <label for="userRole">Priradiť rolu</label>
             <select id="userRole" v-model="userForm.roleId" required>
-              <option value="">-- Select a role --</option>
+              <option value="">Vyberte rolu</option>
               <option v-for="role in roles()" :key="role.id" :value="role.id">
                 {{ role.name }}
               </option>
@@ -50,9 +50,9 @@
           
           <div class="form-actions">
             <button type="button" @click="$emit('close')" class="btn-cancel">
-              Cancel
+              Zrušiť
             </button>
-            <button type="submit" class="btn-save">Create User</button>
+            <button type="submit" class="btn-save">Vytvoriť používateľa</button>
           </div>
         </form>
       </div>
@@ -94,17 +94,17 @@ export default {
     async createUser() {
       try {
         if (this.userForm.password !== this.userForm.password_confirmation) {
-          this.passwordError = "Passwords do not match";
+          this.passwordError = "Heslá sa nezhodujú";
           return;
         }
 
         if (!this.userForm.roleId) {
-          alert("Please select a role");
+          alert("Prosím vyberte rolu");
           return;
         }
 
-        // Determine role name for display
-        let roleName = "No Role";
+        // Určenie názvu role pre zobrazenie
+        let roleName = "Bez role";
         if (this.userForm.roleId) {
           const selectedRole = this.roles().find(
             role => role.id == this.userForm.roleId
@@ -114,7 +114,7 @@ export default {
           }
         }
 
-        // Create user data object that matches the UserData interface
+        // Vytvorenie objektu používateľských údajov podľa UserData rozhrania
         const userData = {
           username: this.userForm.name,
           email: this.userForm.email,
@@ -123,28 +123,28 @@ export default {
           roles: [roleName]
         };
 
-        console.log("Sending user data:", JSON.stringify(userData));
+        console.log("Odosielané údaje používateľa:", JSON.stringify(userData));
 
-        // Call the createUser API
+        // Volanie createUser API
         const response = await this.adminPanel.createUser(userData);
-        console.log("Create user response:", response);
+        console.log("Odpoveď vytvorenia používateľa:", response);
 
-        // Reset form and emit success
+        // Reset formulára a odoslanie úspechu
         this.resetForm();
         this.$emit('user-created');
         
       } catch (error) {
-        console.error("Error creating user:", error);
-        // More detailed error display:
+        console.error("Chyba pri vytváraní používateľa:", error);
+        // Podrobnejšie zobrazenie chyby:
         if (error.response && error.response.data) {
           if (error.response.data.errors) {
             const errorMessages = Object.values(error.response.data.errors).flat().join(', ');
-            alert("Validation errors: " + errorMessages);
+            alert("Chyby validácie: " + errorMessages);
           } else {
-            alert("Failed to create user: " + error.response.data.message);
+            alert("Nepodarilo sa vytvoriť používateľa: " + (error.response.data.message || "Neznáma chyba"));
           }
         } else {
-          alert("Failed to create user: " + (error.response?.data?.message || error.message || "Unknown error"));
+          alert("Nepodarilo sa vytvoriť používateľa: " + (error.response?.data?.message || error.message || "Neznáma chyba"));
         }
       }
     }

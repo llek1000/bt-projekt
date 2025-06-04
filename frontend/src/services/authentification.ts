@@ -1,4 +1,3 @@
-// authentification.ts
 import api from './api'
 
 interface LoginCredentials {
@@ -9,50 +8,94 @@ interface LoginCredentials {
 interface LoginResponse {
   token: string;
   user?: any;
+  redirect_url?: string;
 }
 
 export default {
   login(credentials: LoginCredentials) {
     return api.post<LoginResponse>('/login', credentials)
       .then(response => {
-        // Handle token storage
         localStorage.setItem('token', response.data.token);
+        
+        const redirectUrl = localStorage.getItem('redirectAfterLogin')
+        if (redirectUrl) {
+          localStorage.removeItem('redirectAfterLogin')
+          setTimeout(() => {
+            window.location.href = redirectUrl
+          }, 100)
+        }
+        
         return response;
       });
   },
   
   logout() {
-    // First try to call API logout if token exists
     const token = localStorage.getItem('token');
     
     if (token) {
-      // Try API logout but don't fail if it doesn't work
       return api.post('/logout').catch(error => {
         console.warn('API logout failed, but continuing with local logout:', error.message);
       }).finally(() => {
-        // Always remove token regardless of API call result
         localStorage.removeItem('token');
+        localStorage.removeItem('redirectAfterLogin');
       });
     } else {
-      // No token, just resolve immediately
       localStorage.removeItem('token');
+      localStorage.removeItem('redirectAfterLogin');
       return Promise.resolve();
     }
   },
 
-  // Method to force logout without API call
   forceLogout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('redirectAfterLogin');
     return Promise.resolve();
   },
 
-  // Check if user is authenticated
   isAuthenticated() {
     return !!localStorage.getItem('token');
   },
 
-  // Get current token
   getToken() {
     return localStorage.getItem('token');
+  },
+
+  async getCurrentUser() {
+    try {
+      if (!this.isAuthenticated()) {
+        return null;
+      }
+      
+      const response = await api.get('/user');
+      return response.data.user;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  },
+
+  async hasRole(roleName: string) {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user || !user.roles) return false;
+      
+      return user.roles.some((role: any) => 
+        role.name.toLowerCase() === roleName.toLowerCase()
+      );
+    } catch (error) {
+      console.error('Error checking user role:', error);
+      return false;
+    }
+  },
+
+  async getRedirectUrl() {
+    try {
+      if (await this.hasRole('admin')) return '/admin/dashboard';
+      if (await this.hasRole('editor')) return '/edit/dashboard';
+      return '/';
+    } catch (error) {
+      console.error('Error getting redirect URL:', error);
+      return '/';
+    }
   }
 }

@@ -2,7 +2,6 @@
   <div class="dashboard-container">
     <NavbarComponent />
 
-    <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
         <div class="hero-overlay"></div>
@@ -42,7 +41,6 @@
       </div>
     </section>
 
-    <!-- Conference Years & Editor Management Section -->
     <section class="management-section">
       <div class="container">
         <div class="section-header">
@@ -61,7 +59,6 @@
           </button>
         </div>
 
-        <!-- Years with Editors Grid -->
         <div v-if="isLoadingYears" class="loading-state">
           <div class="loading-spinner"></div>
           <p>Načítavam ročníky...</p>
@@ -130,7 +127,6 @@
                   </div>
                 </div>
 
-                <!-- Add Editor Section -->
                 <div class="add-editor-section">
                   <div class="section-title-small">
                     <i class="icon">➕</i>
@@ -167,7 +163,6 @@
       </div>
     </section>
 
-    <!-- Articles Management Section -->
     <section class="management-section alt-bg">
       <div class="container">
         <div class="section-header">
@@ -261,7 +256,6 @@
       </div>
     </section>
 
-    <!-- File Management Section -->
     <section class="management-section">
       <div class="container">
         <div class="section-header">
@@ -294,7 +288,6 @@
           </button>
         </div>
 
-        <!-- File Upload Area -->
         <div 
           class="file-upload-area"
           :class="{ 'dragover': isDragOver }"
@@ -366,7 +359,6 @@
       </div>
     </section>
 
-    <!-- User Management Section -->
     <section class="management-section alt-bg">
       <div class="container">
         <div class="section-header">
@@ -463,7 +455,6 @@
       </div>
     </section>
 
-    <!-- Year Modal -->
     <div v-if="showYearModal" class="modal-overlay" @click="closeYearModal">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
@@ -536,7 +527,6 @@
       </div>
     </div>
 
-    <!-- Article Modal -->
     <div v-if="showArticleModal" class="modal-overlay" @click="closeArticleModal">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
@@ -625,7 +615,6 @@
       </div>
     </div>
 
-    <!-- Article View Modal -->
     <div v-if="showArticleViewModal" class="modal-overlay" @click="closeArticleViewModal">
       <div class="modal-container large" @click.stop>
         <div class="modal-header">
@@ -655,7 +644,6 @@
       </div>
     </div>
 
-    <!-- User Modals -->
     <CreateUserModal 
       v-if="showCreateUserModal"
       @close="showCreateUserModal = false"
@@ -687,7 +675,7 @@ import CreateUserModal from '@/components/modals/CreateUserModal.vue'
 import EditUserModal from '@/components/modals/EditUserModal.vue'
 import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal.vue'
 
-// Reactive data
+
 const yearsWithEditors = ref<any[]>([])
 const editors = ref<any[]>([])
 const users = ref<any[]>([])
@@ -705,7 +693,7 @@ const fileSearchQuery = ref('')
 const selectedConferenceYearFilter = ref('')
 const isDragOver = ref(false)
 
-// Year form
+
 const showYearModal = ref(false)
 const editingYear = ref<any>(null)
 const yearForm = ref({ semester: '', year: '', is_active: false })
@@ -3079,14 +3067,16 @@ p {
 .modal-container {
   background: white;
   border-radius: var(--radius-2xl);
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
+  width: 95vw;
+  max-width: 1200px;
+  max-height: 95vh;
+  height: 95vh;
   overflow-y: auto;
   box-shadow: var(--shadow-2xl);
   border: 1px solid var(--border-light);
   animation: slideUp 0.3s ease;
   position: relative;
+  margin: 0;
 }
 
 /* Editor Modal - FULL SCREEN */
@@ -3209,8 +3199,8 @@ p {
 .modern-textarea {
   width: 100%;
   padding: 1.25rem 1.5rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  border: 1px solid black;
+  border-radius: 25px;
   font-size: 1rem;
   background: var(--bg-secondary);
   transition: var(--transition);
@@ -3355,5 +3345,233 @@ p {
 
 .tox-fullscreen .tox-edit-area__iframe {
   min-height: calc(100vh - 200px) !important;
+}
+
+/* Modal Form Actions - OPRAVENÉ TLAČIDLÁ */
+.modal-form .form-actions,
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2.5rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  margin: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-actions .left-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-actions .right-actions {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+/* Modal Buttons - KOMPLETNE NOVÉ ŠTÝLY */
+.modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  white-space: nowrap;
+  min-height: 44px;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.modal-btn:hover::before {
+  left: 100%;
+}
+
+.modal-btn .icon {
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+/* Primary Button */
+.modal-btn.primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: var(--text-white);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+}
+
+/* Success Button */
+.modal-btn.success {
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  color: var(--text-white);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-btn.success:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #10b981 0%, var(--success-color) 100%);
+}
+
+/* Secondary Button */
+.modal-btn.secondary {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #4b5563 100%);
+  color: var(--text-white);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-btn.secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+/* Danger Button */
+.modal-btn.danger {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+  color: var(--text-white);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-btn.danger:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #f87171 0%, var(--danger-color) 100%);
+}
+
+/* Outline Button */
+.modal-btn.outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border-color);
+  box-shadow: none;
+}
+
+.modal-btn.outline:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+/* Disabled Button */
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.modal-btn:disabled::before {
+  display: none;
+}
+
+/* Legacy Button Classes - KOMPATIBILITA */
+.btn-save {
+  @extend .modal-btn;
+  @extend .modal-btn.success;
+}
+
+.btn-cancel {
+  @extend .modal-btn;
+  @extend .modal-btn.outline;
+}
+
+.btn-delete {
+  @extend .modal-btn;
+  @extend .modal-btn.danger;
+}
+
+.btn-secondary {
+  @extend .modal-btn;
+  @extend .modal-btn.secondary;
+}
+
+.btn-primary {
+  @extend .modal-btn;
+  @extend .modal-btn.primary;
+}
+
+/* Specific Modal Button Layouts */
+.year-modal .form-actions,
+.article-modal .form-actions,
+.user-modal .form-actions {
+  justify-content: flex-end;
+  padding: 2rem;
+}
+
+.year-modal .form-actions .modal-btn,
+.article-modal .form-actions .modal-btn,
+.user-modal .form-actions .modal-btn {
+  min-width: 140px;
+}
+
+/* Responsive Modal Buttons */
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .form-actions .right-actions,
+  .form-actions .left-actions {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+  
+  .modal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Legacy styles that might be used in existing modals */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.close-button:hover {
+  background: var(--bg-terciary);
+  color: var(--danger-color);
+  transform: scale(1.1);
 }
 </style>

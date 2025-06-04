@@ -2,13 +2,13 @@
   <div class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Change Password: {{ selectedUser() ? selectedUser().name : '' }}</h3>
+        <h3>Zmeniť heslo: {{ selectedUser() ? selectedUser().name : '' }}</h3>
         <button @click="$emit('close')" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
         <form @submit.prevent="updatePassword">
           <div class="form-group">
-            <label for="newPassword">New Password</label>
+            <label for="newPassword">Nové heslo</label>
             <input
               id="newPassword"
               type="password"
@@ -17,7 +17,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="confirmNewPassword">Confirm New Password</label>
+            <label for="confirmNewPassword">Potvrdiť nové heslo</label>
             <input
               id="confirmNewPassword"
               type="password"
@@ -29,10 +29,10 @@
           <div class="form-actions">
             <div class="right-actions">
               <button type="button" @click="$emit('close')" class="btn-cancel">
-                Cancel
+                Zrušiť
               </button>
               <button type="submit" class="btn-save">
-                Save Password
+                Uložiť heslo
               </button>
             </div>
           </div>
@@ -61,32 +61,32 @@ export default {
   methods: {
     async updatePassword() {
       try {
-        // Validate passwords match
+        // Validácia zhody hesiel
         if (this.passwordForm.password !== this.passwordForm.password_confirmation) {
-          this.passwordError = "Passwords do not match";
+          this.passwordError = "Heslá sa nezhodujú";
           return;
         }
 
         const user = this.selectedUser();
         if (!user) return;
 
-        // Create password update data
+        // Vytvorenie údajov pre aktualizáciu hesla
         const passwordData = {
           password: this.passwordForm.password,
           password_confirmation: this.passwordForm.password_confirmation
         };
 
-        // Call API to update password
+        // Volanie API na aktualizáciu hesla
         await this.adminPanel.updateUser(user.id, passwordData);
         
-        // Reset form and emit event
+        // Reset formulára a emitovanie udalosti
         this.passwordForm = { password: "", password_confirmation: "" };
         this.passwordError = "";
         this.$emit('password-updated');
         
       } catch (error) {
-        console.error("Error updating password:", error);
-        this.passwordError = error.response?.data?.message || error.message || "Failed to update password";
+        console.error("Chyba pri aktualizácii hesla:", error);
+        this.passwordError = error.response?.data?.message || error.message || "Nepodarilo sa aktualizovať heslo";
       }
     }
   }

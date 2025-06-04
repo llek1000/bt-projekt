@@ -3,7 +3,6 @@
     <div class="footer-content">
       <div class="container">
         <div class="footer-grid">
-          <!-- Informácie o univerzite -->
           <div class="footer-column">
             <div class="footer-logo">
               <div class="logo-wrapper">
@@ -39,7 +38,6 @@
             </div>
           </div>
 
-          <!-- Navigácia -->
           <div class="footer-column">
             <h3>Navigácia</h3>
             <ul class="footer-links">
@@ -50,7 +48,6 @@
             </ul>
           </div>
 
-          <!-- Kontakt a sociálne siete -->
           <div class="footer-column">
             <h3>Spojte sa s nami</h3>
             <div class="social-media">
@@ -107,7 +104,6 @@ export default defineComponent({
   methods: {
     subscribeNewsletter() {
       if (this.newsletterEmail) {
-        // Implementovať newsletter subscription
         console.log('Prihlásenie k newsletteru:', this.newsletterEmail)
         alert('Ďakujeme za prihlásenie k našemu newsletteru!')
         this.newsletterEmail = ''
@@ -118,10 +114,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-/* CSS Variables */
 :root {
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
@@ -142,7 +136,6 @@ export default defineComponent({
   padding: 0 1.5rem;
 }
 
-/* Footer */
 .footer {
   background: #a48df0;
   color: var(--white);
@@ -192,7 +185,6 @@ export default defineComponent({
   background: var(--accent-color);
 }
 
-/* Logo Section */
 .footer-logo {
   margin-bottom: 1.5rem;
 }
@@ -236,7 +228,6 @@ export default defineComponent({
   font-size: 0.95rem;
 }
 
-/* Contact Info */
 .contact-info {
   display: flex;
   flex-direction: column;
@@ -257,7 +248,6 @@ export default defineComponent({
   text-align: center;
 }
 
-/* Footer Links */
 .footer-links {
   list-style: none;
   padding: 0;
@@ -297,7 +287,6 @@ export default defineComponent({
   width: 0.25rem;
 }
 
-/* Social Media */
 .social-media {
   display: flex;
   gap: 1rem;
@@ -331,7 +320,6 @@ export default defineComponent({
 .social-icon.youtube:hover { background: #ff0000; }
 .social-icon.instagram:hover { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
 
-/* Newsletter */
 .newsletter {
   margin-top: 1.5rem;
 }
@@ -398,7 +386,6 @@ export default defineComponent({
   box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
 }
 
-/* Footer Bottom */
 .footer-bottom {
   background: var(--bg-dark-black);
   padding: 1.5rem 0;
@@ -435,7 +422,7 @@ export default defineComponent({
   color: var(--accent-color);
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .footer-grid {
     grid-template-columns: 1fr;

@@ -34,7 +34,6 @@ export interface UpdateArticleRequest {
   author_name?: string
 }
 
-// API Response interfaces
 export interface BaseApiResponse {
   message?: string
 }
@@ -77,7 +76,7 @@ export const articleApi = {
       return response.data?.data || null
     } catch (error) {
       console.error('Error fetching article:', error)
-      if (error.response?.status === 404) {
+      if (typeof error === 'object' && error !== null && 'response' in error && (error as any).response?.status === 404) {
         return null
       }
       throw error

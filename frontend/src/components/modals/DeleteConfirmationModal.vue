@@ -2,22 +2,22 @@
   <div class="modal">
     <div class="modal-content confirmation-modal">
       <div class="modal-header">
-        <h3>Confirm Deletion</h3>
+        <h3>Potvrdiť odstránenie</h3>
         <button @click="$emit('close')" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
         <p>
-          Are you sure you want to delete the user
+          Ste si istí, že chcete odstrániť používateľa
           <strong>{{ selectedUser() ? selectedUser().name : '' }}</strong>?
         </p>
-        <p class="warning-text">This action cannot be undone.</p>
+        <p class="warning-text">Táto akcia sa nedá vrátiť späť.</p>
 
         <div class="form-actions">
           <button @click="$emit('close')" class="btn-cancel">
-            Cancel
+            Zrušiť
           </button>
           <button @click="confirmDelete" class="btn-delete">
-            Yes, Delete User
+            Áno, odstrániť používateľa
           </button>
         </div>
       </div>
@@ -37,18 +37,18 @@ export default {
         const user = this.selectedUser();
         if (!user) return;
         
-        // Call API to delete user
+        // Volanie API na odstránenie používateľa
         await this.adminPanel.deleteUser(user.id);
         this.$emit('confirm');
         
       } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error("Chyba pri odstraňovaní používateľa:", error);
 
-        // Handle forbidden errors (like trying to delete an admin)
+        // Spracovanie chýb oprávnenia (napríklad pokus o odstránenie admin používateľa)
         if (error.response && error.response.status === 403) {
-          alert(error.response.data.message || "You don't have permission to delete this user.");
+          alert(error.response.data.message || "Nemáte oprávnenie na odstránenie tohto používateľa.");
         } else {
-          alert("Failed to delete user: " + (error.response?.data?.message || error.message || "Unknown error"));
+          alert("Nepodarilo sa odstrániť používateľa: " + (error.response?.data?.message || error.message || "Neznáma chyba"));
         }
         
         this.$emit('close');

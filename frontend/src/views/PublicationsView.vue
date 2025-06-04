@@ -3,7 +3,6 @@
     <NavbarComponent />
     
     <main class="main-content">
-      <!-- Hero Section -->
       <section class="hero-section">
         <div class="hero-background">
           <div class="hero-overlay"></div>
@@ -36,11 +35,9 @@
         </div>
       </section>
 
-      <!-- Filter Section -->
       <section class="filter-section">
         <div class="container">
           <div class="filter-wrapper">
-            <!-- Search -->
             <div class="search-container">
               <div class="search-input-wrapper">
                 <i class="search-icon">🔍</i>
@@ -60,7 +57,6 @@
               </div>
             </div>
 
-            <!-- Filters -->
             <div class="filter-controls">
               <div class="filter-group">
                 <label for="conferenceYear">Ročník:</label>
@@ -82,7 +78,6 @@
             </div>
           </div>
 
-          <!-- Active Filters -->
           <div v-if="hasActiveFilters" class="active-filters">
             <span class="filter-label">Aktívne filtre:</span>
             <div class="filter-tags">
@@ -102,7 +97,6 @@
         </div>
       </section>
 
-      <!-- Publications Content -->
       <section class="publications-content">
         <div class="container">
           <div class="results-summary">
@@ -113,13 +107,11 @@
             </h2>
           </div>
 
-          <!-- Loading State -->
           <div v-if="isLoading" class="loading-state">
             <div class="loading-spinner"></div>
             <p>Načítavam publikácie...</p>
           </div>
 
-          <!-- Error State -->
           <div v-else-if="error" class="error-state">
             <div class="error-icon">⚠️</div>
             <h3>Chyba pri načítavaní</h3>
@@ -129,7 +121,6 @@
             </button>
           </div>
 
-          <!-- Empty State -->
           <div v-else-if="filteredArticles.length === 0" class="empty-state">
             <div class="empty-icon">📄</div>
             <h3>Žiadne publikácie</h3>
@@ -148,7 +139,7 @@
             </button>
           </div>
 
-          <!-- Publications Grid -->
+
           <div v-else class="publications-grid">
             <article 
               v-for="article in paginatedArticles" 
@@ -201,7 +192,6 @@
             </article>
           </div>
 
-          <!-- Pagination -->
           <div v-if="totalPages > 1" class="pagination-wrapper">
             <div class="pagination">
               <div class="page-numbers">
@@ -267,19 +257,15 @@ export default {
   
   data() {
     return {
-      // Data
       articles: [],
       conferenceYears: [],
-      
-      // Loading states
+     
       isLoading: false,
       error: null,
       
-      // Filters
       searchQuery: '',
       selectedConferenceYear: '',
       
-      // Pagination
       currentPage: 1,
       articlesPerPage: 12
     }
@@ -319,7 +305,6 @@ export default {
 
   watch: {
     filteredArticles() {
-      // Reset to first page when filters change
       this.currentPage = 1
     }
   },
@@ -334,7 +319,6 @@ export default {
       this.error = null
       
       try {
-        // Load articles and conference years in parallel
         const [articlesData, conferenceYearsData] = await Promise.all([
           articleApi.getArticles(),
           conferenceYearApi.getConferenceYears()
@@ -377,11 +361,9 @@ export default {
 </script>
 
 <style scoped>
-/* Vaše existujúce CSS štýly zostávajú nezmenené */
-/* Import Google Fonts */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
-/* CSS Variables */
 :root {
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
@@ -404,7 +386,7 @@ export default {
   --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-/* Base Styles */
+
 * {
   box-sizing: border-box;
 }
@@ -428,7 +410,6 @@ export default {
   flex: 1;
 }
 
-/* Hero Section */
 .hero-section {
   position: relative;
   min-height: 60vh;
@@ -528,7 +509,6 @@ export default {
   margin-top: 0.5rem;
 }
 
-/* Filter Section */
 .filter-section {
   background: var(--bg-secondary);
   padding: 2rem 0;
@@ -629,7 +609,6 @@ export default {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Active Filters */
 .active-filters {
   display: flex;
   align-items: center;
@@ -700,7 +679,6 @@ export default {
   color: var(--primary-color);
 }
 
-/* Publications Content */
 .publications-content {
   padding: 3rem 0;
 }
@@ -712,7 +690,6 @@ export default {
   margin-bottom: 2rem;
 }
 
-/* Loading, Error, Empty States */
 .loading-state,
 .error-state,
 .empty-state {
@@ -762,7 +739,6 @@ export default {
   background: var(--primary-dark);
 }
 
-/* Publications Grid */
 .publications-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -900,7 +876,6 @@ export default {
   transform: translateX(3px);
 }
 
-/* Pagination */
 .pagination-wrapper {
   display: flex;
   justify-content: center;
@@ -959,7 +934,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;

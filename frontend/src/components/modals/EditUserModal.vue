@@ -2,47 +2,53 @@
   <div class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Edit User: {{ selectedUser() ? selectedUser().name : '' }}</h3>
+        <h3>Upraviť používateľa: {{ selectedUser() ? selectedUser().name : '' }}</h3>
         <button @click="$emit('close')" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
         <form @submit.prevent="updateUser">
           <div class="form-group">
-            <label for="editUserName">Full Name</label>
+            <label for="editUserName">Celé meno</label>
             <input type="text" id="editUserName" v-model="editUserForm.name" required />
           </div>
           
           <div class="form-group">
-            <label for="editUserEmail">Email Address</label>
+            <label for="editUserEmail">E-mailová adresa</label>
             <input type="email" id="editUserEmail" v-model="editUserForm.email" required />
           </div>
           
           <div class="form-group">
-            <label for="editUserRole">User Role</label>
+            <label for="editUserRole">Rola používateľa</label>
             <select id="editUserRole" v-model="editUserForm.roleId" required>
-              <option value="">-- Select a role --</option>
-              <option v-for="role in roles()" :key="role.id" :value="role.id">
+              <option value="">Vyberte rolu</option>
+              <option 
+                v-for="role in roles()" 
+                :key="role.id" 
+                :value="role.id"
+              >
                 {{ role.name }}
               </option>
             </select>
           </div>
           
-          <!-- Password change button -->
+          <!-- Tlačidlo na zmenu hesla -->
           <div class="form-group password-change-container">
             <button type="button" @click="$emit('change-password')" class="btn-secondary">
-              Change Password
+              Zmeniť heslo
             </button>
           </div>
           
           <div class="form-actions">
             <button type="button" @click="$emit('delete')" class="btn-delete">
-              Delete User
+              Odstrániť používateľa
             </button>
             <div class="right-actions">
               <button type="button" @click="$emit('close')" class="btn-cancel">
-                Cancel
+                Zrušiť
               </button>
-              <button type="submit" class="btn-save">Update User</button>
+              <button type="submit" class="btn-save">
+                Uložiť zmeny
+              </button>
             </div>
           </div>
         </form>
@@ -75,13 +81,23 @@ export default {
       handler() {
         const user = this.selectedUser();
         if (user) {
-          const matchingRole = this.roles().find(r => r.name === user.role);
-          const roleId = matchingRole ? matchingRole.id : "";
+          // Nájdi zhodujúcu sa rolu
+          let roleId = "";
+          if (user.roles && user.roles.length > 0) {
+            // Ak má používateľ role ako pole objektov
+            const userRole = user.roles[0]; // Vezmi prvú rolu
+            const matchingRole = this.roles().find(r => r.name === userRole.name);
+            roleId = matchingRole ? matchingRole.id : "";
+          } else if (user.role) {
+            // Ak má používateľ role ako reťazec
+            const matchingRole = this.roles().find(r => r.name === user.role);
+            roleId = matchingRole ? matchingRole.id : "";
+          }
           
           this.editUserForm = {
             id: user.id,
-            name: user.name,
-            email: user.email,
+            name: user.username || user.name || "", // Skús obidve možnosti
+            email: user.email || "",
             roleId: roleId
           };
         }
@@ -93,39 +109,39 @@ export default {
     async updateUser() {
       try {
         if (!this.editUserForm.roleId) {
-          alert("Please select a role");
+          alert("Prosím vyberte rolu");
           return;
         }
 
-        // Create user data object
+        // Vytvor objekt používateľských údajov
         const userData = {
           username: this.editUserForm.name,
           email: this.editUserForm.email,
         };
 
-        console.log("Updating user:", JSON.stringify(userData));
+        console.log("Aktualizovanie používateľa:", JSON.stringify(userData));
 
-        // Call API to update user details
+        // Volanie API na aktualizáciu detailov používateľa
         const userResponse = await this.adminPanel.updateUser(this.editUserForm.id, userData);
-        console.log("Update user response:", userResponse);
+        console.log("Odpoveď aktualizácie používateľa:", userResponse);
 
-        // Also update the user's role
+        // Tiež aktualizuj rolu používateľa
         const roleResponse = await this.adminPanel.assignRole(
           this.editUserForm.id,
           parseInt(this.editUserForm.roleId)
         );
-        console.log("Role assignment response:", roleResponse);
+        console.log("Odpoveď priradenia role:", roleResponse);
 
         this.$emit('user-updated');
       } catch (error) {
-        console.error("Error updating user:", error);
+        console.error("Chyba pri aktualizácii používateľa:", error);
         
-        // Handle specific errors for admin demotion
+        // Spracovanie špecifických chýb pre degradáciu administrátora
         if (error.response && error.response.status === 403 && 
             error.response.data.error === 'admin_protection') {
-          alert("Cannot demote an administrator account.");
+          alert("Nie je možné degradovať administrátorský účet.");
         } else {
-          alert("Failed to update user: " + (error.response?.data?.message || error.message || "Unknown error"));
+          alert("Nepodarilo sa aktualizovať používateľa: " + (error.response?.data?.message || error.message || "Neznáma chyba"));
         }
       }
     }

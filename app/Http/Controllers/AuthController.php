@@ -49,28 +49,26 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-
             if ($request->user()) {
-
                 $request->user()->currentAccessToken()->delete();
-
+                
                 Log::info('Úspešné odhlásenie', [
                     'user_id' => $request->user()->id,
                     'ip' => $request->ip()
                 ]);
+                
+                return $this->success([], 'Odhlásenie úspešné');
             }
-
-
-            return $this->success([], 'Odhlásenie úspešné');
+            
+            return $this->success([], 'Už ste odhlásený');
+            
         } catch (\Exception $e) {
-
-            Log::warning('Chyba pri odhlasovaní', [
+            Log::error('Chyba pri odhlasovaní', [
                 'error' => $e->getMessage(),
                 'ip' => $request->ip()
             ]);
 
-
-            return $this->success([], 'Odhlásenie úspešné');
+            return $this->error('Chyba pri odhlasovaní', null, 500);
         }
     }
 

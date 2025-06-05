@@ -740,24 +740,24 @@ const editorConfig = ref({
     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
     'insertdatetime', 'media', 'table', 'help', 'wordcount', 'emoticons',
-    'template', 'codesample', 'hr', 'pagebreak', 'nonbreaking', 'toc',
-    'imagetools', 'textpattern', 'noneditable', 'quickbars', 'accordion',
+    'codesample', 'pagebreak', 'nonbreaking', 'quickbars', 'accordion',
     'autosave', 'directionality', 'visualchars', 'importcss'
   ],
   
   // Toolbar configuration
   toolbar: [
     'undo redo | bold italic underline strikethrough | fontfamily fontsize blocks',
-    'alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist checklist',
+    'alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist',
     'forecolor backcolor removeformat | pagebreak | charmap emoticons',
-    'link anchor | image media table | lineheight | hr | codesample',
-    'fullscreen preview save print | ltr rtl | template | accordion | code visualblocks'
+    'link anchor | image media table | lineheight | codesample',
+    'fullscreen preview save print | ltr rtl | accordion | code visualblocks',
+    'customtools'
   ].join(' | '),
   
   // Quickbars
   quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
-  quickbars_insert_toolbar: 'quickimage quicktable hr pagebreak',
-  contextmenu: 'link image table configurepermanentpen',
+  quickbars_insert_toolbar: 'quickimage quicktable pagebreak',
+  contextmenu: 'link image table',
   
   // Image handling
   automatic_uploads: true,
@@ -932,14 +932,6 @@ const editorConfig = ref({
       padding: 0;
     }
     
-    .mce-content-body hr {
-      border: none;
-      height: 3px;
-      background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-      margin: 2rem 0;
-      border-radius: 2px;
-    }
-    
     ul, ol {
       padding-left: 2rem;
       margin: 1rem 0;
@@ -960,40 +952,6 @@ const editorConfig = ref({
     a:hover {
       color: #1e40af;
       border-bottom-color: #3b82f6;
-    }
-    
-    .toc {
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin: 2rem 0;
-    }
-    
-    .toc h2 {
-      margin-top: 0;
-      color: #1f2937;
-      font-size: 1.25rem;
-    }
-    
-    .accordion {
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      margin: 1rem 0;
-      overflow: hidden;
-    }
-    
-    .accordion-header {
-      background: #f8fafc;
-      padding: 1rem;
-      cursor: pointer;
-      border-bottom: 1px solid #e5e7eb;
-      font-weight: 600;
-    }
-    
-    .accordion-content {
-      padding: 1rem;
-      background: white;
     }
     
     mark {
@@ -1036,170 +994,6 @@ const editorConfig = ref({
   
   // Block formats
   block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre; Blockquote=blockquote; Div=div',
-  
-  // Templates
-  templates: [
-    {
-      title: 'Základná štruktúra článku',
-      description: 'Štandardná štruktúra pre konferenčný článok',
-      content: `
-        <h1>Názov článku</h1>
-        <p><strong>Autor:</strong> Meno autora</p>
-        <p><strong>Kľúčové slová:</strong> kľúčové, slová, článku</p>
-        
-        <h2>Abstrakt</h2>
-        <blockquote>
-          <p>Krátky popis článku a jeho hlavných prínosov. Abstrakt by mal obsahovať ciele, metodológiu, hlavné výsledky a závery práce.</p>
-        </blockquote>
-        
-        <h2>1. Úvod</h2>
-        <p>Úvodný text, ktorý predstavuje problematiku a ciele práce...</p>
-        
-        <h2>2. Súvisiace práce</h2>
-        <p>Prehľad existujúcich riešení a prístupov...</p>
-        
-        <h2>3. Metodológia</h2>
-        <p>Popis použitej metodológie a prístupu...</p>
-        
-        <h2>4. Implementácia</h2>
-        <p>Detaily implementácie riešenia...</p>
-        
-        <h2>5. Výsledky</h2>
-        <p>Prezentácia dosiahnutých výsledkov...</p>
-        
-        <h2>6. Diskusia</h2>
-        <p>Diskusia o výsledkoch a ich interpretácia...</p>
-        
-        <h2>7. Záver</h2>
-        <p>Záverečné zhrnutie a možnosti ďalšieho výskumu...</p>
-        
-        <h2>Referencie</h2>
-        <ol>
-          <li>Autor, A. (2024). Názov publikácie. Vydavateľstvo.</li>
-          <li>Autor, B. (2024). Názov článku. Časopis, 1(1), 1-10.</li>
-        </ol>
-      `
-    },
-    {
-      title: 'Tabuľka porovnania',
-      description: 'Tabuľka pre porovnanie metód alebo technológií',
-      content: `
-        <h3>Porovnanie metód</h3>
-        <table style="width: 100%;">
-          <thead>
-            <tr>
-              <th>Metóda</th>
-              <th>Výhody</th>
-              <th>Nevýhody</th>
-              <th>Použitie</th>
-              <th>Hodnotenie</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Metóda A</td>
-              <td>Rýchla, jednoduchá</td>
-              <td>Menej presná</td>
-              <td>Základné aplikácie</td>
-              <td>⭐⭐⭐</td>
-            </tr>
-            <tr>
-              <td>Metóda B</td>
-              <td>Veľmi presná</td>
-              <td>Pomalšia</td>
-              <td>Pokročilé aplikácie</td>
-              <td>⭐⭐⭐⭐⭐</td>
-            </tr>
-          </tbody>
-        </table>
-      `
-    },
-    {
-      title: 'Kód s vysvetlením',
-      description: 'Blok kódu s komentármi',
-      content: `
-        <h3>Implementácia algoritmu</h3>
-        <p>Nasledujúci kód implementuje základný algoritmus:</p>
-        <pre><code class="language-javascript">
-function exampleAlgorithm(data) {
-    // Inicializácia premenných
-    let result = [];
-    
-    // Iterácia cez dáta
-    for (let i = 0; i < data.length; i++) {
-        // Spracovanie každého prvku
-        if (data[i] > 0) {
-            result.push(data[i] * 2);
-        }
-    }
-    
-    return result;
-}
-        </code></pre>
-        <p>Tento algoritmus spracováva vstupné dáta a vracia výsledok...</p>
-      `
-    },
-    {
-      title: 'Obrázok s popisom',
-      description: 'Štruktúra pre obrázok s detailným popisom',
-      content: `
-        <h3>Diagram architektúry</h3>
-        <p style="text-align: center;">
-          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZmFmYyIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSIyMDAiIHk9IjEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzZiNzI4MCIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNizemU9IjE0cHgiPk9icsOhem9rPC90ZXh0Pgo8L3N2Zz4K" alt="Príklad diagramu" style="max-width: 100%; height: auto;" />
-        </p>
-        <p><strong>Obrázok 1:</strong> Diagram znázorňuje architektúru systému s hlavnými komponentmi a ich vzájomnými súvislosťami.</p>
-        <p>Ako je vidieť na obrázku, systém sa skladá z...</p>
-      `
-    }
-  ],
-  
-  // Table options
-  table_use_colgroups: true,
-  table_default_attributes: {
-    'border': '0',
-    'cellpadding': '0',
-    'cellspacing': '0'
-  },
-  table_default_styles: {
-    'border-collapse': 'collapse',
-    'width': '100%',
-    'border': '2px solid #e5e7eb',
-    'border-radius': '8px'
-  },
-  table_class_list: [
-    { title: 'Štandardná tabuľka', value: 'table-standard' },
-    { title: 'Tabuľka s pruhmi', value: 'table-striped' },
-    { title: 'Kompaktná tabuľka', value: 'table-compact' },
-    { title: 'Tabuľka s okrajmi', value: 'table-bordered' }
-  ],
-  
-  // Advanced options
-  paste_data_images: true,
-  paste_as_text: false,
-  paste_webkit_styles: 'all',
-  paste_remove_styles_if_webkit: false,
-  paste_merge_formats: true,
-  
-  // Custom formats
-  formats: {
-    alignleft: { selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', styles: { textAlign: 'left' } },
-    aligncenter: { selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', styles: { textAlign: 'center' } },
-    alignright: { selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', styles: { textAlign: 'right' } },
-    alignjustify: { selector: 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', styles: { textAlign: 'justify' } },
-    bold: { inline: 'strong' },
-    italic: { inline: 'em' },
-    underline: { inline: 'u' },
-    strikethrough: { inline: 'del' },
-    superscript: { inline: 'sup' },
-    subscript: { inline: 'sub' },
-    code: { inline: 'code' },
-    highlight: { inline: 'mark', styles: { backgroundColor: '#fef3c7', color: '#92400e' } },
-    removeformat: [
-      { selector: 'b,strong,em,i,font,u,strike,sub,sup,dfn,code,samp,kbd,var,cite,mark,q,del,ins', remove: 'all', split: true, expand: false, block_expand: true, deep: true },
-      { selector: 'span', attributes: ['style', 'class'], remove: 'empty', split: true, expand: false, deep: true },
-      { selector: '*', attributes: ['style', 'class'], split: false, expand: false, deep: true }
-    ]
-  },
   
   // Code sample options
   codesample_languages: [
@@ -1268,76 +1062,13 @@ function exampleAlgorithm(data) {
       }
     })
     
-    // Custom button for inserting citation
-    editor.ui.registry.addButton('citation', {
-      text: '📚 Citácia',
-      tooltip: 'Vložiť citáciu',
-      onAction: () => {
-        editor.windowManager.open({
-          title: 'Vložiť citáciu',
-          body: {
-            type: 'panel',
-            items: [
-              {
-                type: 'input',
-                name: 'author',
-                label: 'Autor'
-              },
-              {
-                type: 'input',
-                name: 'title',
-                label: 'Názov'
-              },
-              {
-                type: 'input',
-                name: 'year',
-                label: 'Rok'
-              },
-              {
-                type: 'input',
-                name: 'publisher',
-                label: 'Vydavateľ'
-              }
-            ]
-          },
-          buttons: [
-            {
-              type: 'cancel',
-              text: 'Zrušiť'
-            },
-            {
-              type: 'submit',
-              text: 'Vložiť',
-              primary: true
-            }
-          ],
-          onSubmit: (api: any) => {
-            const data = api.getData()
-            const citation = `${data.author} (${data.year}). <em>${data.title}</em>. ${data.publisher}.`
-            editor.insertContent(`<p style="margin-left: 2rem; font-style: italic;">${citation}</p>`)
-            api.close()
-          }
-        })
-      }
-    })
-    
     // Add custom toolbar
     editor.ui.registry.addGroupToolbarButton('customtools', {
       icon: 'more-drawer',
       tooltip: 'Ďalšie nástroje',
-      items: 'university_info citation'
+      items: 'university_info'
     })
-  },
-  
-  // Extend toolbar with custom tools
-  toolbar: [
-    'undo redo | bold italic underline strikethrough | fontfamily fontsize blocks',
-    'alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist checklist',
-    'forecolor backcolor removeformat | pagebreak | charmap emoticons',
-    'link anchor | image media table | lineheight | hr | codesample',
-    'fullscreen preview save print | ltr rtl | template | accordion | code visualblocks',
-    'customtools'
-  ].join(' | ')
+  }
 })
 
 // Computed

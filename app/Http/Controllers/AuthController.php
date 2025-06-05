@@ -51,17 +51,17 @@ class AuthController extends Controller
         try {
             if ($request->user()) {
                 $request->user()->currentAccessToken()->delete();
-                
+
                 Log::info('Úspešné odhlásenie', [
                     'user_id' => $request->user()->id,
                     'ip' => $request->ip()
                 ]);
-                
+
                 return $this->success([], 'Odhlásenie úspešné');
             }
-            
+
             return $this->success([], 'Už ste odhlásený');
-            
+
         } catch (\Exception $e) {
             Log::error('Chyba pri odhlasovaní', [
                 'error' => $e->getMessage(),
@@ -70,62 +70,6 @@ class AuthController extends Controller
 
             return $this->error('Chyba pri odhlasovaní', null, 500);
         }
-    }
-
-    public function me(Request $request)
-    {
-        try {
-            $user = $request->user()->load('roles');
-
-            return $this->success([
-                'user' => $user,
-                'redirect_url' => $this->getRedirectUrl($user)
-            ]);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'Chyba pri získavaní údajov používateľa', 'Nepodarilo sa načítať údaje používateľa');
-        }
-    }
-
-    public function register(Request $request)
-    {
-        return $this->executeWithTransaction(function() use ($request) {
-            $errors = $this->validateRequest($request, [
-                'username' => 'required|string|max:255|unique:users',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-            ], [
-                'username.required' => 'Meno používateľa je povinné',
-                'username.unique' => 'Toto meno používateľa už existuje',
-                'email.required' => 'Email je povinný',
-                'email.email' => 'Email musí mať platný formát',
-                'email.unique' => 'Tento email už existuje',
-                'password.required' => 'Heslo je povinné',
-                'password.min' => 'Heslo musí mať najmenej 8 znakov',
-                'password.confirmed' => 'Potvrdenie hesla sa nezhoduje',
-            ]);
-
-            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
-
-            $user = User::create([
-                'username' => $request->username,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
-
-            $token = $user->createToken('auth-token')->plainTextToken;
-
-            Log::info('Úspešná registrácia', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'ip' => $request->ip()
-            ]);
-
-            return $this->success([
-                'user' => $user,
-                'token' => $token,
-                'redirect_url' => $this->getRedirectUrl($user)
-            ], 'Registrácia úspešná', 201);
-        }, 'Chyba pri registrácii');
     }
 
     private function getRedirectUrl($user)

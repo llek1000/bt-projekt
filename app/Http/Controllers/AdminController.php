@@ -8,35 +8,19 @@ use App\Models\ConferenceYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AdminController extends Controller
 {
-    /**
-     * Check if a user is an admin
-     */
-    private function isAdmin($user)
-    {
-        return $user->roles()->where('roles.name', 'Admin')->exists();
-    }
-
     /**
      * Get all users
      */
     public function getUsers()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $users = User::with('roles')->get();
-            return response()->json(['users' => $users]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Nepodarilo sa načítať používateľov',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['users' => $users]);
+        }, 'Nepodarilo sa načítať používateľov');
     }
 
     /**
@@ -44,8 +28,8 @@ class AdminController extends Controller
      */
     public function createUser(Request $request)
     {
-        try {
-            $validated = $request->validate([
+        return $this->executeWithTransaction(function() use ($request) {
+            $errors = $this->validateRequest($request, [
                 'username' => 'required|string|max:255|unique:users',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:8',
@@ -64,20 +48,20 @@ class AdminController extends Controller
                 'roles.array' => 'Role musia byť v správnom formáte',
             ]);
 
-            DB::beginTransaction();
+            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
 
             $user = User::create([
-                'username' => $validated['username'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
             ]);
 
             if (!$user) {
                 throw new \Exception('Nepodarilo sa vytvoriť používateľa');
             }
 
-            if (isset($validated['roles'])) {
-                foreach ($validated['roles'] as $roleName) {
+            if ($request->roles) {
+                foreach ($request->roles as $roleName) {
                     $role = Role::where('name', $roleName)->first();
                     if ($role) {
                         $user->roles()->attach($role->id);
@@ -85,21 +69,8 @@ class AdminController extends Controller
                 }
             }
 
-            DB::commit();
-
-            return response()->json(['user' => $user->load('roles')], 201);
-
-        } catch (ValidationException $e) {
-            DB::rollBack();
-            return response()->json([
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['user' => $user->load('roles')], 'Používateľ bol vytvorený', 201);
+        }, 'Chyba pri vytváraní používateľa');
     }
 
     /**
@@ -107,19 +78,15 @@ class AdminController extends Controller
      */
     public function updateUser(Request $request, $id)
     {
-        try {
+        return $this->executeWithTransaction(function() use ($request, $id) {
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
-
-            if ($this->isAdmin($user) && $user->id !== $currentUser->id) {
-                return response()->json([
-                    'message' => 'Nemôžete upraviť účet iného administrátora',
-                    'error' => 'admin_protection'
-                ], 403);
+            if ($this->hasRole($user, 'admin') && $user->id !== $currentUser->id) {
+                return $this->error('Nemôžete upraviť účet iného administrátora', 'admin_protection', 403);
             }
 
-            $validated = $request->validate([
+            $errors = $this->validateRequest($request, [
                 'username' => 'sometimes|string|max:255',
                 'email' => [
                     'sometimes',
@@ -143,53 +110,34 @@ class AdminController extends Controller
                 'roles.array' => 'Role musia byť v správnom formáte',
             ]);
 
-            DB::beginTransaction();
+            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
 
-            if (isset($validated['username'])) {
-                $user->username = $validated['username'];
+            if ($request->has('username')) {
+                $user->username = $request->username;
             }
 
-            if (isset($validated['email'])) {
-                $user->email = $validated['email'];
+            if ($request->has('email')) {
+                $user->email = $request->email;
             }
 
-            if (isset($validated['password'])) {
-                $user->password = Hash::make($validated['password']);
+            if ($request->has('password')) {
+                $user->password = Hash::make($request->password);
             }
 
             if (!$user->save()) {
                 throw new \Exception('Nepodarilo sa aktualizovať používateľa');
             }
 
-            if (isset($validated['roles'])) {
-                $roles = Role::whereIn('name', $validated['roles'])->get();
+            if ($request->has('roles')) {
+                $roles = Role::whereIn('name', $request->roles)->get();
                 if ($roles->isEmpty()) {
                     throw new \Exception('Vybrané role neboli nájdené');
                 }
                 $user->roles()->sync($roles);
             }
 
-            DB::commit();
-
-            return response()->json(['user' => $user->load('roles')]);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Používateľ nebol nájdený'
-            ], 404);
-        } catch (ValidationException $e) {
-            DB::rollBack();
-            return response()->json([
-                'error' => 'Neplatné údaje',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'error' => 'Nepodarilo sa aktualizovať používateľa',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['user' => $user->load('roles')], 'Používateľ bol aktualizovaný');
+        }, 'Chyba pri aktualizácii používateľa');
     }
 
     /**
@@ -197,109 +145,67 @@ class AdminController extends Controller
      */
     public function deleteUser($id)
     {
-        try {
+        return $this->executeWithTransaction(function() use ($id) {
             $user = User::findOrFail($id);
             $currentUser = Auth::user();
 
-            if ($this->isAdmin($user)) {
-                return response()->json([
-                    'message' => 'Nemôžete vymazať účet administrátora',
-                    'error' => 'admin_protection'
-                ], 403);
+            // POUŽITIE hasRole NAMIESTO isAdmin
+            if ($this->hasRole($user, 'admin')) {
+                return $this->error('Nemôžete vymazať účet administrátora', 'admin_protection', 403);
             }
 
             if ($user->id === $currentUser->id) {
-                return response()->json([
-                    'message' => 'Nemôžete vymazať svoj vlastný účet',
-                    'error' => 'self_deletion_protection'
-                ], 403);
+                return $this->error('Nemôžete vymazať svoj vlastný účet', 'self_deletion_protection', 403);
             }
 
             if (!$user->delete()) {
                 throw new \Exception('Nepodarilo sa vymazať používateľa');
             }
 
-            return response()->json(['message' => 'Používateľ bol úspešne vymazaný']);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Používateľ nebol nájdený'
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Nepodarilo sa vymazať používateľa',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return $this->success([], 'Používateľ bol úspešne vymazaný');
+        }, 'Chyba pri mazaní používateľa');
     }
 
     public function getRoles()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $roles = Role::all();
-            return response()->json(['roles' => $roles]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Nepodarilo sa načítať role',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['roles' => $roles]);
+        }, 'Nepodarilo sa načítať role');
     }
 
     public function assignUserRole(Request $request, $userId)
     {
-        try {
-            $validated = $request->validate([
+        return $this->executeWithTransaction(function() use ($request, $userId) {
+            $errors = $this->validateRequest($request, [
                 'roleId' => 'required|exists:roles,id',
             ], [
                 'roleId.required' => 'ID role je povinné',
                 'roleId.exists' => 'Vybraná rola neexistuje',
             ]);
 
+            if ($errors) return $this->error('Neplatné údaje', $errors, 422);
+
             $user = User::findOrFail($userId);
-            $role = Role::findOrFail($validated['roleId']);
+            $role = Role::findOrFail($request->roleId);
             $currentUser = Auth::user();
 
-            if ($this->isAdmin($user) && $user->id !== $currentUser->id) {
-                return response()->json([
-                    'message' => 'Nemôžete zmeniť rolu iného administrátora',
-                    'error' => 'admin_protection'
-                ], 403);
+            // POUŽITIE hasRole NAMIESTO isAdmin
+            if ($this->hasRole($user, 'admin') && $user->id !== $currentUser->id) {
+                return $this->error('Nemôžete zmeniť rolu iného administrátora', 'admin_protection', 403);
             }
 
-            DB::beginTransaction();
-
             $user->roles()->sync([$role->id]);
-
 
             $roleExists = $user->roles()->where('roles.id', $role->id)->exists();
             if (!$roleExists) {
                 throw new \Exception('Nepodarilo sa priradiť rolu');
             }
 
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Rola bola úspešne priradená',
+            return $this->success([
                 'user' => $user->load('roles')
-            ]);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Používateľ alebo rola neboli nájdené'
-            ], 404);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Neplatné údaje',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'error' => 'Nepodarilo sa priradiť rolu',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+            ], 'Rola bola úspešne priradená');
+        }, 'Chyba pri priraďovaní role');
     }
 
     /**
@@ -307,19 +213,15 @@ class AdminController extends Controller
      */
     public function getEditors()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $editors = User::with('roles')
                 ->whereHas('roles', function($query) {
                     $query->where('name', 'editor');
                 })
                 ->get();
 
-            return response()->json(['editors' => $editors]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Chyba pri načítavaní editorov: ' . $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['editors' => $editors]);
+        }, 'Chyba pri načítavaní editorov');
     }
 
     /**
@@ -327,7 +229,7 @@ class AdminController extends Controller
      */
     public function getYearsWithEditors()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $yearsWithEditors = ConferenceYear::with([
                 'editorAssignments.user.roles'
             ])
@@ -355,18 +257,13 @@ class AdminController extends Controller
                 ];
             });
 
-            return response()->json(['data' => $yearsWithEditors]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Chyba pri načítavaní ročníkov s editormi: ' . $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['data' => $yearsWithEditors]);
+        }, 'Chyba pri načítavaní ročníkov s editormi');
     }
-
 
     public function getSystemInfo()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $info = [
                 'users_count' => User::count(),
                 'conference_years_count' => ConferenceYear::count(),
@@ -375,27 +272,18 @@ class AdminController extends Controller
                 'laravel_version' => app()->version()
             ];
 
-            return response()->json(['data' => $info]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Chyba pri načítavaní systémových informácií: ' . $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['data' => $info]);
+        }, 'Chyba pri načítavaní systémových informácií');
     }
-
 
     public function getAllFiles()
     {
-        try {
+        return $this->executeWithTransaction(function() {
             $files = \App\Models\File::with('uploader')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            return response()->json(['data' => $files]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Chyba pri načítavaní súborov: ' . $e->getMessage()
-            ], 500);
-        }
+            return $this->success(['data' => $files]);
+        }, 'Chyba pri načítavaní súborov');
     }
 }

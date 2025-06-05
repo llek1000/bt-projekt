@@ -10,9 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class EditorAssignmentController extends Controller
 {
-    /**
-     * Display a listing of editor assignments for a specific year
-     */
+
     public function index($year): JsonResponse
     {
         try {
@@ -26,9 +24,7 @@ class EditorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Store a newly created editor assignment
-     */
+
     public function store(Request $request, $year): JsonResponse
     {
         return $this->executeWithTransaction(function() use ($request, $year) {
@@ -43,7 +39,7 @@ class EditorAssignmentController extends Controller
                 return $this->error('Neplatné údaje', $errors, 422);
             }
 
-            // Check if conference year exists
+
             $conferenceYear = ConferenceYear::find($year);
             if (!$conferenceYear) {
                 return $this->error('Ročník konferencie neexistuje', [
@@ -51,7 +47,7 @@ class EditorAssignmentController extends Controller
                 ], 422);
             }
 
-            // Check if assignment already exists
+
             $existingAssignment = EditorAssignment::where('user_id', $request->user_id)
                 ->where('conference_year_id', $year)
                 ->first();
@@ -71,9 +67,7 @@ class EditorAssignmentController extends Controller
         }, 'Vytvorenie editor assignment zlyhalo');
     }
 
-    /**
-     * Remove the specified editor assignment
-     */
+
     public function destroy($year, EditorAssignment $assignment): JsonResponse
     {
         return $this->executeWithTransaction(function() use ($assignment) {
@@ -83,9 +77,7 @@ class EditorAssignmentController extends Controller
         }, 'Vymazanie editor assignment zlyhalo');
     }
 
-    /**
-     * Get assignments for the current authenticated user
-     */
+
     public function myAssignments(Request $request): JsonResponse
     {
         try {
@@ -101,9 +93,7 @@ class EditorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get all editor assignments with users and conference years
-     */
+
     public function all(): JsonResponse
     {
         try {
@@ -138,9 +128,7 @@ class EditorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get available users for assignment (users not yet assigned to the conference year)
-     */
+
     public function availableUsers($year): JsonResponse
     {
         try {
@@ -177,7 +165,7 @@ class EditorAssignmentController extends Controller
                 return $this->error('Neplatné údaje', $errors, 422);
             }
 
-            // Check if conference year exists
+
             $conferenceYear = ConferenceYear::find($year);
             if (!$conferenceYear) {
                 return $this->error('Ročník konferencie neexistuje', [
@@ -190,7 +178,7 @@ class EditorAssignmentController extends Controller
             $skippedUsers = [];
 
             foreach ($userIds as $userId) {
-                // Check if assignment already exists
+
                 $existingAssignment = EditorAssignment::where('user_id', $userId)
                     ->where('conference_year_id', $year)
                     ->first();

@@ -443,6 +443,9 @@
                     <button @click="openEditUserModal(user)" class="btn-edit" title="Upraviť">
                       ✏️
                     </button>
+                    <button @click="openPasswordChangeModal(user)" class="btn-edit" title="Zmeniť heslo">
+                      🔑
+                    </button>
                     <button @click="openDeleteConfirmModal(user)" class="btn-delete" title="Vymazať">
                       🗑️
                     </button>
@@ -663,6 +666,13 @@
       @close="showDeleteConfirmModal = false"
       @confirm="handleUserDeleted"
     />
+
+    <!-- Password Change Modal -->
+    <PasswordChangeModal 
+      v-if="showPasswordChangeModal" 
+      @close="closePasswordChangeModal" 
+      @password-updated="handlePasswordUpdated"
+    />
   </div>
 </template>
 
@@ -674,6 +684,7 @@ import NavbarComponent from '@/components/NavbarComponent.vue'
 import CreateUserModal from '@/components/modals/CreateUserModal.vue'
 import EditUserModal from '@/components/modals/EditUserModal.vue'
 import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal.vue'
+import PasswordChangeModal from '@/components/modals/PasswordChangeModal.vue'
 
 
 const yearsWithEditors = ref<any[]>([])
@@ -1591,7 +1602,7 @@ async function saveYear() {
 
 async function deleteYear(id: number) {
   try {
-    if (!confirm('Naozaj chcete vymazať tento ročník? Všetky súvisiace články a priradenia budú odstránené.')) return
+    if (!confirm('Naozaj chcete vymazať tento ročník? Všetky súvisiace články a priraďovania budú odstránené.')) return
 
     await adminPanel.deleteYear(id)
     await refreshYearsWithEditors()
@@ -1764,6 +1775,24 @@ function openEditUserModal(user: any) {
 function openDeleteConfirmModal(user: any) {
   selectedUser.value = user
   showDeleteConfirmModal.value = true
+}
+
+// Password change modal
+function openPasswordChangeModal(user: any) {
+  selectedUser.value = user
+  showPasswordChangeModal.value = true
+}
+
+function closePasswordChangeModal() {
+  showPasswordChangeModal.value = false
+  selectedUser.value = null
+}
+
+function handlePasswordUpdated() {
+  showPasswordChangeModal.value = false
+  selectedUser.value = null
+  // Refresh users if needed
+  refreshUsers()
 }
 
 function handleUserCreated() {

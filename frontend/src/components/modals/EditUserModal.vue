@@ -31,17 +31,7 @@
             </select>
           </div>
           
-          <!-- Tlačidlo na zmenu hesla -->
-          <div class="form-group password-change-container">
-            <button type="button" @click="$emit('change-password')" class="btn-secondary">
-              Zmeniť heslo
-            </button>
-          </div>
-          
           <div class="form-actions">
-            <button type="button" @click="$emit('delete')" class="btn-delete">
-              Odstrániť používateľa
-            </button>
             <div class="right-actions">
               <button type="button" @click="$emit('close')" class="btn-cancel">
                 Zrušiť

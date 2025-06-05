@@ -2,7 +2,7 @@
   <div class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Zmeniť heslo: {{ selectedUser() ? selectedUser().name : '' }}</h3>
+        <h3>Zmeniť heslo: {{ selectedUser() ? selectedUser().username : '' }}</h3>
         <button @click="$emit('close')" class="close-btn">&times;</button>
       </div>
       <div class="modal-body">
@@ -82,7 +82,10 @@ export default {
         // Reset formulára a emitovanie udalosti
         this.passwordForm = { password: "", password_confirmation: "" };
         this.passwordError = "";
+        
+        // Emitovanie udalosti pre zatvorenie modalu
         this.$emit('password-updated');
+        this.$emit('close');
         
       } catch (error) {
         console.error("Chyba pri aktualizácii hesla:", error);

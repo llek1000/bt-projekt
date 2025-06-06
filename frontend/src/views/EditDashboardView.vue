@@ -491,8 +491,14 @@ export default defineComponent({
     async loadArticles(): Promise<void> {
       this.isLoading = true
       try {
+        // Get assigned conference year IDs first
+        const assignedYearIds = this.assignments.map(a => a.conference_year_id)
+        
         const response = await editorPanel.listArticles()
-        this.articles = response.data.data || []
+        // Filter only articles from assigned conference years
+        this.articles = (response.data.data || []).filter(article =>
+          assignedYearIds.includes(article.conference_year_id)
+        )
         this.filterArticles()
       } catch (error) {
         console.error('Error loading articles:', error)
@@ -690,8 +696,9 @@ export default defineComponent({
   },
 
   async mounted() {
+    // Load assignments first, then articles
+    await this.loadAssignments()
     await Promise.all([
-      this.loadAssignments(),
       this.loadArticles(),
       this.loadFiles()
     ])
